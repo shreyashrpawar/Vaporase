@@ -2,17 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { 
-  Shield, 
-  Clock, 
-  Trash2, 
-  CheckCircle2, 
-  XCircle, 
-  Loader2, 
-  AlertCircle,
-  Globe,
-  FileText
-} from 'lucide-react';
+import { Shield, Clock, Trash2, CheckCircle2, XCircle, Loader2, AlertCircle, Globe, FileText } from 'lucide-react';
 
 export default function SecretsDashboardPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -21,162 +11,137 @@ export default function SecretsDashboardPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      fetchSecrets();
-    }
+    if (isLoaded && isSignedIn) fetchSecrets();
   }, [isLoaded, isSignedIn]);
 
   const fetchSecrets = async () => {
     try {
       const res = await fetch('/api/secrets/dashboard');
       if (!res.ok) throw new Error('Failed to fetch secrets');
-      const data = await res.json();
-      setSecrets(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      setSecrets(await res.json());
+    } catch (err: any) { setError(err.message); }
+    finally { setIsLoading(false); }
   };
 
   const handleRevoke = async (id: string) => {
-    if (!confirm('Are you sure you want to revoke this secret? It will be permanently destroyed.')) return;
-
+    if (!confirm('Revoke this secret? It will be permanently destroyed.')) return;
     try {
-      const res = await fetch('/api/secrets/revoke', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      
-      if (!res.ok) throw new Error('Failed to revoke secret');
-      
-      // Update local state
+      const res = await fetch('/api/secrets/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      if (!res.ok) throw new Error('Failed');
       setSecrets(secrets.map(s => s.id === id ? { ...s, status: 'revoked' } : s));
-    } catch (err: any) {
-      setError(err.message);
-    }
+    } catch (err: any) { alert(err.message); }
   };
 
-  if (!isLoaded || isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-      </div>
-    );
-  }
+  if (!isLoaded || isLoading) return (
+    <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-primary)' }} />
+    </div>
+  );
 
   const activeSecrets = secrets.filter(s => s.status === 'active');
   const pastSecrets = secrets.filter(s => s.status !== 'active');
 
   return (
-    <div className="animate-fade-in space-y-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/15 flex items-center justify-center">
-          <Shield className="w-6 h-6 text-accent-light" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-100">My Secrets</h1>
-          <p className="text-zinc-500 text-sm">Detailed history and management of your shared secrets.</p>
-        </div>
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Secrets</h1>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Manage and audit your shared secrets.</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 mb-8 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {error}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', color: 'var(--destructive)' }}>
+          <AlertCircle className="w-4 h-4 shrink-0" />{error}
         </div>
       )}
 
-      {/* Active Secrets Section */}
-      <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] overflow-hidden">
-        <div className="px-6 py-5 border-b border-white/[0.04]">
-          <h2 className="text-lg font-bold text-zinc-200">Active Secrets</h2>
+      {/* Active */}
+      <div className="card overflow-hidden">
+        <div className="px-5 py-3.5 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <Shield className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Active ({activeSecrets.length})</h2>
         </div>
-        <div className="p-6">
-          {activeSecrets.length === 0 ? (
-            <div className="text-center py-12">
-              <Shield className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-              <p className="text-zinc-500 font-medium">No active secrets.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeSecrets.map((secret) => (
-                <div key={secret.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] card-glow">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <code className="text-sm font-mono font-bold text-zinc-200 bg-white/[0.04] px-2 py-1 rounded-lg border border-white/[0.08]">
-                        {secret.id}
-                      </code>
-                      {secret.isE2EE && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 uppercase tracking-wider border border-indigo-500/15">E2EE</span>}
-                      {secret.hasPassword && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 uppercase tracking-wider border border-amber-500/15">Locked</span>}
-                      {secret.hasIpWhitelist && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 uppercase tracking-wider border border-sky-500/15">IP Limited</span>}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
-                      <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Exp: {new Date(secret.expiresAt).toLocaleString()}</span>
-                      {secret.fileName && <span className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" /> {secret.fileName}</span>}
-                    </div>
+        {activeSecrets.length === 0 ? (
+          <div className="p-12 text-center">
+            <Shield className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No active secrets</p>
+          </div>
+        ) : (
+          <div>
+            {activeSecrets.map((secret, i) => (
+              <div
+                key={secret.id}
+                className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                style={{ borderBottom: i < activeSecrets.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-overlay)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <code className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{secret.id}</code>
+                    {secret.isE2EE && <span className="badge badge-accent">E2EE</span>}
+                    {secret.hasPassword && <span className="badge badge-warning">Locked</span>}
+                    {secret.hasIpWhitelist && <span className="badge" style={{ background: 'color-mix(in srgb, #3b82f6 10%, transparent)', color: '#60a5fa', border: '1px solid color-mix(in srgb, #3b82f6 20%, transparent)' }}>IP</span>}
                   </div>
-                  <button
-                    onClick={() => handleRevoke(secret.id)}
-                    className="shrink-0 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-red-500/30 hover:bg-red-500/10 text-red-400 text-xs font-bold transition-all flex items-center justify-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" /> Revoke Secret
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(secret.expiresAt).toLocaleString()}</span>
+                    {secret.fileName && <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> {secret.fileName}</span>}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <button
+                  onClick={() => handleRevoke(secret.id)}
+                  className="btn-secondary !py-1.5 !px-3 !text-xs !rounded-lg !gap-1.5"
+                  style={{ color: 'var(--destructive)' }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Revoke
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* History Section */}
-      <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] overflow-hidden">
-        <div className="px-6 py-5 border-b border-white/[0.04]">
-          <h2 className="text-lg font-bold text-zinc-400">Audit Log & History</h2>
+      {/* History */}
+      <div className="card overflow-hidden">
+        <div className="px-5 py-3.5 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <Clock className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>Audit Log</h2>
         </div>
-        <div className="p-6">
-          {pastSecrets.length === 0 ? (
-            <div className="text-center py-12">
-              <Clock className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-              <p className="text-zinc-500 font-medium">No history yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {pastSecrets.map((secret) => (
-                <div key={secret.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/[0.01] border border-white/[0.04] opacity-60">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <code className="text-sm font-mono text-zinc-600 line-through">
-                        {secret.id}
-                      </code>
-                      {secret.status === 'burned' ? (
-                        <span className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                          <CheckCircle2 className="w-4 h-4" /> Burned
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-xs font-bold text-zinc-600">
-                          <XCircle className="w-4 h-4" /> Revoked
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-zinc-600 font-medium uppercase tracking-wider">
-                      Created: {new Date(secret.createdAt).toLocaleString()}
-                    </p>
+        {pastSecrets.length === 0 ? (
+          <div className="p-12 text-center">
+            <Clock className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No history yet</p>
+          </div>
+        ) : (
+          <div>
+            {pastSecrets.map((secret, i) => (
+              <div
+                key={secret.id}
+                className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                style={{ borderBottom: i < pastSecrets.length - 1 ? '1px solid var(--border-subtle)' : 'none', opacity: 0.6 }}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs font-mono line-through" style={{ color: 'var(--text-tertiary)' }}>{secret.id}</code>
+                    {secret.status === 'burned' ? (
+                      <span className="badge badge-warning"><CheckCircle2 className="w-3 h-3" /> Burned</span>
+                    ) : (
+                      <span className="badge badge-destructive"><XCircle className="w-3 h-3" /> Revoked</span>
+                    )}
                   </div>
-                  {secret.status === 'burned' && secret.readAt && (
-                    <div className="text-right sm:text-right">
-                      <div className="text-xs font-bold text-zinc-400 mb-1">Read on {new Date(secret.readAt).toLocaleString()}</div>
-                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-bold text-zinc-500 uppercase tracking-tight">
-                        <Globe className="w-3 h-3" /> {secret.readByIp || 'Unknown IP'}
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+                    {new Date(secret.createdAt).toLocaleString()}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                {secret.status === 'burned' && secret.readAt && (
+                  <div className="text-right text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    <p>Read: {new Date(secret.readAt).toLocaleString()}</p>
+                    <div className="flex items-center gap-1 justify-end mt-0.5"><Globe className="w-3 h-3" />{secret.readByIp || 'Unknown'}</div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

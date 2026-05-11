@@ -13,141 +13,108 @@ export default function InboxPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      fetchInbox();
-    }
+    if (isLoaded && isSignedIn) fetchInbox();
   }, [isLoaded, isSignedIn]);
 
   const fetchInbox = async () => {
     try {
       const res = await fetch('/api/secrets/inbox');
       if (!res.ok) throw new Error('Failed to fetch inbox');
-      const data = await res.json();
-      setSecrets(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      setSecrets(await res.json());
+    } catch (err: any) { setError(err.message); }
+    finally { setIsLoading(false); }
   };
 
   const handleRevoke = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this secret without reading it?')) return;
-    
+    if (!confirm('Delete this secret without reading it?')) return;
     try {
-      const res = await fetch(`/api/secrets/revoke`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      if (!res.ok) throw new Error('Failed to revoke secret');
-      
+      const res = await fetch('/api/secrets/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      if (!res.ok) throw new Error('Failed');
       setSecrets(secrets.map(s => s.id === id ? { ...s, status: 'revoked' } : s));
-    } catch (err: any) {
-      alert(err.message);
-    }
+    } catch (err: any) { alert(err.message); }
   };
 
-  const filteredSecrets = secrets.filter(s => 
+  const filteredSecrets = secrets.filter(s =>
     s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.sender?.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
   const activeSecrets = filteredSecrets.filter(s => s.status === 'active');
   const pastSecrets = filteredSecrets.filter(s => s.status !== 'active');
 
-  if (!isLoaded || isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-      </div>
-    );
-  }
+  if (!isLoaded || isLoading) return (
+    <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-primary)' }} />
+    </div>
+  );
 
   return (
-    <div className="animate-fade-in space-y-8">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/15 flex items-center justify-center">
-            <Inbox className="w-6 h-6 text-accent-light" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-100">Secure Inbox</h1>
-            <p className="text-zinc-500 text-sm">Secrets dropped into your public profile.</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Inbox</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Secrets dropped into your profile.</p>
         </div>
-
         <div className="relative">
-          <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
           <input
             type="text"
             placeholder="Search inbox..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-64 bg-zinc-900/50 border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30"
+            className="input !pl-9 !w-full sm:!w-56"
           />
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {error}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--destructive) 20%, transparent)', color: 'var(--destructive)' }}>
+          <AlertCircle className="w-4 h-4 shrink-0" />{error}
         </div>
       )}
 
-      {/* Active Secrets */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold text-zinc-200 flex items-center gap-2">
-          <MailOpen className="w-5 h-5 text-accent" />
-          New Secrets ({activeSecrets.length})
-        </h2>
-        
+      {/* New */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <MailOpen className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>New ({activeSecrets.length})</h2>
+        </div>
+
         {activeSecrets.length === 0 ? (
-          <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-12 text-center">
-            <Inbox className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-zinc-300 mb-1">Your inbox is empty</h3>
-            <p className="text-zinc-500 text-sm max-w-md mx-auto">
-              When someone drops a secret into your public profile, it will appear here.
-            </p>
+          <div className="card p-12 text-center">
+            <Inbox className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+            <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Your inbox is empty</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Secrets dropped into your profile appear here.</p>
           </div>
         ) : (
-          <div className="grid gap-3">
+          <div className="space-y-2 stagger">
             {activeSecrets.map((secret) => (
-              <div key={secret.id} className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 card-glow">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse" />
-                    <code className="text-sm font-bold text-zinc-200">ID: {secret.id}</code>
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-wider border border-indigo-500/15">
-                      Unread
-                    </span>
+              <div key={secret.id} className="card card-glow p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center" style={{ background: 'var(--accent-subtle)' }}>
+                    <MailOpen className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500">
-                    {secret.sender && (
-                      <span className="flex items-center gap-1.5">
-                        <User className="w-3 h-3" />
-                        From: <span className="text-zinc-400 font-medium">{secret.sender.displayName}</span>
-                      </span>
-                    )}
-                    <span>Dropped: {new Date(secret.createdAt).toLocaleString()}</span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs font-mono font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{secret.id.slice(0, 16)}...</code>
+                      <span className="badge badge-accent">Unread</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                      {secret.sender && (
+                        <span className="flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {secret.sender.displayName}
+                        </span>
+                      )}
+                      <span>{new Date(secret.createdAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <Link
-                    href={`/secret/${secret.id}`}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white text-sm font-bold transition-all shadow-lg shadow-accent/20 border border-accent/50"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Open Secret
+                <div className="flex items-center gap-2">
+                  <Link href={`/secret/${secret.id}`} className="btn-primary !py-2 !px-3 !text-xs !rounded-lg !gap-1.5">
+                    <Eye className="w-3.5 h-3.5" />Open
                   </Link>
-                  <button
-                    onClick={() => handleRevoke(secret.id)}
-                    className="p-2.5 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
-                    title="Delete without reading"
-                  >
-                    <Trash2 className="w-4 h-4" />
+                  <button onClick={() => handleRevoke(secret.id)} className="btn-secondary !py-2 !px-2.5 !rounded-lg" title="Delete">
+                    <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--destructive)' }} />
                   </button>
                 </div>
               </div>
@@ -158,29 +125,17 @@ export default function InboxPage() {
 
       {/* History */}
       {pastSecrets.length > 0 && (
-        <div className="space-y-4 pt-8 border-t border-white/[0.04]">
-          <h2 className="text-lg font-bold text-zinc-400 flex items-center gap-2">
-            <Lock className="w-5 h-5 text-zinc-600" />
-            Inbox History
-          </h2>
-          <div className="grid gap-3 opacity-60">
+        <div className="space-y-3 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>History</h2>
+          </div>
+          <div className="space-y-2" style={{ opacity: 0.6 }}>
             {pastSecrets.map((secret) => (
-              <div key={secret.id} className="bg-zinc-900/30 rounded-2xl border border-white/[0.04] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div key={secret.id} className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <code className="text-sm font-bold text-zinc-500 line-through">ID: {secret.id}</code>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      secret.status === 'burned' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/15' : 'bg-red-500/10 text-red-400 border border-red-500/15'
-                    }`}>
-                      {secret.status}
-                    </span>
-                  </div>
-                  <div className="text-xs text-zinc-600">
-                    {secret.status === 'burned' 
-                      ? `Read on: ${new Date(secret.readAt).toLocaleString()}`
-                      : `Deleted on: ${new Date(secret.expiresAt).toLocaleString()}`
-                    }
-                  </div>
+                  <code className="text-xs font-mono line-through" style={{ color: 'var(--text-tertiary)' }}>{secret.id.slice(0, 16)}...</code>
+                  <span className={`ml-2 badge ${secret.status === 'burned' ? 'badge-warning' : 'badge-destructive'}`}>{secret.status}</span>
                 </div>
               </div>
             ))}

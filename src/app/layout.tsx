@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,9 +30,11 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en">
-        <body className={`${inter.className} bg-[#09090b] text-zinc-100 min-h-screen selection:bg-indigo-500/30 antialiased`}>
-          {children}
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${inter.className} min-h-screen antialiased`}>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

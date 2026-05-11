@@ -249,11 +249,11 @@ export default function CreateSecretPage() {
   // Success state
   if (generatedLink) {
     return (
-      <div className="noise-bg gradient-bg min-h-screen flex flex-col">
-        <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
+      <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+        <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto w-full">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
-              <Lock className="w-4.5 h-4.5 text-accent" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
+              <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
             </div>
             <span className="text-lg font-bold tracking-tight text-foreground">
               ilusion<span className="text-accent">.io</span>
@@ -263,7 +263,7 @@ export default function CreateSecretPage() {
 
         <main className="relative z-10 flex-1 flex items-center justify-center px-6">
           <div className="w-full max-w-lg animate-fade-in-up">
-            <div className="glass rounded-2xl p-8 glow text-center">
+            <div className="card gradient-border p-8 text-center" style={{ boxShadow: 'var(--shadow-glow)' }}>
               <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-6">
                 <Check className="w-8 h-8 text-success" />
               </div>
@@ -274,12 +274,12 @@ export default function CreateSecretPage() {
               </p>
 
               <div className="flex items-center gap-2 mb-6">
-                <div className="flex-1 bg-white/[0.04] rounded-xl px-4 py-3 font-mono text-sm text-accent-light truncate border border-white/[0.08]">
+                <div className="flex-1 rounded-xl px-4 py-3 font-mono text-sm truncate" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--accent-primary)' }}>
                   {generatedLink}
                 </div>
                 <button
                   onClick={copyToClipboard}
-                  className="shrink-0 w-11 h-11 rounded-xl bg-accent hover:bg-accent-light flex items-center justify-center transition-all hover:shadow-lg hover:shadow-accent/30 border border-accent/50"
+                  className="btn-primary !w-11 !h-11 !p-0 !rounded-xl"
                 >
                   {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4 text-white" />}
                 </button>
@@ -291,8 +291,8 @@ export default function CreateSecretPage() {
                 </p>
               )}
 
-              <div className="flex justify-center mb-6 bg-white/[0.04] p-4 rounded-xl border border-white/[0.08] inline-block mx-auto">
-                <QRCodeSVG value={generatedLink} size={150} level="M" includeMargin={true} bgColor="transparent" fgColor="#a1a1aa" />
+              <div className="flex justify-center mb-6 p-4 rounded-xl inline-block mx-auto" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
+                <QRCodeSVG value={generatedLink} size={150} level="M" includeMargin={true} bgColor="transparent" fgColor="var(--text-secondary)" />
               </div>
 
               <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mb-6">
@@ -321,12 +321,12 @@ export default function CreateSecretPage() {
   }
 
   return (
-    <div className="noise-bg gradient-bg min-h-screen flex flex-col">
+    <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-            <Lock className="w-4.5 h-4.5 text-accent-light" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
+            <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground">
             ilusion<span className="text-accent">.io</span>
@@ -346,7 +346,7 @@ export default function CreateSecretPage() {
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-2xl animate-fade-in-up">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-xs font-semibold text-accent-light mb-4 backdrop-blur-sm">
+            <div className="badge badge-accent !py-1.5 !px-3 !text-[11px] mb-4 inline-flex">
               <Sparkles className="w-3.5 h-3.5" />
               Encrypted & Ephemeral
             </div>
@@ -363,7 +363,7 @@ export default function CreateSecretPage() {
             </p>
           </div>
 
-          <div className="glass rounded-2xl p-8 space-y-6 gradient-border">
+          <div className="card gradient-border p-8 space-y-6">
             {/* Secret Text Area */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -381,9 +381,7 @@ export default function CreateSecretPage() {
                 onChange={(e) => setSecretText(e.target.value)}
                 placeholder="Paste your password, API key, or sensitive message here..."
                 rows={5}
-                className={`w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30 transition-all resize-none font-mono ${
-                  !showSecret && secretText ? 'text-security-disc' : ''
-                }`}
+                className={`input textarea ${!showSecret && secretText ? 'text-security-disc' : ''}`}
                 style={
                   !showSecret && secretText
                     ? ({ WebkitTextSecurity: 'disc' } as React.CSSProperties)
@@ -405,10 +403,9 @@ export default function CreateSecretPage() {
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                    isDragging
-                      ? 'border-accent bg-accent/10'
-                      : 'border-white/[0.08] hover:border-accent/40 hover:bg-accent/5'
+                    isDragging ? 'drop-active' : ''
                   }`}
+                  style={{ borderColor: isDragging ? undefined : 'var(--border-default)' }}
                 >
                   <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center mx-auto mb-3">
                     <Upload className="w-5 h-5 text-accent-light" />
@@ -428,7 +425,7 @@ export default function CreateSecretPage() {
                   />
                 </div>
               ) : (
-                <div className="flex items-center gap-4 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3">
+                <div className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                     <FileIcon className="w-5 h-5 text-accent" />
                   </div>
@@ -459,11 +456,12 @@ export default function CreateSecretPage() {
                     key={option.value}
                     type="button"
                     onClick={() => setExpiryHours(option.value)}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       expiryHours === option.value
-                        ? 'bg-accent text-white shadow-sm shadow-accent/20 border border-accent/50'
-                        : 'bg-white/[0.03] text-zinc-400 border border-white/[0.08] hover:border-accent/30 hover:text-zinc-200'
+                        ? 'btn-primary !py-2.5 !px-3 !text-xs'
+                        : ''
                     }`}
+                    style={expiryHours !== option.value ? { background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' } : {}}
                   >
                     {option.label}
                   </button>
@@ -492,7 +490,7 @@ export default function CreateSecretPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter a secure password..."
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30"
+                      className="input"
                     />
                   </div>
                   <div>
@@ -503,7 +501,7 @@ export default function CreateSecretPage() {
                       value={allowedIp}
                       onChange={(e) => setAllowedIp(e.target.value)}
                       placeholder="e.g., 192.168.1.1"
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30 font-mono"
+                      className="input !font-mono"
                     />
                   </div>
                 </div>
@@ -543,7 +541,7 @@ export default function CreateSecretPage() {
             <button
               onClick={handleSubmit}
               disabled={isLoading || (!secretText && !file)}
-              className="w-full py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0 border border-accent/50"
+              className="btn-primary w-full !py-4"
             >
               {isLoading ? (
                 <>

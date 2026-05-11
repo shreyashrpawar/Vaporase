@@ -121,15 +121,15 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
   const FileIcon = secretData?.fileType ? getFileIcon(secretData.fileType) : FileText;
 
   return (
-    <div className="noise-bg gradient-bg min-h-screen flex flex-col">
+    <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
       {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
-            <Lock className="w-4.5 h-4.5 text-accent" />
+      <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto w-full">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
+            <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">
-            ilusion<span className="text-accent">.io</span>
+          <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+            ilusion<span style={{ color: 'var(--accent-primary)' }}>.io</span>
           </span>
         </Link>
       </nav>
@@ -138,15 +138,15 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
         <div className="w-full max-w-lg animate-fade-in-up">
           {/* Error State */}
           {error && (
-            <div className="glass rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle className="w-8 h-8 text-destructive" />
+            <div className="card gradient-border p-8 text-center" style={{ boxShadow: 'var(--shadow-glow)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)' }}>
+                <AlertTriangle className="w-8 h-8" style={{ color: 'var(--destructive)' }} />
               </div>
-              <h2 className="text-2xl font-bold mb-2 text-foreground">Secret Unavailable</h2>
-              <p className="text-muted-foreground mb-6">{error}</p>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Secret Unavailable</h2>
+              <p className="mb-6" style={{ color: 'var(--text-tertiary)' }}>{error}</p>
               <Link
                 href="/create"
-                className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-accent hover:bg-accent-light text-white font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
+                className="btn-primary"
               >
                 Create Your Own Secret
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -156,29 +156,29 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
 
           {/* Pre-reveal State */}
           {!revealed && !error && (
-            <div className="glass rounded-2xl p-8 text-center glow">
-              <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-6 animate-pulse-ring">
-                <Shield className="w-8 h-8 text-accent" />
+            <div className="card gradient-border p-8 text-center glow" style={{ boxShadow: 'var(--shadow-glow)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: 'var(--accent-subtle)' }}>
+                <Shield className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
               </div>
 
-              <h2 className="text-2xl font-bold mb-2 text-foreground">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {requirePassword ? 'Password Required' : 'You have a Secret'}
               </h2>
-              <p className="text-muted-foreground mb-8">
+              <p className="mb-8" style={{ color: 'var(--text-tertiary)' }}>
                 {requirePassword 
                   ? 'This secret is protected by an additional password.'
                   : 'Someone has shared a confidential message with you.'
                 }
-                {!requirePassword && <><br /><strong className="text-foreground">It can only be viewed once.</strong></>}
+                {!requirePassword && <><br /><strong style={{ color: 'var(--text-primary)' }}>It can only be viewed once.</strong></>}
               </p>
 
               {!requirePassword && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-left space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs text-amber-700">
+                <div className="rounded-xl p-4 mb-8 text-left space-y-2.5" style={{ background: 'color-mix(in srgb, var(--warning) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--warning) 20%, transparent)' }}>
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--warning)' }}>
                     <Eye className="w-3.5 h-3.5 shrink-0" />
                     <span>This secret will be <strong>permanently destroyed</strong> after you view it</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-amber-700">
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--warning)' }}>
                     <Shield className="w-3.5 h-3.5 shrink-0" />
                     <span>The link will become invalid immediately</span>
                   </div>
@@ -188,13 +188,13 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
               {requirePassword && (
                 <div className="mb-8 animate-fade-in-up">
                   <div className="relative">
-                    <Key className="absolute left-4 top-3.5 w-5 h-5 text-muted-foreground" />
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter the secret password"
-                      className="w-full bg-slate-50 border border-border rounded-xl pl-12 pr-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40"
+                      className="input !pl-10 !py-3"
                       onKeyDown={(e) => e.key === 'Enter' && revealSecret()}
                     />
                   </div>
@@ -204,7 +204,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
               <button
                 onClick={revealSecret}
                 disabled={isLoading || (requirePassword && !password)}
-                className="w-full py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+                className="btn-primary w-full !py-4"
               >
                 {isLoading ? (
                   <>
@@ -223,13 +223,13 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
 
           {/* Revealed State */}
           {revealed && secretData && (
-            <div className="glass rounded-2xl p-8 space-y-6">
+            <div className="card gradient-border p-8 space-y-6">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-success" />
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
+                  <Check className="w-8 h-8" style={{ color: 'var(--success)' }} />
                 </div>
-                <h2 className="text-2xl font-bold mb-1 text-foreground">Secret Revealed</h2>
-                <p className="text-sm text-destructive font-medium flex items-center justify-center gap-1">
+                <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Secret Revealed</h2>
+                <p className="text-sm font-medium flex items-center justify-center gap-1" style={{ color: 'var(--destructive)' }}>
                   <AlertTriangle className="w-3 h-3" />
                   This secret has been permanently destroyed
                 </p>
@@ -239,16 +239,17 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
               {secretData.encryptedContent && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-semibold text-foreground">Secret Message</label>
+                    <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Secret Message</label>
                     <button
                       onClick={copySecret}
-                      className="flex items-center gap-1 text-xs font-medium text-accent hover:text-accent-light transition-colors"
+                      className="flex items-center gap-1 text-xs font-medium transition-colors"
+                      style={{ color: 'var(--accent-primary)' }}
                     >
                       {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                       {copied ? 'Copied' : 'Copy'}
                     </button>
                   </div>
-                  <div className="bg-slate-50 border border-border rounded-xl px-4 py-3 font-mono text-sm text-foreground whitespace-pre-wrap break-all">
+                  <div className="rounded-xl px-4 py-3 font-mono text-sm whitespace-pre-wrap break-all" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}>
                     {secretData.encryptedContent}
                   </div>
                 </div>
@@ -257,29 +258,29 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
               {/* File Download */}
               {secretData.fileUrl && (
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block">Attached File</label>
-                  <div className="flex items-center gap-4 bg-slate-50 border border-border rounded-xl px-4 py-3">
-                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                      <FileIcon className="w-5 h-5 text-accent" />
+                  <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-primary)' }}>Attached File</label>
+                  <div className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent-subtle)' }}>
+                      <FileIcon className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                         {secretData.fileName || 'File'}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                         {formatBytes(secretData.fileSize)}
                       </p>
                     </div>
                     <a
                       href={secretData.fileUrl}
                       download={secretData.fileName}
-                      className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-accent hover:bg-accent-light text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
+                      className="btn-primary !px-4 !py-2 !text-xs !gap-1.5"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="w-3.5 h-3.5" />
                       Download
                     </a>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
                     ⏳ Download link expires in 15 minutes
                   </p>
                 </div>
@@ -287,26 +288,27 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
 
               {/* Preview for images */}
               {secretData.fileUrl && secretData.fileType?.startsWith('image/') && (
-                <div className="rounded-xl overflow-hidden border border-border">
+                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)' }}>
                   <img
                     src={secretData.fileUrl}
                     alt="Secret image"
-                    className="w-full h-auto max-h-96 object-contain bg-slate-50"
+                    className="w-full h-auto max-h-96 object-contain"
+                    style={{ background: 'var(--bg-inset)' }}
                   />
                 </div>
               )}
 
               {/* Reply Button (for dropped secrets) */}
               {secretData.sender && (
-                <div className="mt-8 pt-6 border-t border-border">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Sent by <span className="text-foreground font-semibold">{secretData.sender.displayName}</span>
+                <div className="mt-8 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
+                    Sent by <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{secretData.sender.displayName}</span>
                   </p>
                   <Link
                     href={`/${secretData.sender.subdomain}`}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-bold transition-all hover:shadow-xl hover:shadow-accent/30 w-full mb-6"
+                    className="btn-primary w-full !py-4 mb-6"
                   >
-                    <MessageSquare className="w-5 h-5" />
+                    <MessageSquare className="w-4 h-4" />
                     REPLY SECURELY
                   </Link>
                 </div>
@@ -316,13 +318,13 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
               <div className="flex gap-3">
                 <Link
                   href="/create"
-                  className="flex-1 py-3.5 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all text-center text-sm hover:shadow-lg hover:shadow-accent/20"
+                  className="btn-primary flex-1 !py-3.5"
                 >
                   Create Your Own Secret
                 </Link>
                 <Link
                   href="/"
-                  className="flex-1 py-3.5 rounded-2xl border border-border hover:border-accent/30 hover:bg-accent/5 text-foreground font-semibold transition-all text-center text-sm"
+                  className="btn-secondary flex-1 !py-3.5"
                 >
                   Go Home
                 </Link>

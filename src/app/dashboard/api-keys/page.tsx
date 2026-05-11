@@ -90,87 +90,54 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="animate-fade-in space-y-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
-          <Key className="w-6 h-6 text-accent" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">API Access</h1>
-          <p className="text-slate-500 text-sm">Manage authentication keys for programmatic secret creation.</p>
-        </div>
+    <div className="animate-fade-in space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>API Keys</h1>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Manage authentication keys for programmatic access.</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 mb-8 rounded-xl bg-red-50 border border-red-200 text-sm text-destructive">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {error}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', color: 'var(--destructive)' }}>
+          <AlertCircle className="w-4 h-4 shrink-0" />{error}
         </div>
       )}
 
-      <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-8 shadow-sm">
-        {/* Create Key Form */}
+      <div className="card p-6 space-y-6">
         <form onSubmit={handleCreateKey} className="flex gap-3">
-          <input
-            type="text"
-            placeholder="Key Name (e.g., Production Server)"
-            value={newKeyName}
-            onChange={(e) => setNewKeyName(e.target.value)}
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40"
-            maxLength={50}
-            required
-          />
-          <button
-            type="submit"
-            disabled={isCreating || !newKeyName.trim()}
-            className="shrink-0 px-6 py-3 rounded-xl bg-accent hover:bg-accent-light text-white font-bold transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-accent/20"
-          >
+          <input type="text" placeholder="Key name (e.g., Production)" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} className="input flex-1" maxLength={50} required />
+          <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !whitespace-nowrap">
             {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             New Key
           </button>
         </form>
 
-        <div className="h-px bg-slate-100 w-full" />
+        <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
-        {/* Keys List */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-900">Active API Keys</h2>
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Active Keys</h2>
           
           {keys.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl">
-              <Key className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-              <p className="text-slate-400 text-sm font-medium">No API keys found.</p>
+            <div className="text-center py-12 border-2 border-dashed rounded-2xl" style={{ borderColor: 'var(--border-default)' }}>
+              <Key className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No API keys yet.</p>
             </div>
           ) : (
             <div className="grid gap-4">
               {keys.map((key) => (
-                <div key={key.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div key={key.key} className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-slate-900 text-sm mb-1">{key.name}</p>
+                    <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{key.name}</p>
                     <div className="flex items-center gap-2">
-                      <code className="text-[11px] text-accent font-bold bg-white border border-accent/10 px-3 py-1.5 rounded-lg font-mono">
-                        {key.key}
-                      </code>
-                      <button
-                        onClick={() => copyToClipboard(key.key)}
-                        className="text-slate-400 hover:text-accent p-1.5 transition-colors rounded-lg hover:bg-white"
-                        title="Copy key"
-                      >
-                        {copiedKey === key.key ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                      <code className="text-[11px] font-mono font-bold px-2 py-1 rounded-md" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)' }}>{key.key}</code>
+                      <button onClick={() => copyToClipboard(key.key)} className="p-1 rounded" title="Copy">
+                        {copiedKey === key.key ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} /> : <Copy className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">
-                      Created {new Date(key.createdAt).toLocaleDateString()}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteKey(key.key)}
-                      className="p-2.5 rounded-xl text-slate-400 hover:text-destructive hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
-                      title="Revoke key"
-                    >
-                      <Trash2 className="w-4 h-4" />
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className="text-[10px] font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>{new Date(key.createdAt).toLocaleDateString()}</span>
+                    <button onClick={() => handleDeleteKey(key.key)} className="btn-secondary !p-2 !rounded-lg" title="Delete">
+                      <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--destructive)' }} />
                     </button>
                   </div>
                 </div>

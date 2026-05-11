@@ -3,25 +3,24 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
-import { 
-  Shield, 
-  Plus, 
-  Clock, 
-  ArrowRight, 
-  Zap, 
-  Eye, 
-  Trash2,
-  FileText,
+import {
+  Shield,
+  Plus,
+  ArrowRight,
+  Zap,
+  Eye,
   Activity,
   Key,
   Inbox,
-  Send
+  Send,
+  Clock,
+  TrendingUp,
+  Loader2,
 } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 
 export default function DashboardOverview() {
   const { isLoaded, isSignedIn } = useAuth();
-  const [stats, setStats] = useState({ active: 0, total: 0 });
+  const [stats, setStats] = useState({ active: 0, total: 0, burned: 0 });
   const [recentSecrets, setRecentSecrets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,10 +35,11 @@ export default function DashboardOverview() {
       const res = await fetch('/api/secrets/dashboard');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setRecentSecrets(data.slice(0, 5));
+      setRecentSecrets(data.slice(0, 6));
       setStats({
         active: data.filter((s: any) => s.status === 'active').length,
-        total: data.length
+        total: data.length,
+        burned: data.filter((s: any) => s.status === 'burned').length,
       });
     } catch (err) {
       console.error(err);
@@ -50,200 +50,183 @@ export default function DashboardOverview() {
 
   if (!isLoaded || isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-primary)' }} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-10 animate-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-100">Dashboard</h1>
-          <p className="text-zinc-500 mt-1">Welcome back. Here&apos;s an overview of your security hub.</p>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            Overview
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+            Welcome back. Here&apos;s your security dashboard.
+          </p>
         </div>
-        <Link 
-          href="/create" 
-          className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-accent text-white font-bold hover:bg-accent-light transition-all shadow-lg shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0 border border-accent/50"
-        >
-          <Plus className="w-5 h-5" />
-          New Secret
-        </Link>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06] card-glow group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Shield className="w-5 h-5 text-indigo-400" />
+      {/* ═══ Bento Grid ═══ */}
+      <div className="bento-grid stagger">
+        {/* ── Active Secrets (large) ── */}
+        <div className="bento-span-2 card card-glow p-6 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)' }}>
+                <Shield className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Active Secrets</span>
             </div>
-            <span className="text-xs font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">Live</span>
+            <span className="badge badge-success">Live</span>
           </div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Active Secrets</p>
-          <h3 className="text-3xl font-extrabold text-zinc-100 stat-number">{stats.active}</h3>
+          <div className="flex items-end gap-3">
+            <span className="text-5xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              {stats.active}
+            </span>
+            <span className="text-sm font-medium mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+              of {stats.total} total
+            </span>
+          </div>
+          <div className="flex gap-1 mt-4">
+            {Array.from({ length: Math.min(stats.total, 20) }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 h-1 rounded-full"
+                style={{
+                  background: i < stats.active ? 'var(--accent-primary)' : 'var(--border-default)',
+                  opacity: i < stats.active ? 1 : 0.5,
+                }}
+              />
+            ))}
+            {stats.total === 0 && <div className="flex-1 h-1 rounded-full" style={{ background: 'var(--border-default)' }} />}
+          </div>
         </div>
 
-        <div className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06] card-glow group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Activity className="w-5 h-5 text-amber-400" />
+        {/* ── Burned ── */}
+        <div className="card p-6 flex flex-col justify-between">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--warning) 10%, transparent)' }}>
+              <Eye className="w-4 h-4" style={{ color: 'var(--warning)' }} />
             </div>
           </div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Total Created</p>
-          <h3 className="text-3xl font-extrabold text-zinc-100 stat-number">{stats.total}</h3>
+          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Burned</span>
+          <span className="text-3xl font-extrabold" style={{ color: 'var(--text-primary)' }}>{stats.burned}</span>
         </div>
 
-        <div className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06] card-glow group">
+        {/* ── API Status ── */}
+        <div className="card p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Inbox className="w-5 h-5 text-emerald-400" />
-            </div>
-          </div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Inbox Drops</p>
-          <h3 className="text-3xl font-extrabold text-zinc-100 stat-number">—</h3>
-        </div>
-
-        <div className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06] card-glow group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Key className="w-5 h-5 text-sky-400" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
+              <Key className="w-4 h-4" style={{ color: 'var(--success)' }} />
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-success glow-dot" />
-              <span className="text-xs font-bold text-zinc-500">Online</span>
+              <div className="status-dot live" />
             </div>
           </div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">API Status</p>
-          <h3 className="text-lg font-bold text-zinc-100">Connected</h3>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link href="/create" className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06] card-glow group flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Plus className="w-6 h-6 text-accent-light" />
-          </div>
-          <div>
-            <h3 className="font-bold text-zinc-200 group-hover:text-white transition-colors">Create New Secret</h3>
-            <p className="text-xs text-zinc-500">Encrypt & share a one-time link</p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-zinc-600 ml-auto group-hover:text-accent group-hover:translate-x-1 transition-all" />
-        </Link>
-        <Link href="/dashboard/send" className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06] card-glow group flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Send className="w-6 h-6 text-emerald-400" />
-          </div>
-          <div>
-            <h3 className="font-bold text-zinc-200 group-hover:text-white transition-colors">Send to Inbox</h3>
-            <p className="text-xs text-zinc-500">Drop a secret to another user</p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-zinc-600 ml-auto group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-        </Link>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Recent Activity */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-zinc-200 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-accent" />
-              Recent Activity
-            </h2>
-            <Link href="/dashboard/secrets" className="text-sm font-bold text-accent hover:text-accent-light transition-colors">View All</Link>
-          </div>
-
-          <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] overflow-hidden">
-            {recentSecrets.length === 0 ? (
-              <div className="p-12 text-center">
-                <Shield className="w-10 h-10 text-zinc-700 mx-auto mb-4" />
-                <p className="text-zinc-500 font-medium">No activity yet. Create your first secret!</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-white/[0.04]">
-                {recentSecrets.map((secret) => (
-                  <div key={secret.id} className="p-5 hover:bg-white/[0.02] transition-colors flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        secret.status === 'active' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-zinc-800 text-zinc-600'
-                      }`}>
-                        {secret.status === 'active' ? <Zap className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-zinc-200 truncate flex items-center gap-2 text-sm">
-                          {secret.id}
-                          {secret.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-success glow-dot" />}
-                        </p>
-                        <p className="text-xs text-zinc-500">
-                          {secret.status === 'active' ? 'Created' : 'Burned'} {new Date(secret.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {secret.status === 'active' && (
-                        <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-wider border border-indigo-500/15">
-                          Active
-                        </span>
-                      )}
-                      <Link 
-                        href={`/secret/${secret.id}`}
-                        target="_blank"
-                        className="p-2 hover:bg-white/[0.05] rounded-lg border border-transparent hover:border-white/[0.08] transition-all"
-                      >
-                        <ArrowRight className="w-4 h-4 text-zinc-500" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>API</span>
+          <span className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Connected</span>
         </div>
 
-        {/* Quick Tips */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-zinc-200">Quick Tips</h2>
-          <div className="bg-gradient-to-br from-accent/15 via-zinc-900 to-zinc-900 rounded-2xl p-6 border border-accent/10 relative overflow-hidden group">
-            <Zap className="absolute -right-4 -top-4 w-24 h-24 text-accent/5 group-hover:scale-125 transition-transform duration-700" />
-            <p className="text-xs font-bold text-accent uppercase tracking-wider mb-2">Pro Feature</p>
-            <h3 className="text-lg font-bold text-zinc-100 mb-3">API Automation</h3>
-            <p className="text-sm text-zinc-500 leading-relaxed mb-5">
-              Use your API keys to generate one-time links directly from your server or CLI.
-            </p>
-            <Link 
-              href="/dashboard/api-keys" 
-              className="inline-flex items-center gap-2 text-sm font-bold text-accent-light hover:text-white transition-colors"
+        {/* ── Quick Actions (full width) ── */}
+        <div className="bento-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Link href="/create" className="card card-glow p-5 flex items-center gap-4 group cursor-pointer">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
+              style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}
             >
-              Get API Key <ArrowRight className="w-4 h-4" />
+              <Plus className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Create New Secret</p>
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Encrypt & share a one-time link</p>
+            </div>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: 'var(--text-tertiary)' }} />
+          </Link>
+
+          <Link href="/dashboard/send" className="card card-glow p-5 flex items-center gap-4 group cursor-pointer">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
+              style={{ background: 'color-mix(in srgb, var(--success) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--success) 20%, transparent)' }}
+            >
+              <Send className="w-5 h-5" style={{ color: 'var(--success)' }} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Send to Inbox</p>
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Drop a secret to another user</p>
+            </div>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" style={{ color: 'var(--text-tertiary)' }} />
+          </Link>
+        </div>
+
+        {/* ── Recent Activity (full width) ── */}
+        <div className="bento-span-full card overflow-hidden">
+          <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Activity</h2>
+            </div>
+            <Link href="/dashboard/secrets" className="text-xs font-semibold hover:underline" style={{ color: 'var(--accent-primary)' }}>
+              View All
             </Link>
           </div>
 
-          <div className="bg-zinc-900/50 rounded-2xl p-6 border border-white/[0.06]">
-            <h3 className="font-bold text-zinc-200 mb-4">Recent News</h3>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="w-2 h-2 rounded-full bg-accent shrink-0 mt-1.5" />
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">Secure Drop Inbox</strong> — Receive encrypted messages via your unique subdomain.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">Reply Securely</strong> — Reply to dropped secrets with one click.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-2 h-2 rounded-full bg-zinc-600 shrink-0 mt-1.5" />
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  <strong className="text-zinc-300">QR Codes</strong> — Every secret link now includes a QR code.
-                </p>
-              </div>
+          {recentSecrets.length === 0 ? (
+            <div className="p-12 text-center">
+              <Shield className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No activity yet</p>
             </div>
-          </div>
+          ) : (
+            <div>
+              {recentSecrets.map((secret, i) => (
+                <div
+                  key={secret.id}
+                  className="px-6 py-3.5 flex items-center justify-between gap-4 transition-colors"
+                  style={{
+                    borderBottom: i < recentSecrets.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-overlay)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{
+                        background: secret.status === 'active' ? 'var(--accent-subtle)' : 'var(--surface-overlay)',
+                      }}
+                    >
+                      {secret.status === 'active' ? (
+                        <Zap className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                      ) : (
+                        <Eye className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                          {secret.id.slice(0, 12)}...
+                        </code>
+                        {secret.status === 'active' && <div className="status-dot live" style={{ width: 6, height: 6 }} />}
+                      </div>
+                      <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                        {new Date(secret.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {secret.status === 'active' ? (
+                      <span className="badge badge-accent">Active</span>
+                    ) : (
+                      <span className="badge badge-warning">Burned</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
