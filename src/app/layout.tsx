@@ -28,6 +28,18 @@ export default function RootLayout({
           colorInputText: '#fafafa',
           borderRadius: '0.75rem',
         },
+        elements: {
+          userButtonPopoverCard: {
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+            zIndex: 99999,
+          },
+          userButtonPopoverActionButton: {
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }
+        }
       }}
     >
       <html lang="en" suppressHydrationWarning>

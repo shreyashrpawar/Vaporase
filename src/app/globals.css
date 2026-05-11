@@ -236,7 +236,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   border: 1px solid transparent;
   transition: all 0.15s ease;
   position: relative;
@@ -579,7 +579,7 @@ body {
   gap: 2px;
   padding: 6px 12px;
   border-radius: 12px;
-  color: var(--text-tertiary);
+  color: var(--text-primary);
   font-size: 10px;
   font-weight: 600;
   transition: all 0.15s ease;
