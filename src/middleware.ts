@@ -24,7 +24,7 @@ export default clerkMiddleware(async (auth, request) => {
     const domainParts = hostname.split('.');
     if (domainParts.length >= 2) {
       const subdomain = domainParts[0];
-      return NextResponse.rewrite(new URL(`/_drop/${subdomain}${url.pathname}${url.search}`, request.url));
+      return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}${url.search}`, request.url));
     }
   }
 
