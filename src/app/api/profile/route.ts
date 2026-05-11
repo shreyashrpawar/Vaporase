@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { db } from '@/db';
 import { userProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -7,17 +7,64 @@ import { nanoid } from 'nanoid';
 
 export async function GET(req: Request) {
   try {
-    const { userId } = await auth();
+    const user = await currentUser();
 
-    if (!userId) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await db.query.userProfiles.findFirst({
+    const userId = user.id;
+
+    let profile = await db.query.userProfiles.findFirst({
       where: eq(userProfiles.userId, userId),
     });
 
-    return NextResponse.json(profile || null);
+    if (!profile) {
+      // Auto-provision a profile
+      // Try to use email prefix or username, fallback to part of userId
+      let defaultSubdomain = '';
+      if (user.username) {
+        defaultSubdomain = user.username.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      } else if (user.emailAddresses && user.emailAddresses.length > 0) {
+        const email = user.emailAddresses[0].emailAddress;
+        defaultSubdomain = email.split('@')[0].toLowerCase().replace(/[^a-z0-9-]/g, '');
+      } else {
+        defaultSubdomain = `user-${userId.substring(5, 12)}`.toLowerCase();
+      }
+
+      // Ensure it's unique by appending random chars if needed
+      let isUnique = false;
+      let finalSubdomain = defaultSubdomain;
+      while (!isUnique) {
+        const existing = await db.query.userProfiles.findFirst({
+          where: eq(userProfiles.subdomain, finalSubdomain),
+        });
+        if (!existing) {
+          isUnique = true;
+        } else {
+          finalSubdomain = `${defaultSubdomain}-${nanoid(4).toLowerCase()}`;
+        }
+      }
+
+      const displayName = user.firstName 
+        ? `${user.firstName} ${user.lastName || ''}`.trim() 
+        : finalSubdomain;
+
+      await db.insert(userProfiles).values({
+        id: nanoid(),
+        userId,
+        subdomain: finalSubdomain,
+        displayName,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      profile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, userId),
+      });
+    }
+
+    return NextResponse.json(profile);
   } catch (error) {
     console.error('Profile API GET Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
