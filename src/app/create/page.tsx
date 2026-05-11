@@ -19,11 +19,14 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  Sparkles,
+  Settings,
 } from 'lucide-react';
+import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
 
 const EXPIRY_OPTIONS = [
-  { label: '5 minutes', value: 5 / 60 },
-  { label: '30 minutes', value: 0.5 },
+  { label: '5 min', value: 5 / 60 },
+  { label: '30 min', value: 0.5 },
   { label: '1 hour', value: 1 },
   { label: '4 hours', value: 4 },
   { label: '12 hours', value: 12 },
@@ -32,8 +35,8 @@ const EXPIRY_OPTIONS = [
   { label: '7 days', value: 168 },
 ];
 
-const MAX_FILE_SIZE_GUEST = 50 * 1024 * 1024; // 50MB
-const MAX_FILE_SIZE_PRO = 100 * 1024 * 1024; // 100MB
+const MAX_FILE_SIZE_GUEST = 50 * 1024 * 1024;
+const MAX_FILE_SIZE_PRO = 100 * 1024 * 1024;
 
 function formatBytes(bytes: number) {
   if (bytes === 0) return '0 Bytes';
@@ -61,6 +64,9 @@ export default function CreateSecretPage() {
   const [showSecret, setShowSecret] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [password, setPassword] = useState('');
+  const [allowedIp, setAllowedIp] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const maxFileSize = isSignedIn ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
@@ -120,7 +126,6 @@ export default function CreateSecretPage() {
       let fileSize = null;
       let fileType = null;
 
-      // Step 1: If file exists, get presigned URL and upload
       if (file) {
         setUploadProgress(10);
 
@@ -142,13 +147,10 @@ export default function CreateSecretPage() {
         const { url, fileKey: key } = await presignRes.json();
         setUploadProgress(30);
 
-        // Upload to R2 directly
         const uploadRes = await fetch(url, {
           method: 'PUT',
           body: file,
-          headers: {
-            'Content-Type': file.type,
-          },
+          headers: { 'Content-Type': file.type },
         });
 
         if (!uploadRes.ok) {
@@ -162,17 +164,34 @@ export default function CreateSecretPage() {
         setUploadProgress(70);
       }
 
-      // Step 2: Create the secret record
+      let finalEncryptedContent = secretText || null;
+      let finalPasswordHash = null;
+      let decryptionKey = null;
+
+      // 1. Client-Side Encryption
+      if (secretText) {
+        decryptionKey = await generateKey();
+        finalEncryptedContent = await encryptText(secretText, decryptionKey);
+      }
+
+      // 2. Hash Password if provided
+      if (password) {
+        finalPasswordHash = await hashPassword(password);
+      }
+
       const createRes = await fetch('/api/secrets/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          encryptedContent: secretText || null,
+          encryptedContent: finalEncryptedContent,
           fileKey,
           fileName,
           fileSize,
           fileType,
           expiresInHours: expiryHours,
+          passwordHash: finalPasswordHash,
+          allowedIp: allowedIp || null,
+          isE2EE: !!secretText, // True if we encrypted text
         }),
       });
 
@@ -183,7 +202,11 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      setGeneratedLink(`${window.location.origin}/secret/${id}`);
+      let link = `${window.location.origin}/secret/${id}`;
+      if (decryptionKey) {
+        link += `#key=${decryptionKey}`;
+      }
+      setGeneratedLink(link);
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
     } finally {
@@ -197,7 +220,6 @@ export default function CreateSecretPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const textarea = document.createElement('textarea');
       textarea.value = generatedLink;
       document.body.appendChild(textarea);
@@ -213,6 +235,8 @@ export default function CreateSecretPage() {
     setSecretText('');
     setFile(null);
     setExpiryHours(24);
+    setPassword('');
+    setAllowedIp('');
     setGeneratedLink('');
     setError('');
     setCopied(false);
@@ -221,17 +245,17 @@ export default function CreateSecretPage() {
 
   const FileIcon = file ? getFileIcon(file.type) : FileText;
 
-  // Success state — show the generated link
+  // Success state
   if (generatedLink) {
     return (
       <div className="noise-bg gradient-bg min-h-screen flex flex-col">
         <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
-              <Lock className="w-4 h-4 text-accent-light" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
+              <Lock className="w-4.5 h-4.5 text-accent" />
             </div>
-            <span className="text-lg font-semibold tracking-tight text-foreground">
-              ilusion<span className="text-accent-light">.io</span>
+            <span className="text-lg font-bold tracking-tight text-foreground">
+              ilusion<span className="text-accent">.io</span>
             </span>
           </Link>
         </nav>
@@ -239,29 +263,29 @@ export default function CreateSecretPage() {
         <main className="relative z-10 flex-1 flex items-center justify-center px-6">
           <div className="w-full max-w-lg animate-fade-in-up">
             <div className="glass rounded-2xl p-8 glow text-center">
-              <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-6">
                 <Check className="w-8 h-8 text-success" />
               </div>
 
-              <h2 className="text-2xl font-bold mb-2">Secret Created!</h2>
+              <h2 className="text-2xl font-bold mb-2 text-foreground">Secret Created!</h2>
               <p className="text-muted-foreground mb-6">
                 Share this link. It can only be viewed <strong className="text-foreground">once</strong>.
               </p>
 
               <div className="flex items-center gap-2 mb-6">
-                <div className="flex-1 bg-background/60 rounded-lg px-4 py-3 font-mono text-sm text-accent-light truncate border border-border">
+                <div className="flex-1 bg-slate-50 rounded-xl px-4 py-3 font-mono text-sm text-accent truncate border border-border">
                   {generatedLink}
                 </div>
                 <button
                   onClick={copyToClipboard}
-                  className="shrink-0 w-11 h-11 rounded-lg bg-accent hover:bg-accent-light flex items-center justify-center transition-colors"
+                  className="shrink-0 w-11 h-11 rounded-xl bg-accent hover:bg-accent-light flex items-center justify-center transition-all hover:shadow-lg hover:shadow-accent/20"
                 >
                   {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4 text-white" />}
                 </button>
               </div>
 
               {copied && (
-                <p className="text-sm text-success mb-4 animate-fade-in-up">
+                <p className="text-sm text-success font-medium mb-4 animate-fade-in-up">
                   ✓ Link copied to clipboard
                 </p>
               )}
@@ -280,7 +304,7 @@ export default function CreateSecretPage() {
 
               <button
                 onClick={resetForm}
-                className="text-sm text-accent-light hover:text-accent transition-colors"
+                className="text-sm font-medium text-accent hover:text-accent-light transition-colors"
               >
                 Create another secret →
               </button>
@@ -295,18 +319,18 @@ export default function CreateSecretPage() {
     <div className="noise-bg gradient-bg min-h-screen flex flex-col">
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
-            <Lock className="w-4 h-4 text-accent-light" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
+            <Lock className="w-4.5 h-4.5 text-accent" />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            ilusion<span className="text-accent-light">.io</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            ilusion<span className="text-accent">.io</span>
           </span>
         </Link>
 
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -317,14 +341,18 @@ export default function CreateSecretPage() {
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-2xl animate-fade-in-up">
           <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/5 border border-accent/10 text-xs font-medium text-accent mb-4">
+              <Sparkles className="w-3.5 h-3.5" />
+              Encrypted & Ephemeral
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 text-foreground">
               Create a Secret
             </h1>
             <p className="text-muted-foreground">
               Your message will self-destruct after being viewed.
               {!isSignedIn && (
                 <span className="block text-sm mt-1">
-                  <Link href="/sign-in" className="text-accent-light hover:underline">Sign in</Link> to upload files up to 100MB.
+                  <Link href="/sign-in" className="text-accent font-medium hover:underline">Sign in</Link> to upload files up to 100MB.
                 </span>
               )}
             </p>
@@ -334,11 +362,11 @@ export default function CreateSecretPage() {
             {/* Secret Text Area */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-foreground">Secret Message</label>
+                <label className="text-sm font-semibold text-foreground">Secret Message</label>
                 <button
                   type="button"
                   onClick={() => setShowSecret(!showSecret)}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-slate-100"
                 >
                   {showSecret ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </button>
@@ -348,7 +376,7 @@ export default function CreateSecretPage() {
                 onChange={(e) => setSecretText(e.target.value)}
                 placeholder="Paste your password, API key, or sensitive message here..."
                 rows={5}
-                className={`w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all resize-none font-mono ${
+                className={`w-full bg-slate-50 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all resize-none font-mono ${
                   !showSecret && secretText ? 'text-security-disc' : ''
                 }`}
                 style={
@@ -361,7 +389,7 @@ export default function CreateSecretPage() {
 
             {/* File Upload Zone */}
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
+              <label className="text-sm font-semibold text-foreground mb-2 block">
                 Attach File <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
 
@@ -374,12 +402,14 @@ export default function CreateSecretPage() {
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                     isDragging
                       ? 'border-accent bg-accent/5'
-                      : 'border-border hover:border-muted-foreground/40 hover:bg-muted/10'
+                      : 'border-slate-200 hover:border-accent/40 hover:bg-indigo-50'
                   }`}
                 >
-                  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mx-auto mb-3">
+                    <Upload className="w-5 h-5 text-accent" />
+                  </div>
                   <p className="text-sm text-muted-foreground mb-1">
-                    <span className="text-foreground font-medium">Click to upload</span> or drag and drop
+                    <span className="text-foreground font-semibold">Click to upload</span> or drag and drop
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Images, videos, documents up to {formatBytes(maxFileSize)}
@@ -393,9 +423,9 @@ export default function CreateSecretPage() {
                   />
                 </div>
               ) : (
-                <div className="flex items-center gap-4 bg-background/60 border border-border rounded-xl px-4 py-3">
+                <div className="flex items-center gap-4 bg-slate-50 border border-border rounded-xl px-4 py-3">
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <FileIcon className="w-5 h-5 text-accent-light" />
+                    <FileIcon className="w-5 h-5 text-accent" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
@@ -404,7 +434,7 @@ export default function CreateSecretPage() {
                   <button
                     type="button"
                     onClick={() => setFile(null)}
-                    className="shrink-0 w-8 h-8 rounded-lg hover:bg-muted/50 flex items-center justify-center transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-lg hover:bg-slate-200 flex items-center justify-center transition-colors"
                   >
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
@@ -414,8 +444,8 @@ export default function CreateSecretPage() {
 
             {/* Expiration Selector */}
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                <Timer className="w-4 h-4 inline mr-1 -mt-0.5" />
+              <label className="text-sm font-semibold text-foreground mb-3 block">
+                <Timer className="w-4 h-4 inline mr-1.5 -mt-0.5 text-accent" />
                 Expires After
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -424,10 +454,10 @@ export default function CreateSecretPage() {
                     key={option.value}
                     type="button"
                     onClick={() => setExpiryHours(option.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       expiryHours === option.value
-                        ? 'bg-accent text-white'
-                        : 'bg-background/60 text-muted-foreground border border-border hover:border-muted-foreground/40'
+                        ? 'bg-accent text-white shadow-sm shadow-accent/20'
+                        : 'bg-slate-50 text-muted-foreground border border-border hover:border-accent/30 hover:text-foreground'
                     }`}
                   >
                     {option.label}
@@ -436,9 +466,48 @@ export default function CreateSecretPage() {
               </div>
             </div>
 
+            {/* Advanced Options Toggle */}
+            <div className="border-t border-border pt-4">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
+              </button>
+
+              {showAdvanced && (
+                <div className="mt-4 space-y-4 animate-fade-in-up">
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1 block">Optional Password</label>
+                    <p className="text-xs text-muted-foreground mb-2">Require a password to unlock the secret.</p>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter a secure password..."
+                      className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1 block">Restrict by IP Address</label>
+                    <p className="text-xs text-muted-foreground mb-2">Only allow this exact IP address to view the secret.</p>
+                    <input
+                      type="text"
+                      value={allowedIp}
+                      onChange={(e) => setAllowedIp(e.target.value)}
+                      placeholder="e.g., 192.168.1.1"
+                      className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Error */}
             {error && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-fade-in-up">
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-destructive animate-fade-in-up">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
               </div>
@@ -447,7 +516,7 @@ export default function CreateSecretPage() {
             {/* Upload Progress */}
             {isLoading && uploadProgress > 0 && (
               <div className="space-y-2">
-                <div className="w-full bg-muted/40 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                   <div
                     className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
                     style={{ width: `${uploadProgress}%` }}
@@ -469,7 +538,7 @@ export default function CreateSecretPage() {
             <button
               onClick={handleSubmit}
               disabled={isLoading || (!secretText && !file)}
-              className="w-full py-3.5 rounded-xl bg-accent hover:bg-accent-light text-white font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-accent/25"
+              className="w-full py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0"
             >
               {isLoading ? (
                 <>
@@ -485,7 +554,7 @@ export default function CreateSecretPage() {
             </button>
 
             {/* Info */}
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
               🔒 Your secret is encrypted and stored securely. It will be permanently destroyed after being read once.
             </p>
           </div>

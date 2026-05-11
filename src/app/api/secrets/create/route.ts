@@ -33,7 +33,10 @@ export async function POST(req: Request) {
       fileName, 
       fileSize, 
       fileType, 
-      expiresInHours = 24 
+      expiresInHours = 24,
+      passwordHash,
+      allowedIp,
+      isE2EE = false
     } = await req.json();
 
     if (!encryptedContent && !fileKey) {
@@ -55,6 +58,10 @@ export async function POST(req: Request) {
       createdAt: now,
       expiresAt: expiresAt,
       burnOnRead: true, // Currently hardcoded to true, can be made dynamic
+      status: 'active',
+      passwordHash: passwordHash || null,
+      allowedIp: allowedIp || null,
+      isE2EE: isE2EE
     });
 
     return NextResponse.json({ id });

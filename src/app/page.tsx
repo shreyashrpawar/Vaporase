@@ -1,37 +1,50 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth, UserButton } from '@clerk/nextjs';
-import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Globe } from 'lucide-react';
+import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Globe, Sparkles } from 'lucide-react';
 
 export default function LandingPage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard/secrets');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (isLoaded && isSignedIn) {
+    return null; // Prevents flashing the landing page before redirect
+  }
 
   return (
     <div className="noise-bg gradient-bg min-h-screen flex flex-col">
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
-            <Lock className="w-4 h-4 text-accent-light" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
+            <Lock className="w-4.5 h-4.5 text-accent" />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            ilusion<span className="text-accent-light">.io</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            ilusion<span className="text-accent">.io</span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {!isSignedIn ? (
             <>
               <Link
                 href="/sign-in"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="text-sm px-4 py-2 rounded-lg bg-accent hover:bg-accent-light text-white transition-colors"
+                className="text-sm font-medium px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white transition-all hover:shadow-lg hover:shadow-accent/20"
               >
                 Get Started
               </Link>
@@ -39,14 +52,20 @@ export default function LandingPage() {
           ) : (
             <>
               <Link
+                href="/dashboard/secrets"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+              >
+                Dashboard
+              </Link>
+              <Link
                 href="/dashboard/api-keys"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
               >
                 API Keys
               </Link>
               <Link
                 href="/create"
-                className="text-sm px-4 py-2 rounded-lg bg-accent hover:bg-accent-light text-white transition-colors"
+                className="text-sm font-medium px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white transition-all hover:shadow-lg hover:shadow-accent/20"
               >
                 Create Secret
               </Link>
@@ -59,13 +78,13 @@ export default function LandingPage() {
       {/* Hero Section */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center max-w-4xl mx-auto">
         <div className="animate-fade-in-up opacity-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-muted-foreground mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-ring" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/5 border border-accent/10 text-xs font-medium text-accent mb-8">
+            <Sparkles className="w-3.5 h-3.5" />
             End-to-end encrypted · Self-destructing
           </div>
         </div>
 
-        <h1 className="animate-fade-in-up opacity-0 delay-100 text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+        <h1 className="animate-fade-in-up opacity-0 delay-100 text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6">
           Share secrets that
           <br />
           <span className="text-gradient">vanish forever</span>
@@ -76,17 +95,17 @@ export default function LandingPage() {
           Once viewed, your secret is permanently destroyed. No trace. No risk.
         </p>
 
-        <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-4 mb-16">
+        <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-4 mb-20">
           <Link
             href="/create"
-            className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-accent hover:bg-accent-light text-white font-medium transition-all hover:shadow-lg hover:shadow-accent/25"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-0.5"
           >
             Create a Secret
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           <a
             href="#features"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl glass hover:bg-muted/80 text-foreground font-medium transition-all"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-border hover:border-accent/30 hover:bg-accent/5 text-foreground font-semibold transition-all"
           >
             Learn More
           </a>
@@ -96,19 +115,19 @@ export default function LandingPage() {
         <div className="animate-fade-in-up opacity-0 delay-400 w-full max-w-xl">
           <div className="glass rounded-2xl p-6 glow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 rounded-full bg-destructive/60" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-              <div className="w-3 h-3 rounded-full bg-success/60" />
+              <div className="w-3 h-3 rounded-full bg-red-300" />
+              <div className="w-3 h-3 rounded-full bg-amber-300" />
+              <div className="w-3 h-3 rounded-full bg-green-300" />
               <span className="text-xs text-muted-foreground ml-2 font-mono">ilusion.io/create</span>
             </div>
             <div className="space-y-3">
-              <div className="h-3 bg-muted/60 rounded-full w-4/5 shimmer" />
-              <div className="h-3 bg-muted/60 rounded-full w-3/5 shimmer" />
-              <div className="h-3 bg-muted/60 rounded-full w-2/5 shimmer" />
+              <div className="h-3 bg-slate-100 rounded-full w-4/5 shimmer" />
+              <div className="h-3 bg-slate-100 rounded-full w-3/5 shimmer" />
+              <div className="h-3 bg-slate-100 rounded-full w-2/5 shimmer" />
             </div>
             <div className="mt-5 flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-mono">🔗 ilusion.io/s/Xk9mZ...</span>
-              <span className="text-xs text-success flex items-center gap-1">
+              <span className="text-xs text-success font-medium flex items-center gap-1">
                 <Shield className="w-3 h-3" /> Encrypted
               </span>
             </div>
@@ -117,9 +136,9 @@ export default function LandingPage() {
       </main>
 
       {/* Features Section */}
-      <section id="features" className="relative z-10 px-6 py-24 max-w-6xl mx-auto w-full">
+      <section id="features" className="relative z-10 px-6 py-28 max-w-6xl mx-auto w-full">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
             Why <span className="text-gradient">Ilusion</span>?
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
@@ -127,7 +146,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
             {
               icon: Eye,
@@ -149,15 +168,15 @@ export default function LandingPage() {
               title: 'Lightning Fast',
               description: 'Edge-distributed database. Your secrets are always served from the nearest location.',
             },
-          ].map((feature, index) => (
+          ].map((feature) => (
             <div
               key={feature.title}
-              className="glass rounded-2xl p-6 hover:border-accent/30 transition-all group cursor-default"
+              className="glass rounded-2xl p-6 hover:border-accent/30 hover:shadow-md transition-all group cursor-default"
             >
-              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                <feature.icon className="w-5 h-5 text-accent-light" />
+              <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition-colors">
+                <feature.icon className="w-5 h-5 text-accent" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+              <h3 className="font-bold text-foreground mb-2">{feature.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
             </div>
           ))}
@@ -167,7 +186,7 @@ export default function LandingPage() {
       {/* How It Works */}
       <section className="relative z-10 px-6 py-24 max-w-4xl mx-auto w-full">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
             How it works
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
@@ -175,7 +194,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {[
             {
               step: '01',
@@ -193,12 +212,12 @@ export default function LandingPage() {
               description: 'Once opened, the secret is permanently destroyed. The link becomes dead forever.',
             },
           ].map((item) => (
-            <div key={item.step} className="flex gap-6 items-start group">
-              <div className="shrink-0 w-12 h-12 rounded-xl glass flex items-center justify-center text-accent-light font-bold text-sm group-hover:bg-accent/10 transition-colors">
+            <div key={item.step} className="flex gap-5 items-start group glass rounded-2xl p-5 hover:shadow-md transition-all">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-accent font-bold text-sm group-hover:bg-indigo-100 transition-colors">
                 {item.step}
               </div>
               <div>
-                <h3 className="font-semibold text-foreground text-lg mb-1">{item.title}</h3>
+                <h3 className="font-bold text-foreground text-lg mb-1">{item.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{item.description}</p>
               </div>
             </div>
@@ -208,8 +227,8 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="relative z-10 px-6 py-24 max-w-4xl mx-auto w-full text-center">
-        <div className="glass rounded-3xl p-12 glow">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+        <div className="rounded-3xl p-12 bg-gradient-to-br from-accent/5 via-white to-purple-50 border border-accent/10 glow">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
             Ready to share securely?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">
@@ -217,7 +236,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/create"
-            className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-accent hover:bg-accent-light text-white font-medium transition-all hover:shadow-lg hover:shadow-accent/25"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-0.5"
           >
             Create a Secret — It&apos;s Free
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
