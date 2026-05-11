@@ -36,7 +36,9 @@ export async function POST(req: Request) {
       expiresInHours = 24,
       passwordHash,
       allowedIp,
-      isE2EE = false
+      isE2EE = false,
+      recipientId,
+      dropKey
     } = await req.json();
 
     if (!encryptedContent && !fileKey) {
@@ -61,10 +63,12 @@ export async function POST(req: Request) {
       status: 'active',
       passwordHash: passwordHash || null,
       allowedIp: allowedIp || null,
-      isE2EE: isE2EE
+      isE2EE,
+      recipientId: recipientId || null,
+      dropKey: dropKey || null,
     });
 
-    return NextResponse.json({ id });
+    return NextResponse.json({ id, expiresAt });
   } catch (error) {
     console.error('Create Secret Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

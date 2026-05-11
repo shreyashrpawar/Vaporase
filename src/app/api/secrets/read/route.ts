@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { s3, BUCKET_NAME } from '@/lib/s3';
 import { GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { sendSecretBurnedEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   try {
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
       fileSize: secretRecord.fileSize,
       fileType: secretRecord.fileType,
       isE2EE: secretRecord.isE2EE,
+      dropKey: secretRecord.dropKey,
     };
 
     // 6. Generate download URL if there is a file
@@ -82,24 +84,16 @@ export async function POST(req: Request) {
     if (secretRecord.burnOnRead) {
       await db.update(secrets).set({
         encryptedContent: null,
-        fileKey: null,
+        // Note: we keep fileKey here so the generated presigned URL remains valid 
+        // for this specific session, but we mark the status as burned.
         status: 'burned',
         readAt: new Date(),
-        readByIp: clientIp,
       }).where(eq(secrets.id, id));
-      
-      // Immediately delete the file from R2
-      if (secretRecord.fileKey) {
-        try {
-          await s3.send(new DeleteObjectCommand({
-            Bucket: BUCKET_NAME,
-            Key: secretRecord.fileKey,
-          }));
-        } catch (s3Err) {
-          console.error('Failed to delete file from R2 on burn:', s3Err);
-          // We don't throw here so the user still gets their secret
-        }
-      }
+
+      // Send email notification
+      // Note: Using hardcoded email for Mailtrap sandbox as requested. 
+      // In production, fetch the user's email via clerkClient().users.getUser(secretRecord.userId)
+      await sendSecretBurnedEmail("shreyashrpawar28@gmail.com", id, clientIp);
     }
 
     return NextResponse.json(payload);

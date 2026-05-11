@@ -82,7 +82,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
       // E2E Decryption
       if (data.isE2EE && data.encryptedContent) {
         try {
-          const keyFragment = window.location.hash.replace('#key=', '');
+          const keyFragment = data.dropKey || window.location.hash.replace('#key=', '');
           if (!keyFragment) throw new Error('Missing decryption key in URL link.');
           data.encryptedContent = await decryptText(data.encryptedContent, keyFragment);
         } catch (decErr: any) {

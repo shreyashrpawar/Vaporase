@@ -22,6 +22,7 @@ import {
   Sparkles,
   Settings,
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
 
 const EXPIRY_OPTIONS = [
@@ -289,6 +290,10 @@ export default function CreateSecretPage() {
                   ✓ Link copied to clipboard
                 </p>
               )}
+
+              <div className="flex justify-center mb-6 bg-white p-4 rounded-xl border border-border inline-block mx-auto">
+                <QRCodeSVG value={generatedLink} size={150} level="M" includeMargin={true} />
+              </div>
 
               <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mb-6">
                 <span className="flex items-center gap-1">

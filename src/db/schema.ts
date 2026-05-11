@@ -18,6 +18,17 @@ export const secrets = sqliteTable('secrets', {
   readAt: integer('read_at', { mode: 'timestamp' }),
   readByIp: text('read_by_ip'),
   readLocation: text('read_location'),
+  recipientId: text('recipient_id'), // To distinguish between sent vs. received secrets
+  dropKey: text('drop_key'), // Server-stored key for drop box secrets (not E2EE)
+});
+
+export const userProfiles = sqliteTable('user_profiles', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().unique(), // Clerk user ID
+  subdomain: text('subdomain').notNull().unique(), // e.g., 'shreyash'
+  displayName: text('display_name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
 
 export const apiKeys = sqliteTable('api_keys', {
