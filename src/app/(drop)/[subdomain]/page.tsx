@@ -6,13 +6,13 @@ import { auth } from '@clerk/nextjs/server';
 import DropForm from './DropForm';
 
 interface DropPageProps {
-  params: {
+  params: Promise<{
     subdomain: string;
-  };
+  }>;
 }
 
 export default async function DropPage({ params }: DropPageProps) {
-  const { subdomain } = params;
+  const { subdomain } = await params;
 
   // Verify profile exists
   const profile = await db.query.userProfiles.findFirst({
