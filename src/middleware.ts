@@ -13,18 +13,19 @@ export default clerkMiddleware(async (auth, request) => {
   const url = request.nextUrl;
   const hostname = request.headers.get('host') || '';
 
-  // Extract subdomain (assuming main domains are ilusion.io, localhost:3000, etc.)
-  const isLocalhost = hostname.includes('localhost');
-  const domainParts = hostname.split('.');
+  // 1. Define your main domains
+  const mainDomains = ['ilusion.io', 'www.ilusion.io', 'localhost:3000'];
   
-  // If it's something.localhost:3000 or something.ilusion.io
-  const hasSubdomain = isLocalhost ? domainParts.length >= 2 : domainParts.length >= 3;
-  const isWww = domainParts[0] === 'www';
+  // 2. Check if the current host is a main domain or a Vercel preview domain
+  const isMainDomain = mainDomains.includes(hostname) || hostname.endsWith('.vercel.app');
   
-  if (hasSubdomain && !isWww) {
-    const subdomain = domainParts[0];
-    // Rewrite to our hidden drop route
-    return NextResponse.rewrite(new URL(`/_drop/${subdomain}${url.pathname}${url.search}`, request.url));
+  // 3. Extract subdomain only if it's NOT a main domain
+  if (!isMainDomain) {
+    const domainParts = hostname.split('.');
+    if (domainParts.length >= 2) {
+      const subdomain = domainParts[0];
+      return NextResponse.rewrite(new URL(`/_drop/${subdomain}${url.pathname}${url.search}`, request.url));
+    }
   }
 
   // Normal routing
