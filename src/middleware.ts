@@ -24,7 +24,12 @@ export default clerkMiddleware(async (auth, request) => {
     const domainParts = hostname.split('.');
     if (domainParts.length >= 2) {
       const subdomain = domainParts[0];
-      return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}${url.search}`, request.url));
+      
+      // ONLY rewrite the root path. 
+      // This allows /sign-in, /api, etc. to work normally on subdomains.
+      if (url.pathname === '/') {
+        return NextResponse.rewrite(new URL(`/${subdomain}`, request.url));
+      }
     }
   }
 
