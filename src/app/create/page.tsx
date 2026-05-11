@@ -274,12 +274,12 @@ export default function CreateSecretPage() {
               </p>
 
               <div className="flex items-center gap-2 mb-6">
-                <div className="flex-1 bg-slate-50 rounded-xl px-4 py-3 font-mono text-sm text-accent truncate border border-border">
+                <div className="flex-1 bg-white/[0.04] rounded-xl px-4 py-3 font-mono text-sm text-accent-light truncate border border-white/[0.08]">
                   {generatedLink}
                 </div>
                 <button
                   onClick={copyToClipboard}
-                  className="shrink-0 w-11 h-11 rounded-xl bg-accent hover:bg-accent-light flex items-center justify-center transition-all hover:shadow-lg hover:shadow-accent/20"
+                  className="shrink-0 w-11 h-11 rounded-xl bg-accent hover:bg-accent-light flex items-center justify-center transition-all hover:shadow-lg hover:shadow-accent/30 border border-accent/50"
                 >
                   {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4 text-white" />}
                 </button>
@@ -291,8 +291,8 @@ export default function CreateSecretPage() {
                 </p>
               )}
 
-              <div className="flex justify-center mb-6 bg-white p-4 rounded-xl border border-border inline-block mx-auto">
-                <QRCodeSVG value={generatedLink} size={150} level="M" includeMargin={true} />
+              <div className="flex justify-center mb-6 bg-white/[0.04] p-4 rounded-xl border border-white/[0.08] inline-block mx-auto">
+                <QRCodeSVG value={generatedLink} size={150} level="M" includeMargin={true} bgColor="transparent" fgColor="#a1a1aa" />
               </div>
 
               <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mb-6">
@@ -325,8 +325,8 @@ export default function CreateSecretPage() {
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/15 transition-colors">
-            <Lock className="w-4.5 h-4.5 text-accent" />
+          <div className="w-9 h-9 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+            <Lock className="w-4.5 h-4.5 text-accent-light" />
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground">
             ilusion<span className="text-accent">.io</span>
@@ -346,7 +346,7 @@ export default function CreateSecretPage() {
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-2xl animate-fade-in-up">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/5 border border-accent/10 text-xs font-medium text-accent mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-xs font-semibold text-accent-light mb-4 backdrop-blur-sm">
               <Sparkles className="w-3.5 h-3.5" />
               Encrypted & Ephemeral
             </div>
@@ -357,13 +357,13 @@ export default function CreateSecretPage() {
               Your message will self-destruct after being viewed.
               {!isSignedIn && (
                 <span className="block text-sm mt-1">
-                  <Link href="/sign-in" className="text-accent font-medium hover:underline">Sign in</Link> to upload files up to 100MB.
+                  <Link href="/sign-in" className="text-accent-light font-medium hover:underline">Sign in</Link> to upload files up to 100MB.
                 </span>
               )}
             </p>
           </div>
 
-          <div className="glass rounded-2xl p-8 space-y-6">
+          <div className="glass rounded-2xl p-8 space-y-6 gradient-border">
             {/* Secret Text Area */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -371,7 +371,7 @@ export default function CreateSecretPage() {
                 <button
                   type="button"
                   onClick={() => setShowSecret(!showSecret)}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-slate-100"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-white/[0.05]"
                 >
                   {showSecret ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </button>
@@ -381,7 +381,7 @@ export default function CreateSecretPage() {
                 onChange={(e) => setSecretText(e.target.value)}
                 placeholder="Paste your password, API key, or sensitive message here..."
                 rows={5}
-                className={`w-full bg-slate-50 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all resize-none font-mono ${
+                className={`w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30 transition-all resize-none font-mono ${
                   !showSecret && secretText ? 'text-security-disc' : ''
                 }`}
                 style={
@@ -406,12 +406,12 @@ export default function CreateSecretPage() {
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                     isDragging
-                      ? 'border-accent bg-accent/5'
-                      : 'border-slate-200 hover:border-accent/40 hover:bg-indigo-50'
+                      ? 'border-accent bg-accent/10'
+                      : 'border-white/[0.08] hover:border-accent/40 hover:bg-accent/5'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mx-auto mb-3">
-                    <Upload className="w-5 h-5 text-accent" />
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center mx-auto mb-3">
+                    <Upload className="w-5 h-5 text-accent-light" />
                   </div>
                   <p className="text-sm text-muted-foreground mb-1">
                     <span className="text-foreground font-semibold">Click to upload</span> or drag and drop
@@ -428,7 +428,7 @@ export default function CreateSecretPage() {
                   />
                 </div>
               ) : (
-                <div className="flex items-center gap-4 bg-slate-50 border border-border rounded-xl px-4 py-3">
+                <div className="flex items-center gap-4 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3">
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                     <FileIcon className="w-5 h-5 text-accent" />
                   </div>
@@ -439,7 +439,7 @@ export default function CreateSecretPage() {
                   <button
                     type="button"
                     onClick={() => setFile(null)}
-                    className="shrink-0 w-8 h-8 rounded-lg hover:bg-slate-200 flex items-center justify-center transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-lg hover:bg-white/[0.08] flex items-center justify-center transition-colors"
                   >
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
@@ -461,8 +461,8 @@ export default function CreateSecretPage() {
                     onClick={() => setExpiryHours(option.value)}
                     className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       expiryHours === option.value
-                        ? 'bg-accent text-white shadow-sm shadow-accent/20'
-                        : 'bg-slate-50 text-muted-foreground border border-border hover:border-accent/30 hover:text-foreground'
+                        ? 'bg-accent text-white shadow-sm shadow-accent/20 border border-accent/50'
+                        : 'bg-white/[0.03] text-zinc-400 border border-white/[0.08] hover:border-accent/30 hover:text-zinc-200'
                     }`}
                   >
                     {option.label}
@@ -472,7 +472,7 @@ export default function CreateSecretPage() {
             </div>
 
             {/* Advanced Options Toggle */}
-            <div className="border-t border-border pt-4">
+            <div className="border-t border-white/[0.06] pt-4">
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
@@ -492,7 +492,7 @@ export default function CreateSecretPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter a secure password..."
-                      className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30"
                     />
                   </div>
                   <div>
@@ -503,7 +503,7 @@ export default function CreateSecretPage() {
                       value={allowedIp}
                       onChange={(e) => setAllowedIp(e.target.value)}
                       placeholder="e.g., 192.168.1.1"
-                      className="w-full bg-slate-50 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 font-mono"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30 font-mono"
                     />
                   </div>
                 </div>
@@ -512,7 +512,7 @@ export default function CreateSecretPage() {
 
             {/* Error */}
             {error && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-destructive animate-fade-in-up">
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 animate-fade-in-up">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
               </div>
@@ -521,7 +521,7 @@ export default function CreateSecretPage() {
             {/* Upload Progress */}
             {isLoading && uploadProgress > 0 && (
               <div className="space-y-2">
-                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
                   <div
                     className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
                     style={{ width: `${uploadProgress}%` }}
@@ -543,7 +543,7 @@ export default function CreateSecretPage() {
             <button
               onClick={handleSubmit}
               disabled={isLoading || (!secretText && !file)}
-              className="w-full py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-0.5 active:translate-y-0"
+              className="w-full py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0 border border-accent/50"
             >
               {isLoading ? (
                 <>
