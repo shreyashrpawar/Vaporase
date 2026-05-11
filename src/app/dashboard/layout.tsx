@@ -15,7 +15,8 @@ import {
   ExternalLink,
   BookOpen,
   Inbox,
-  Settings
+  Settings,
+  Send
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -30,6 +31,7 @@ export default function DashboardLayout({
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Inbox', href: '/dashboard/inbox', icon: Inbox },
+    { name: 'Send Secret', href: '/dashboard/send', icon: Send },
     { name: 'My Secrets', href: '/dashboard/secrets', icon: Shield },
     { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },

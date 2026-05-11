@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { secrets } from '@/db/schema';
+import { secrets, userProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { s3, BUCKET_NAME } from '@/lib/s3';
 import { GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
@@ -17,10 +17,17 @@ export async function POST(req: Request) {
 
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'Unknown';
 
-    // 1. Fetch the secret
+    // 1. Fetch the secret and sender profile
     const secretRecord = await db.query.secrets.findFirst({
       where: eq(secrets.id, id)
     });
+
+    let senderProfile = null;
+    if (secretRecord && secretRecord.userId) {
+      senderProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, secretRecord.userId),
+      });
+    }
 
     // 2. Check if exists and not expired/burned
     if (!secretRecord || secretRecord.status !== 'active') {
@@ -68,6 +75,10 @@ export async function POST(req: Request) {
       fileType: secretRecord.fileType,
       isE2EE: secretRecord.isE2EE,
       dropKey: secretRecord.dropKey,
+      sender: senderProfile ? {
+        subdomain: senderProfile.subdomain,
+        displayName: senderProfile.displayName,
+      } : null,
     };
 
     // 6. Generate download URL if there is a file

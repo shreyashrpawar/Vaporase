@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Key,
   Copy,
+  MessageSquare,
 } from 'lucide-react';
 import { decryptText, hashPassword } from '@/lib/crypto';
 
@@ -292,6 +293,22 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                     alt="Secret image"
                     className="w-full h-auto max-h-96 object-contain bg-slate-50"
                   />
+                </div>
+              )}
+
+              {/* Reply Button (for dropped secrets) */}
+              {secretData.sender && (
+                <div className="mt-8 pt-6 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Sent by <span className="text-foreground font-semibold">{secretData.sender.displayName}</span>
+                  </p>
+                  <Link
+                    href={`/${secretData.sender.subdomain}`}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-accent hover:bg-accent-light text-white font-bold transition-all hover:shadow-xl hover:shadow-accent/30 w-full mb-6"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                    REPLY SECURELY
+                  </Link>
                 </div>
               )}
 
