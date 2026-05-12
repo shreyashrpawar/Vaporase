@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,8 +18,12 @@ class CreateSecretScreen extends StatefulWidget {
 
 class _CreateSecretScreenState extends State<CreateSecretScreen> {
   final TextEditingController _secretController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _ipController = TextEditingController();
   double _expiryValue = 24; // Default 24 hours
   bool _isLoading = false;
+  bool _burnOnRead = true;
+  bool _showAdvanced = false;
   String? _generatedLink;
   String? _error;
   PlatformFile? _selectedFile;
@@ -128,6 +133,11 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         encryptedContent = await CryptoUtils.encryptText(text, keyStr);
       }
 
+      String? passwordHash;
+      if (_passwordController.text.isNotEmpty) {
+        passwordHash = await CryptoUtils.hashPassword(_passwordController.text);
+      }
+
       // 3. Send to API
       final response = await ApiService.createSecret(
         encryptedContent: encryptedContent,
@@ -137,6 +147,9 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         fileType: fileType,
         token: token,
         expiresInHours: _expiryValue.toInt() > 0 ? _expiryValue.toInt() : 1,
+        passwordHash: passwordHash,
+        allowedIp: _ipController.text.trim().isNotEmpty ? _ipController.text.trim() : null,
+        burnOnRead: _burnOnRead,
         isE2EE: text.isNotEmpty,
       );
 
@@ -305,6 +318,73 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
               ),
             ),
 
+            const SizedBox(height: 12),
+
+            // Advanced Options Toggle
+            InkWell(
+              onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Row(
+                  children: [
+                    Icon(_showAdvanced ? LucideIcons.chevronDown : LucideIcons.chevronRight, size: 18, color: AppTheme.textTertiary),
+                    const SizedBox(width: 8),
+                    const Text('Advanced Options', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                  ],
+                ),
+              ),
+            ),
+
+            if (_showAdvanced) ...[
+              const SizedBox(height: 12),
+              // Password
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  hintText: 'Password (Optional)',
+                  prefixIcon: Icon(LucideIcons.lock, size: 18),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // IP Whitelist
+              TextField(
+                controller: _ipController,
+                decoration: const InputDecoration(
+                  hintText: 'Allowed IP (Optional)',
+                  prefixIcon: Icon(LucideIcons.mapPin, size: 18),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Burn on Read
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.bgSecondary,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.borderDefault),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(LucideIcons.flame, size: 18, color: AppTheme.error),
+                        SizedBox(width: 12),
+                        Text('Burn on Read', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                    Switch(
+                      value: _burnOnRead,
+                      activeColor: AppTheme.error,
+                      onChanged: (val) => setState(() => _burnOnRead = val),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 32),
 
             ElevatedButton(
@@ -370,7 +450,10 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                // TODO: Implement copy to clipboard
+                Clipboard.setData(ClipboardData(text: _generatedLink!));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Link copied to clipboard')),
+                );
               },
               child: const Text('Copy Link'),
             ),

@@ -25,8 +25,11 @@ class _SendScreenState extends State<SendScreen> {
 
   // Step 2: Create secret
   final _secretController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _ipController = TextEditingController();
   double _expiryValue = 24;
   bool _isCreating = false;
+  bool _showAdvanced = false;
   String? _createError;
   String? _generatedLink;
   PlatformFile? _selectedFile;
@@ -125,6 +128,11 @@ class _SendScreenState extends State<SendScreen> {
         encryptedContent = await CryptoUtils.encryptText(text, decryptionKey);
       }
 
+      String? passwordHash;
+      if (_passwordController.text.isNotEmpty) {
+        passwordHash = await CryptoUtils.hashPassword(_passwordController.text);
+      }
+
       // Create secret with recipientId
       final response = await ApiService.createSecret(
         encryptedContent: encryptedContent,
@@ -134,6 +142,8 @@ class _SendScreenState extends State<SendScreen> {
         fileType: fileType,
         token: token,
         expiresInHours: _expiryValue.toInt() > 0 ? _expiryValue.toInt() : 1,
+        passwordHash: passwordHash,
+        allowedIp: _ipController.text.trim().isNotEmpty ? _ipController.text.trim() : null,
         isE2EE: true,
         recipientId: _profile!['userId'],
         dropKey: decryptionKey,
@@ -383,6 +393,48 @@ class _SendScreenState extends State<SendScreen> {
             ),
           ),
         ),
+
+        const SizedBox(height: 8),
+
+        const SizedBox(height: 8),
+
+        // Advanced Options Toggle
+        InkWell(
+          onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: Row(
+              children: [
+                Icon(_showAdvanced ? LucideIcons.chevronDown : LucideIcons.chevronRight, size: 18, color: AppTheme.textTertiary),
+                const SizedBox(width: 8),
+                const Text('Advanced Options', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+              ],
+            ),
+          ),
+        ),
+
+        if (_showAdvanced) ...[
+          const SizedBox(height: 12),
+          // Password
+          TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              hintText: 'Password (Optional)',
+              prefixIcon: Icon(LucideIcons.lock, size: 18),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // IP Whitelist
+          TextField(
+            controller: _ipController,
+            decoration: const InputDecoration(
+              hintText: 'Allowed IP (Optional)',
+              prefixIcon: Icon(LucideIcons.mapPin, size: 18),
+            ),
+          ),
+        ],
 
         const SizedBox(height: 8),
 

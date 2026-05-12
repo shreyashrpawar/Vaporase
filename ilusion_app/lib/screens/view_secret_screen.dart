@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/crypto_utils.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -138,6 +139,54 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
     }
   }
 
+  void _scanQR() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: AppTheme.bgPrimary,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.borderDefault, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 16),
+              const Text('Scan Secret QR Code', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: MobileScanner(
+                    onDetect: (capture) {
+                      final List<Barcode> barcodes = capture.barcodes;
+                      if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
+                        final String code = barcodes.first.rawValue!;
+                        if (code.startsWith('https://www.ilusion.io/secret/') || code.startsWith('https://ilusion.io/secret/')) {
+                          Navigator.pop(context);
+                          setState(() {
+                            _urlController.text = code;
+                            _requirePassword = false;
+                          });
+                          _fetchAndDecrypt();
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_decryptedSecret != null || _fileUrl != null) {
@@ -185,9 +234,14 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
             TextField(
               controller: _urlController,
               style: const TextStyle(color: AppTheme.textPrimary),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'https://www.ilusion.io/secret/...',
-                prefixIcon: Icon(LucideIcons.link, color: AppTheme.textTertiary),
+                prefixIcon: const Icon(LucideIcons.link, color: AppTheme.textTertiary),
+                suffixIcon: IconButton(
+                  icon: const Icon(LucideIcons.qrCode, color: AppTheme.accentPrimary),
+                  onPressed: _scanQR,
+                  tooltip: 'Scan QR Code',
+                ),
               ),
               onChanged: (_) {
                 if (_requirePassword) setState(() => _requirePassword = false);
