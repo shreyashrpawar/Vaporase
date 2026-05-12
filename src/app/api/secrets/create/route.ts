@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Secret must contain text or a file' }, { status: 400 });
     }
 
-    const id = nanoid(10); // 10 char random string for the URL
+    const id = nanoid(8); // 8 char random string for the URL
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 

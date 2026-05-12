@@ -25,7 +25,7 @@ export function base64ToBuffer(base64: string): ArrayBuffer {
 // Generate a random AES-GCM key and export it as a base64url string for the URL hash
 export async function generateKey(): Promise<string> {
   const key = await window.crypto.subtle.generateKey(
-    { name: 'AES-GCM', length: 256 },
+    { name: 'AES-GCM', length: 128 },
     true,
     ['encrypt', 'decrypt']
   );
