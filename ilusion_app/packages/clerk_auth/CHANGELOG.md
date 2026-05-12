@@ -1,0 +1,131 @@
+## 0.0.14-beta
+
+* BREAKING CHANGE: The `ClerkDeepLink` class has been removed, since the information
+  it carried is no longer being used. Deep links are now passed into the Clerk SDK 
+  as `Stream<Uri?> deepLinkStream` in the `ClerkAuthConfig`. 
+
+* feat: deprecate strategy in clerkdeeplink [#345]
+* fix: make sso sign up complete [#343]
+* feat: expose externalid on user object [#339]
+* feat: push error stream up to clerk_flutter [#335]
+* fix: ensure api throws external errors rather than clerk errors [#331]
+* feat: improve second factor flow, now supports TOTP [#325] #328
+* fix: add externalerrorcollection to autherror [#316]
+* feat: enable setting of primary email address and phone number [#310]
+* feat: apple and google auth token support [#308]
+* feat: delete identifying data [#309]
+* fix: sso sign up [#306]
+* fix: improve phone number handling [#304]
+* feat: add low-level access to api [#301]
+
+## 0.0.13-beta
+
+* feat: make test helpers globally available [#292]
+* fix: make updates only happen when details change [#286]
+* fix: accept 'required' fields [#285]
+* fix: test framework [#281]
+* fix: set polling periods to zero for testing [#283]
+* feat: improve email link sign in up [#267]
+* fix: only poll when signed in [#275]
+* fix: add housekeeping where missing [#279]
+* fix: move session token polling from api to auth for better error reporting [#244]
+* feat: bring sign up ux in line with other sdks [#246]
+* fix: force org creation when needed [#271]
+* change: session token polling now defaults to ON (previous versions had it defaulting to OFF) [#263]
+* fix: bring session token polling with orgs inline with other SDKs [#263]
+* fix: remove unnecessary email etc update [#265]
+* feat: enable sign up with enterprise sso [#247]
+* fix: enable sign in using enterprise sso [#248]
+
+## 0.0.12-beta
+
+* fix: ensure decoding of UserPublic.identifier is optional [#256]
+
+## 0.0.11-beta
+
+* fix: ensure all params are trimmed [#236]
+* fix: amend persistor docs [#235]
+* fix: allow email address to be edited for verification [#226]
+* fix: enable legal consent confirmation [#222]
+* fix: resolve issues with the sessionTokenStream [#221]
+* fix: support offline better [#212]
+* fix: make google authentication work directly with tokens [#207]
+
+## 0.0.10-beta
+
+* fix: added Facebook as strategy [#172]
+* feat: add oauth token sign in [#186]
+* feat: add a stream of updating session tokens as they renew [#165]
+* feat: add password reset flow [#161]
+* feat: allow user deletion via api [#174]
+* feat: **BREAKING** add Persistor and HttpService to ClarkAuthConfig [#183]
+* feat: add flags to ClarkAuthConfig [#195]
+* feat: add offline support [#200]
+
+## 0.0.9-beta
+
+* chore: align release version with `clerk_flutter` package
+
+## 0.0.8-beta
+
+* feat: add generated clerk_backend_api package [#82]
+* feat: implement organizations [#150] 
+
+## 0.0.7-dev
+
+* fix: rationalise clerk auth exports [#105]
+* fix: session token broken [#97]
+* feat: enable session tokens to be created and updated per organization [#97]
+* fix: enable telemetry to be disabled and endpoint to be set from env [#97]
+* fix: allow telemetry period to be set from environment too [#97]
+* fix: add check for malformed jwt into session token [#97]
+* feat: add external accounts to user profile and start connect account journey [#118]
+* fix: bugs in sign up flow [#127]
+* fix: add failed status to enum [#112]
+* feat: enable `sessionToken()` to return templated JWT tokens for external vendors. [#93]
+* fix: improve multilingual support [#128]
+* fix: connecting a new account [#121]
+* fix: surface server errors in the ui [#122] 
+* feat: replace parameters with config object [#120]
+* fix: amalgamate Closeable and AnimatedCloseable [#138]
+* fix: add translations for sign in error [#143]
+* fix: mark all models as immutable [#113] 
+* fix: add toString to models [#140]
+* fix: refactor attemptSignIn [#147]
+* fix: refactor HttpService [#149]
+* feat: add timeouts to loading overlay [#142]
+* feat: custom sign in example [#141]
+
+## 0.0.6-dev
+
+- Improve updateUser to utilise environment config #98
+- Fix ClerkAuthState missing after telemetry addition #102
+
+## 0.0.5-dev
+
+- Lower flutter version to 3.10.0 #41
+- Remove usage of public_key #45
+- Add data/state persistor #46
+- Disable bot protection #66
+- Remove favicon_image from display_config #88
+- Upload images using byte arrays #79
+- Add telemetry support #81
+
+## 0.0.4-dev
+
+- Updated token expiration to use UTC #47
+- Added regular poll for session token (optional) #42
+- Added documentation #36
+- Improved formatting for pub score #34 #35
+
+## 0.0.3-dev
+
+- Pre-release alpha.
+
+## 0.0.2-dev
+
+- Pre-alpha development.
+
+## 0.0.1
+
+- Pre-alpha version.

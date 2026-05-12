@@ -17,12 +17,13 @@ export async function POST(req: Request) {
         where: eq(apiKeys.key, apiKey)
       });
       
-      if (!keyRecord) {
-        return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+      if (keyRecord) {
+        userId = keyRecord.userId;
       }
-      userId = keyRecord.userId;
-    } else {
-      // Fallback to Clerk Auth
+    }
+
+    if (!userId) {
+      // Fallback to Clerk Auth (handles cookie or Authorization header)
       const authResult = await auth();
       userId = authResult.userId;
     }

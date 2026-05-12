@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.ilusion_app",
+      "sha256_cert_fingerprints": [
+        "A9:5A:48:F1:3A:52:EE:91:92:9B:11:07:E5:F2:08:81:E9:50:B2:BB:A3:6A:7E:25:DA:E8:2E:86:6E:1E:19:ED"
+      ]
+    }
+  }
+]

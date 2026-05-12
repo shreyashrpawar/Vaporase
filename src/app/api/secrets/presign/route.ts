@@ -20,11 +20,12 @@ export async function POST(req: Request) {
       const keyRecord = await db.query.apiKeys.findFirst({
         where: eq(apiKeys.key, apiKey)
       });
-      if (!keyRecord) {
-        return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+      if (keyRecord) {
+        userId = keyRecord.userId;
       }
-      userId = keyRecord.userId;
-    } else {
+    }
+
+    if (!userId) {
       // Fallback to Clerk Auth
       const authResult = await auth();
       userId = authResult.userId;
