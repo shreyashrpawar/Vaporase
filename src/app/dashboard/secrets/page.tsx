@@ -199,7 +199,7 @@ export default function SecretsDashboardPage() {
                   You are currently on the Free plan. Upgrade to unlock the full potential of Ilusion.
                 </p>
                 <div className="space-y-2">
-                  {['500MB Uploads', 'Password Protection', 'IP Restrictions'].map(f => (
+                  {['100MB Uploads', 'Password Protection', 'IP Restrictions'].map(f => (
                     <div key={f} className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                       <Check className="w-3 h-3 text-accent" /> {f}
                     </div>

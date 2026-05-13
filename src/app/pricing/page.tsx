@@ -27,7 +27,7 @@ const PRICING_PLANS = [
     period: '/month',
     description: 'For power users who need more space and security.',
     features: [
-      'Up to 500MB file uploads',
+      'Up to 100MB file uploads',
       'Password Protection',
       'Custom expiration (up to 30 days)',
       'IP Access Restrictions',

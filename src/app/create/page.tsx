@@ -93,7 +93,7 @@ export default function CreateSecretPage() {
     }
   }, [isSignedIn]);
 
-  const maxFileSize = userPlan === 'pro' ? 500 * 1024 * 1024 : MAX_FILE_SIZE_GUEST;
+  const maxFileSize = userPlan === 'pro' ? 100 * 1024 * 1024 : MAX_FILE_SIZE_GUEST;
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -407,7 +407,7 @@ export default function CreateSecretPage() {
               Your message will self-destruct after being viewed.
               {userPlan !== 'pro' && (
                 <span className="block text-sm mt-1">
-                  <Link href="/pricing" className="text-accent-light font-medium hover:underline">Upgrade to Pro</Link> to unlock 500MB uploads and custom expiry.
+                  <Link href="/pricing" className="text-accent-light font-medium hover:underline">Upgrade to Pro</Link> to unlock 100MB uploads and custom expiry.
                 </span>
               )}
             </p>

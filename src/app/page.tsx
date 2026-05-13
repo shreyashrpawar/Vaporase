@@ -266,7 +266,7 @@ export default function LandingPage() {
               <p className="text-xs text-muted-foreground">For power users who need more space.</p>
             </div>
             <ul className="space-y-4 mb-8 flex-1">
-              {['Up to 500MB file uploads', 'Password Protection', 'IP Access Restrictions', 'Custom Expiry (30 days)', 'Priority Support'].map(f => (
+              {['Up to 100MB file uploads', 'Password Protection', 'IP Access Restrictions', 'Custom Expiry (30 days)', 'Priority Support'].map(f => (
                 <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <Check className="w-4 h-4 text-accent" /> {f}
                 </li>
