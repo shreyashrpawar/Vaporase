@@ -602,7 +602,7 @@ export default function CreateSecretPage() {
                   {uploadProgress < 30
                     ? 'Preparing upload...'
                     : uploadProgress < 70
-                    ? 'Uploading file...'
+                    ? `Uploading file... ${Math.round(((uploadProgress - 30) / 40) * 100)}%`
                     : uploadProgress < 100
                     ? 'Creating secret...'
                     : 'Done!'}
