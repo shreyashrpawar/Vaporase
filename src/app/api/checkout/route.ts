@@ -14,6 +14,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user email for better checkout experience
+    const { currentUser } = await import('@clerk/nextjs/server');
+    const user = await currentUser();
+    const userEmail = user?.emailAddresses[0]?.emailAddress;
+
     const { productId } = await req.json();
 
     if (!productId) {
@@ -22,6 +27,10 @@ export async function POST(req: Request) {
 
     const checkout = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
+      customer: {
+        email: userEmail || '',
+        name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Valued Customer',
+      },
       metadata: {
         user_id: userId,
       },
