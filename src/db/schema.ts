@@ -27,6 +27,7 @@ export const userProfiles = sqliteTable('user_profiles', {
   userId: text('user_id').notNull().unique(), // Clerk user ID
   subdomain: text('subdomain').notNull().unique(), // e.g., 'shreyash'
   displayName: text('display_name').notNull(),
+  plan: text('plan').notNull().default('free'), // free, pro
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });

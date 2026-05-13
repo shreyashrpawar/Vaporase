@@ -9,6 +9,16 @@ export default function SecretsDashboardPage() {
   const [secrets, setSecrets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      setShowSuccess(true);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) fetchSecrets();
@@ -47,6 +57,18 @@ export default function SecretsDashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Secrets</h1>
         <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Manage and audit your shared secrets.</p>
       </div>
+
+      {showSuccess && (
+        <div className="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl bg-accent/10 border border-accent/20 animate-fade-in">
+          <div className="flex items-center gap-3 text-sm text-accent-light font-medium">
+            <Zap className="w-5 h-5" />
+            <span>Welcome to Ilusion Pro! Your account has been upgraded successfully.</span>
+          </div>
+          <button onClick={() => setShowSuccess(false)} className="p-1 hover:bg-accent/10 rounded-lg transition-colors">
+            <XCircle className="w-4 h-4 text-accent/60" />
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', color: 'var(--destructive)' }}>

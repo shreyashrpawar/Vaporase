@@ -72,14 +72,27 @@ export default function CreateSecretPage() {
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLocalHistory(getLocalSecrets());
   }, []);
 
-  const maxFileSize = isSignedIn ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
+  useEffect(() => {
+    if (isSignedIn) {
+      fetch('/api/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.profile?.plan) {
+            setUserPlan(data.profile.plan);
+          }
+        })
+        .catch(err => console.error('Error fetching profile:', err));
+    }
+  }, [isSignedIn]);
+
+  const maxFileSize = userPlan === 'pro' ? 500 * 1024 * 1024 : MAX_FILE_SIZE_GUEST;
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -391,9 +404,9 @@ export default function CreateSecretPage() {
             </h1>
             <p className="text-muted-foreground">
               Your message will self-destruct after being viewed.
-              {!isSignedIn && (
+              {userPlan !== 'pro' && (
                 <span className="block text-sm mt-1">
-                  <Link href="/sign-in" className="text-accent-light font-medium hover:underline">Sign in</Link> to upload files up to 100MB.
+                  <Link href="/pricing" className="text-accent-light font-medium hover:underline">Upgrade to Pro</Link> to unlock 500MB uploads and custom expiry.
                 </span>
               )}
             </p>
@@ -488,7 +501,9 @@ export default function CreateSecretPage() {
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {EXPIRY_OPTIONS.map((option) => {
-                  const isDisabled = !isSignedIn && option.value !== 5 / 60;
+                  const isDisabled = 
+                    (!isSignedIn && option.value !== 5 / 60) || 
+                    (isSignedIn && userPlan === 'free' && option.value > 24);
                   return (
                     <button
                       key={option.value}
@@ -510,10 +525,10 @@ export default function CreateSecretPage() {
                   );
                 })}
               </div>
-              {!isSignedIn && (
+              {userPlan !== 'pro' && (
                 <p className="text-[10px] text-muted-foreground mt-3 flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-accent" />
-                  <Link href="/sign-up" className="text-accent hover:underline">Sign up</Link> to unlock flexible expiration times.
+                  <Link href="/pricing" className="text-accent hover:underline">Upgrade to Pro</Link> to unlock extended expiration times.
                 </p>
               )}
             </div>
@@ -557,7 +572,7 @@ export default function CreateSecretPage() {
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-1 block">Restrict by IP Address</label>
                     <p className="text-xs text-muted-foreground mb-2">Only allow this exact IP address to view the secret.</p>
-                    {isSignedIn ? (
+                    {userPlan === 'pro' ? (
                       <input
                         type="text"
                         value={allowedIp}
@@ -570,7 +585,7 @@ export default function CreateSecretPage() {
                         <input
                           disabled
                           type="text"
-                          placeholder="Sign in to restrict by IP"
+                          placeholder={isSignedIn ? "Upgrade to Pro to restrict by IP" : "Sign in to restrict by IP"}
                           className="input !font-mono opacity-50 cursor-not-allowed pr-10"
                         />
                         <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

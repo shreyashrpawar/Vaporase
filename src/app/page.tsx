@@ -41,6 +41,7 @@ export default function LandingPage() {
           <ThemeToggle />
           {!isSignedIn ? (
             <>
+              <Link href="/pricing" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>Pricing</Link>
               <Link href="/sign-in" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>Sign In</Link>
               <Link href="/sign-up" className="btn-primary !py-2 !px-4 !text-xs">Get Started</Link>
             </>
