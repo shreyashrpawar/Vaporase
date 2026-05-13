@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import {
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
+import { saveLocalSecret, getLocalSecrets, LocalSecret } from '@/lib/local-history';
 
 const EXPIRY_OPTIONS = [
   { label: '5 min', value: 5 / 60 },
@@ -57,7 +58,7 @@ export default function CreateSecretPage() {
   const { isSignedIn } = useAuth();
   const [secretText, setSecretText] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [expiryHours, setExpiryHours] = useState(24);
+  const [expiryHours, setExpiryHours] = useState(5 / 60);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [generatedLink, setGeneratedLink] = useState('');
@@ -68,7 +69,12 @@ export default function CreateSecretPage() {
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLocalHistory(getLocalSecrets());
+  }, []);
 
   const maxFileSize = isSignedIn ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
 
@@ -208,6 +214,16 @@ export default function CreateSecretPage() {
         link += `#key=${decryptionKey}`;
       }
       setGeneratedLink(link);
+
+      // Save to local history
+      saveLocalSecret({
+        id,
+        link,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + expiryHours * 60 * 60 * 1000,
+        label: fileName || (secretText ? secretText.slice(0, 30) + (secretText.length > 30 ? '...' : '') : 'Secret'),
+      });
+      setLocalHistory(getLocalSecrets());
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
     } finally {
@@ -451,22 +467,35 @@ export default function CreateSecretPage() {
                 Expires After
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {EXPIRY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setExpiryHours(option.value)}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      expiryHours === option.value
-                        ? 'btn-primary !py-2.5 !px-3 !text-xs'
-                        : ''
-                    }`}
-                    style={expiryHours !== option.value ? { background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' } : {}}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+                {EXPIRY_OPTIONS.map((option) => {
+                  const isDisabled = !isSignedIn && option.value !== 5 / 60;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => setExpiryHours(option.value)}
+                      className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                        expiryHours === option.value
+                          ? 'btn-primary !py-2.5 !px-3 !text-xs'
+                          : isDisabled 
+                            ? 'opacity-40 cursor-not-allowed filter grayscale'
+                            : ''
+                      }`}
+                      style={expiryHours !== option.value ? { background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' } : {}}
+                    >
+                      {option.label}
+                      {isDisabled && <Lock className="w-2.5 h-2.5 ml-1 inline-block opacity-60" />}
+                    </button>
+                  );
+                })}
               </div>
+              {!isSignedIn && (
+                <p className="text-[10px] text-muted-foreground mt-3 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-accent" />
+                  <Link href="/sign-up" className="text-accent hover:underline">Sign up</Link> to unlock flexible expiration times.
+                </p>
+              )}
             </div>
 
             {/* Advanced Options Toggle */}
@@ -485,24 +514,48 @@ export default function CreateSecretPage() {
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-1 block">Optional Password</label>
                     <p className="text-xs text-muted-foreground mb-2">Require a password to unlock the secret.</p>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter a secure password..."
-                      className="input"
-                    />
+                    {isSignedIn ? (
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter a secure password..."
+                        className="input"
+                      />
+                    ) : (
+                      <div className="relative group">
+                        <input
+                          disabled
+                          type="password"
+                          placeholder="Sign in to add password protection"
+                          className="input opacity-50 cursor-not-allowed pr-10"
+                        />
+                        <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-1 block">Restrict by IP Address</label>
                     <p className="text-xs text-muted-foreground mb-2">Only allow this exact IP address to view the secret.</p>
-                    <input
-                      type="text"
-                      value={allowedIp}
-                      onChange={(e) => setAllowedIp(e.target.value)}
-                      placeholder="e.g., 192.168.1.1"
-                      className="input !font-mono"
-                    />
+                    {isSignedIn ? (
+                      <input
+                        type="text"
+                        value={allowedIp}
+                        onChange={(e) => setAllowedIp(e.target.value)}
+                        placeholder="e.g., 192.168.1.1"
+                        className="input !font-mono"
+                      />
+                    ) : (
+                      <div className="relative group">
+                        <input
+                          disabled
+                          type="text"
+                          placeholder="Sign in to restrict by IP"
+                          className="input !font-mono opacity-50 cursor-not-allowed pr-10"
+                        />
+                        <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -560,6 +613,41 @@ export default function CreateSecretPage() {
             <p className="text-xs text-muted-foreground text-center leading-relaxed">
               🔒 Your secret is encrypted and stored securely. It will be permanently destroyed after being read once.
             </p>
+
+            {/* Local History for Guests */}
+            {localHistory.length > 0 && !isSignedIn && (
+              <div className="mt-8 pt-6 border-t border-white/[0.06] animate-fade-in">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recent Local Secrets</h3>
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  {localHistory.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={item.link}
+                      className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] transition-all group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                          <Zap className="w-4 h-4 text-accent" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{item.label}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Created {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:translate-x-0.5 group-hover:text-accent transition-all" />
+                    </Link>
+                  ))}
+                </div>
+                <p className="text-[10px] text-center text-muted-foreground mt-4">
+                  These links are only stored in your browser and will disappear when they expire.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </main>

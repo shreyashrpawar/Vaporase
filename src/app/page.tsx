@@ -5,14 +5,21 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone } from 'lucide-react';
+import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone, Clock } from 'lucide-react';
+import { getLocalSecrets, LocalSecret } from '@/lib/local-history';
+import { useState } from 'react';
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
+  const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) router.push('/dashboard/secrets');
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard/secrets');
+    } else {
+      setLocalHistory(getLocalSecrets());
+    }
   }, [isLoaded, isSignedIn, router]);
 
   if (isLoaded && isSignedIn) return null;
@@ -99,6 +106,48 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Local History for Guests */}
+        {localHistory.length > 0 && (
+          <div className="relative z-10 w-full max-w-2xl mx-auto mt-20 animate-fade-in delay-500">
+            <div className="flex items-center justify-between mb-6 px-2">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent" />
+                <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">Your Recent Secrets</h2>
+              </div>
+              <Link href="/create" className="text-xs font-medium text-accent hover:underline">Create New</Link>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {localHistory.slice(0, 4).map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.link}
+                  className="card card-glow p-4 flex items-center justify-between group transition-all"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Zap className="w-5 h-5 text-accent" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">{item.label}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Expires {new Date(item.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-accent transition-all" />
+                </Link>
+              ))}
+            </div>
+            {localHistory.length > 4 && (
+              <p className="text-center mt-6">
+                <Link href="/create" className="text-xs text-muted-foreground hover:text-accent transition-colors">
+                  View all local secrets in the creation page
+                </Link>
+              </p>
+            )}
+          </div>
+        )}
       </main>
 
       {/* ═══ Features ═══ */}
