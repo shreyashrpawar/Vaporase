@@ -72,6 +72,7 @@ export default function CreateSecretPage() {
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const fileInputRef = useRef<HTMLInputElement>(null);
 

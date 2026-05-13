@@ -21,12 +21,11 @@ export async function POST(req: Request) {
 
     const checkout = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
-      customer: {
-        // We'll pass the Clerk User ID as external_id to identify them in the webhook
-        external_id: userId,
+      metadata: {
+        user_id: userId,
       },
-      // Optional: success_url can point back to your dashboard
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
+      // Redirect back to dashboard after payment
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
     });
 
     return NextResponse.json({ checkoutUrl: checkout.checkout_url });

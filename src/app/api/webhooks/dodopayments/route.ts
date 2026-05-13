@@ -18,8 +18,8 @@ export async function POST(req: Request) {
       eventType === 'subscription.created' || 
       eventType === 'subscription.active'
     ) {
-      // Dodo Payments includes customer info in the data object
-      const userId = data.customer?.external_id;
+      // Dodo Payments includes our metadata in the payload
+      const userId = payload.metadata?.user_id;
 
       if (userId) {
         // Update user to Pro status in our database
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
     // Handle cancellations if needed
     if (eventType === 'subscription.cancelled') {
-      const userId = data.customer?.external_id;
+      const userId = payload.metadata?.user_id;
       if (userId) {
         await db.update(userProfiles)
           .set({ plan: 'free', updatedAt: new Date() })
