@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useUser, SignInButton } from '@clerk/nextjs';
+import { useSearchParams } from 'next/navigation';
 import { DodoEmbeddedCheckout } from '@/components/DodoEmbeddedCheckout';
 import { Check, Zap, Shield, Rocket, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -42,7 +43,17 @@ const PRICING_PLANS = [
 ];
 
 export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>}>
+      <PricingContent />
+    </Suspense>
+  );
+}
+
+function PricingContent() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const searchParams = useSearchParams();
+  const source = searchParams.get('source') || undefined;
 
   return (
     <div className="min-h-screen bg-background text-foreground py-20 px-4">
@@ -95,7 +106,7 @@ export default function PricingPage() {
               {plan.highlight ? (
                 isSignedIn ? (
                   plan.productId ? (
-                    <DodoEmbeddedCheckout productId={plan.productId} />
+                    <DodoEmbeddedCheckout productId={plan.productId} source={source} />
                   ) : (
                     <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/[0.02] transition-colors font-semibold disabled:opacity-50" disabled={plan.name === 'Free'}>
                       {plan.name === 'Free' ? 'Current Plan' : plan.buttonText}

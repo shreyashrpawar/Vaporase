@@ -7,6 +7,7 @@ import './DodoEmbeddedCheckout.css';
 
 interface DodoEmbeddedCheckoutProps {
   productId: string;
+  source?: string;
   onSuccess?: () => void;
   onError?: (error: string) => void;
   onClose?: () => void;
@@ -17,6 +18,7 @@ let isDodoInitialized = false;
 
 export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
   productId,
+  source,
   onSuccess,
   onError,
   onClose
@@ -43,7 +45,7 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, source }),
       });
 
       const data = await response.json();

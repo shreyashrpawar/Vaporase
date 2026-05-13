@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const user = await currentUser();
     const userEmail = user?.emailAddresses[0]?.emailAddress;
 
-    const { productId } = await req.json();
+    const { productId, source } = await req.json();
 
     if (!productId) {
       return NextResponse.json({ error: 'Missing product ID' }, { status: 400 });
@@ -39,7 +39,10 @@ export async function POST(req: Request) {
         user_id: userId,
       },
       // Redirect back to dashboard after payment
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
+      // If source is 'app', use custom deep link scheme to return to the Flutter app
+      return_url: source === 'app' 
+        ? 'ilusion://payment-success' 
+        : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
     });
 
     return NextResponse.json({ 
