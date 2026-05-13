@@ -12,6 +12,9 @@ interface DodoEmbeddedCheckoutProps {
   onClose?: () => void;
 }
 
+// Global flag to ensure initialization only happens once
+let isDodoInitialized = false;
+
 export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
   productId,
   onSuccess,
@@ -22,30 +25,14 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize Dodo SDK
-    DodoPayments.Initialize({
-      mode: 'test', // TODO: Toggle to 'live' for production
-      displayType: 'overlay',
-      onEvent: (event) => {
-        console.log('Dodo Event:', event);
-        switch (event.event_type) {
-          case 'checkout.opened':
-            setIsLoading(false);
-            break;
-          case 'checkout.closed':
-            setIsLoading(false);
-            if (onClose) onClose();
-            break;
-          case 'checkout.error':
-            setIsLoading(false);
-            const errMsg = (event.data as any)?.message || 'An error occurred during checkout.';
-            setError(String(errMsg));
-            if (onError) onError(String(errMsg));
-            break;
-        }
-      },
-    });
-  }, [onClose, onError]);
+    if (!isDodoInitialized) {
+      DodoPayments.Initialize({
+        mode: 'test',
+        displayType: 'overlay',
+      });
+      isDodoInitialized = true;
+    }
+  }, []);
 
   const handleStartCheckout = async () => {
     try {
@@ -70,6 +57,8 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
         checkoutUrl: data.checkoutUrl,
       });
 
+      // Done loading once the overlay is initiated
+      setIsLoading(false);
     } catch (err: any) {
       console.error('Checkout error:', err);
       const msg = err.message || 'Failed to start checkout. Please try again.';
