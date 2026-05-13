@@ -27,8 +27,35 @@ export default function DashboardOverview() {
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchDashboardData();
+
+      // Verify payment if returning from checkout
+      const searchParams = new URLSearchParams(window.location.search);
+      const payment = searchParams.get('payment');
+      const subscriptionId = searchParams.get('subscription_id');
+
+      if (payment === 'success' && subscriptionId) {
+        verifyPayment(subscriptionId);
+      }
     }
   }, [isLoaded, isSignedIn]);
+
+  const verifyPayment = async (subscriptionId: string) => {
+    try {
+      const res = await fetch('/api/checkout/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription_id: subscriptionId })
+      });
+      if (res.ok) {
+        // Clean up URL
+        window.history.replaceState(null, '', '/dashboard');
+        // Force reload the page to refresh Clerk session/DB states
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Payment verification failed:', err);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {

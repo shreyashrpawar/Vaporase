@@ -18,8 +18,8 @@ export async function POST(req: Request) {
       eventType === 'subscription.created' || 
       eventType === 'subscription.active'
     ) {
-      // Dodo Payments includes our metadata in the payload
-      const userId = payload.metadata?.user_id;
+      // Dodo Payments includes our metadata in the data object
+      const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
 
       if (userId) {
         // Update user to Pro status in our database
@@ -29,13 +29,13 @@ export async function POST(req: Request) {
         
         console.log(`User ${userId} has been upgraded to PRO via webhook`);
       } else {
-        console.warn('Webhook received without external_id (userId)');
+        console.warn('Webhook received without external_id (userId)', data?.metadata);
       }
     }
 
     // Handle cancellations if needed
     if (eventType === 'subscription.cancelled') {
-      const userId = payload.metadata?.user_id;
+      const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
       if (userId) {
         await db.update(userProfiles)
           .set({ plan: 'free', updatedAt: new Date() })
