@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     // Verify the subscription directly with Dodo Payments
     const subscription = await dodo.subscriptions.retrieve(subscription_id);
 
-    if (subscription && (subscription.status === 'active' || subscription.status === 'trialing' || subscription.status === 'pending')) {
+    if (subscription && (subscription.status === 'active' || subscription.status === 'pending')) {
       // Dodo Payments confirms it's active/processing
       
       // Update user to Pro status in our database
