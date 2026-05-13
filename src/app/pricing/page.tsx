@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, SignInButton } from '@clerk/nextjs';
-import { DodoPayments } from 'dodopayments-checkout';
+import { DodoEmbeddedCheckout } from '@/components/DodoEmbeddedCheckout';
 import { Check, Zap, Shield, Rocket, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -43,55 +43,6 @@ const PRICING_PLANS = [
 
 export default function PricingPage() {
   const { isLoaded, isSignedIn, user } = useUser();
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    // Initialize Dodo Payments
-    DodoPayments.Initialize({
-      mode: "test", // Change to "live" for production
-      displayType: "overlay",
-      onEvent: (event) => {
-        console.log("Checkout event:", event);
-        switch (event.event_type) {
-          case "checkout.opened":
-            setIsLoading(false);
-            break;
-          case "checkout.closed":
-            setIsLoading(false);
-            break;
-          case "checkout.error":
-            setIsLoading(false);
-            console.error("Checkout error:", event.data?.message);
-            break;
-        }
-      },
-    });
-  }, []);
-
-  const handleUpgrade = async (productId: string) => {
-    if (!isSignedIn) return;
-
-    try {
-      setIsLoading(true);
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }),
-      });
-
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-
-      // Open Dodo Checkout Overlay
-      await DodoPayments.Checkout.open({
-        checkoutUrl: data.checkoutUrl,
-      });
-    } catch (error) {
-      console.error('Upgrade error:', error);
-      alert('Failed to start checkout. Please try again.');
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground py-20 px-4">
@@ -143,20 +94,13 @@ export default function PricingPage() {
 
               {plan.highlight ? (
                 isSignedIn ? (
-                  <button
-                    onClick={() => handleUpgrade(plan.productId!)}
-                    disabled={isLoading}
-                    className="w-full btn-primary !py-4 flex items-center justify-center gap-2"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Zap className="w-5 h-5" />
-                        {plan.buttonText}
-                      </>
-                    )}
-                  </button>
+                  plan.productId ? (
+                    <DodoEmbeddedCheckout productId={plan.productId} />
+                  ) : (
+                    <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/[0.02] transition-colors font-semibold disabled:opacity-50" disabled={plan.name === 'Free'}>
+                      {plan.name === 'Free' ? 'Current Plan' : plan.buttonText}
+                    </button>
+                  )
                 ) : (
                   <SignInButton mode="modal">
                     <button className="w-full btn-primary !py-4">Sign in to Upgrade</button>
