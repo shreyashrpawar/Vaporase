@@ -260,7 +260,7 @@ export default function LandingPage() {
             <div className="mb-6">
               <h3 className="text-xl font-bold mb-2">Pro</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold">$9</span>
+                <span className="text-3xl font-bold">$2</span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
               <p className="text-xs text-muted-foreground">For power users who need more space.</p>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Key, Plus, Trash2, Copy, Check, Loader2, AlertCircle, Terminal } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Check, Loader2, AlertCircle, Terminal, Lock } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ApiKeysPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -12,6 +13,18 @@ export default function ApiKeysPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetch('/api/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.profile?.plan) setUserPlan(data.profile.plan);
+        })
+        .catch(err => console.error('Error fetching profile:', err));
+    }
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
@@ -105,10 +118,17 @@ export default function ApiKeysPage() {
       <div className="card p-6 space-y-6">
         <form onSubmit={handleCreateKey} className="flex gap-3">
           <input type="text" placeholder="Key name (e.g., Production)" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} className="input flex-1" maxLength={50} required />
-          <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !whitespace-nowrap">
-            {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            New Key
-          </button>
+          {userPlan === 'pro' ? (
+            <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !whitespace-nowrap">
+              {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              New Key
+            </button>
+          ) : (
+            <Link href="/pricing" className="btn-primary !whitespace-nowrap flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              New Key <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded ml-1">PRO</span>
+            </Link>
+          )}
         </form>
 
         <div style={{ height: 1, background: 'var(--border-subtle)' }} />

@@ -23,7 +23,7 @@ const PRICING_PLANS = [
   },
   {
     name: 'Pro',
-    price: '$9',
+    price: '$2',
     period: '/month',
     description: 'For power users who need more space and security.',
     features: [
@@ -36,7 +36,7 @@ const PRICING_PLANS = [
       'API Access Key',
     ],
     buttonText: 'Upgrade to Pro',
-    productId: 'p_29', // TODO: User should update this with their real Dodo Product ID
+    productId: 'pdt_0NejTudTcUkCYcSyOLm2L',
     highlight: true,
   },
 ];
@@ -49,6 +49,22 @@ export default function PricingPage() {
     // Initialize Dodo Payments
     DodoPayments.Initialize({
       mode: "test", // Change to "live" for production
+      displayType: "overlay",
+      onEvent: (event) => {
+        console.log("Checkout event:", event);
+        switch (event.event_type) {
+          case "checkout.opened":
+            setIsLoading(false);
+            break;
+          case "checkout.closed":
+            setIsLoading(false);
+            break;
+          case "checkout.error":
+            setIsLoading(false);
+            console.error("Checkout error:", event.data?.message);
+            break;
+        }
+      },
     });
   }, []);
 
@@ -67,13 +83,12 @@ export default function PricingPage() {
       if (data.error) throw new Error(data.error);
 
       // Open Dodo Checkout Overlay
-      DodoPayments.Checkout.open({
+      await DodoPayments.Checkout.open({
         checkoutUrl: data.checkoutUrl,
       });
     } catch (error) {
       console.error('Upgrade error:', error);
       alert('Failed to start checkout. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
