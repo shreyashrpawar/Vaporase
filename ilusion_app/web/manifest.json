@@ -1,11 +1,11 @@
 {
-    "name": "ilusion_app",
-    "short_name": "ilusion_app",
+    "name": "Ilusion",
+    "short_name": "Ilusion",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#09090b",
+    "theme_color": "#818cf8",
+    "description": "Secure & Ephemeral Secret Sharing",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -8,6 +8,7 @@ import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/view_secret_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/auth_provider.dart';
 
 void main() {
@@ -83,12 +84,8 @@ class _IlusionAppState extends State<IlusionApp> {
         redirectionGenerator: _generateDeepLink,
         deepLinkStream: _appLinks.uriLinkStream.asyncMap(_handleDeepLink),
         loading: const MaterialApp(
-          home: Scaffold(
-            backgroundColor: Color(0xFF0F172A),
-            body: Center(
-              child: CircularProgressIndicator(color: Color(0xFF38BDF8)),
-            ),
-          ),
+          debugShowCheckedModeBanner: false,
+          home: SplashScreen(),
         ),
       ),
       child: Builder(

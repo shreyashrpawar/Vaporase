@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox } from 'lucide-react';
+import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone } from 'lucide-react';
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -72,8 +72,9 @@ export default function LandingPage() {
               Create a Secret
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="#features" className="btn-secondary !py-3.5 !px-7 !text-sm">
-              Learn More
+            <a href="/ilusion.apk" download className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
+              <Smartphone className="w-4 h-4" />
+              Download App
             </a>
           </div>
 
