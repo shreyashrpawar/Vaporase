@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing product ID' }, { status: 400 });
     }
 
-    const checkout = await dodo.checkoutSession.create({
+    const checkout = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
       customer: {
         // We'll pass the Clerk User ID as external_id to identify them in the webhook
