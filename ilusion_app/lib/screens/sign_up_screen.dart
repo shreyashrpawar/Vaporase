@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clerk_flutter/clerk_flutter.dart';
+
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';

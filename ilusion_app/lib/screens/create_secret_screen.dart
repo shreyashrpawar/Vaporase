@@ -22,11 +22,28 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
   final TextEditingController _ipController = TextEditingController();
   double _expiryValue = 24; // Default 24 hours
   bool _isLoading = false;
-  bool _burnOnRead = true;
   bool _showAdvanced = false;
   String? _generatedLink;
   String? _error;
   PlatformFile? _selectedFile;
+  Map<String, dynamic>? _userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final auth = context.read<AuthProvider>();
+      final token = await auth.getToken();
+      final profile = await ApiService.getProfile(token);
+      if (mounted) setState(() => _userProfile = profile);
+    } catch (e) {
+      debugPrint('Error fetching profile: $e');
+    }
+  }
 
   final Map<double, String> _expiryOptions = {
     0.0833: '5m',
@@ -135,7 +152,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
       String? passwordHash;
       if (_passwordController.text.isNotEmpty) {
-        passwordHash = await CryptoUtils.hashPassword(_passwordController.text);
+        passwordHash = CryptoUtils.hashPassword(_passwordController.text);
       }
 
       // 3. Send to API
@@ -149,7 +166,6 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         expiresInHours: _expiryValue.toInt() > 0 ? _expiryValue.toInt() : 1,
         passwordHash: passwordHash,
         allowedIp: _ipController.text.trim().isNotEmpty ? _ipController.text.trim() : null,
-        burnOnRead: _burnOnRead,
         isE2EE: text.isNotEmpty,
       );
 
@@ -342,47 +358,29 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  hintText: 'Password (Optional)',
-                  prefixIcon: Icon(LucideIcons.lock, size: 18),
+                enabled: _userProfile?['plan'] == 'pro',
+                decoration: InputDecoration(
+                  hintText: _userProfile?['plan'] == 'pro' ? 'Password (Optional)' : 'Password (PRO Only)',
+                  prefixIcon: const Icon(LucideIcons.lock, size: 18),
+                  suffixIcon: _userProfile?['plan'] != 'pro' 
+                    ? const Icon(LucideIcons.crown, color: AppTheme.accentPrimary, size: 16) 
+                    : null,
                 ),
               ),
               const SizedBox(height: 12),
               // IP Whitelist
               TextField(
                 controller: _ipController,
-                decoration: const InputDecoration(
-                  hintText: 'Allowed IP (Optional)',
-                  prefixIcon: Icon(LucideIcons.mapPin, size: 18),
+                enabled: _userProfile?['plan'] == 'pro',
+                decoration: InputDecoration(
+                  hintText: _userProfile?['plan'] == 'pro' ? 'Allowed IP (Optional)' : 'Allowed IP (PRO Only)',
+                  prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
+                  suffixIcon: _userProfile?['plan'] != 'pro' 
+                    ? const Icon(LucideIcons.crown, color: AppTheme.accentPrimary, size: 16) 
+                    : null,
                 ),
               ),
               const SizedBox(height: 12),
-              // Burn on Read
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.bgSecondary,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderDefault),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(LucideIcons.flame, size: 18, color: AppTheme.error),
-                        SizedBox(width: 12),
-                        Text('Burn on Read', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      ],
-                    ),
-                    Switch(
-                      value: _burnOnRead,
-                      activeColor: AppTheme.error,
-                      onChanged: (val) => setState(() => _burnOnRead = val),
-                    ),
-                  ],
-                ),
-              ),
             ],
 
             const SizedBox(height: 32),

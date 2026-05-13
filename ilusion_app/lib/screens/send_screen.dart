@@ -33,6 +33,7 @@ class _SendScreenState extends State<SendScreen> {
   String? _createError;
   String? _generatedLink;
   PlatformFile? _selectedFile;
+  Map<String, dynamic>? _userProfile;
 
   final Map<double, String> _expiryOptions = {
     0.0833: '5m',
@@ -44,6 +45,23 @@ class _SendScreenState extends State<SendScreen> {
     72.0: '3d',
     168.0: '7d',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentUserProfile();
+  }
+
+  Future<void> _fetchCurrentUserProfile() async {
+    try {
+      final auth = context.read<AuthProvider>();
+      final token = await auth.getToken();
+      final profile = await ApiService.getProfile(token);
+      if (mounted) setState(() => _userProfile = profile);
+    } catch (e) {
+      debugPrint('Error fetching profile: $e');
+    }
+  }
 
   Future<void> _searchUser() async {
     final query = _queryController.text.trim();
@@ -130,7 +148,7 @@ class _SendScreenState extends State<SendScreen> {
 
       String? passwordHash;
       if (_passwordController.text.isNotEmpty) {
-        passwordHash = await CryptoUtils.hashPassword(_passwordController.text);
+        passwordHash = CryptoUtils.hashPassword(_passwordController.text);
       }
 
       // Create secret with recipientId
@@ -420,18 +438,26 @@ class _SendScreenState extends State<SendScreen> {
           TextField(
             controller: _passwordController,
             obscureText: true,
-            decoration: const InputDecoration(
-              hintText: 'Password (Optional)',
-              prefixIcon: Icon(LucideIcons.lock, size: 18),
+            enabled: _userProfile?['plan'] == 'pro',
+            decoration: InputDecoration(
+              hintText: _userProfile?['plan'] == 'pro' ? 'Password (Optional)' : 'Password (PRO Only)',
+              prefixIcon: const Icon(LucideIcons.lock, size: 18),
+              suffixIcon: _userProfile?['plan'] != 'pro' 
+                ? const Icon(LucideIcons.crown, color: AppTheme.accentPrimary, size: 16) 
+                : null,
             ),
           ),
           const SizedBox(height: 12),
           // IP Whitelist
           TextField(
             controller: _ipController,
-            decoration: const InputDecoration(
-              hintText: 'Allowed IP (Optional)',
-              prefixIcon: Icon(LucideIcons.mapPin, size: 18),
+            enabled: _userProfile?['plan'] == 'pro',
+            decoration: InputDecoration(
+              hintText: _userProfile?['plan'] == 'pro' ? 'Allowed IP (Optional)' : 'Allowed IP (PRO Only)',
+              prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
+              suffixIcon: _userProfile?['plan'] != 'pro' 
+                ? const Icon(LucideIcons.crown, color: AppTheme.accentPrimary, size: 16) 
+                : null,
             ),
           ),
         ],

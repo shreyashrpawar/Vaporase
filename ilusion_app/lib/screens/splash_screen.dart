@@ -19,7 +19,7 @@ class SplashScreen extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.accentPrimary.withOpacity(0.05),
+                color: AppTheme.accentPrimary.withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -31,7 +31,7 @@ class SplashScreen extends StatelessWidget {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.accentPrimary.withOpacity(0.03),
+                color: AppTheme.accentPrimary.withValues(alpha: 0.03),
               ),
             ),
           ),
@@ -65,7 +65,7 @@ class SplashScreen extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.accentPrimary.withOpacity(0.1),
+                          color: AppTheme.accentPrimary.withValues(alpha: 0.1),
                           blurRadius: 40,
                           spreadRadius: 5,
                         ),

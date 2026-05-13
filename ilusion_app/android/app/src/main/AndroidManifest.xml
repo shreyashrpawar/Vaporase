@@ -44,6 +44,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="ilusion" android:host="oauth_callback" />
+                <data android:scheme="ilusion" android:host="payment-success" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

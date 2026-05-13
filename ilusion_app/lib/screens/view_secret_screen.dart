@@ -72,7 +72,7 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
 
       String? passwordHash;
       if (_passwordController.text.isNotEmpty) {
-        passwordHash = await CryptoUtils.hashPassword(_passwordController.text);
+        passwordHash = CryptoUtils.hashPassword(_passwordController.text);
       }
 
       final response = await ApiService.getSecret(id, passwordHash: passwordHash);

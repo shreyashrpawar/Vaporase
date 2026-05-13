@@ -62,6 +62,15 @@ class _IlusionAppState extends State<IlusionApp> {
       return uri; // Tell Clerk to handle this
     }
 
+    // 3. Handle payment success
+    if (uri.host == 'payment-success') {
+      // Trigger a refresh of the app data
+      _navigatorKey.currentContext?.read<AuthProvider>().triggerRefresh();
+      // Optionally pop back to the home screen if we are deep in settings
+      _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      return null;
+    }
+
     return null;
   }
 

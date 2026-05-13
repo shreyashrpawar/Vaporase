@@ -56,6 +56,7 @@ class _SecretsScreenState extends State<SecretsScreen> {
     if (confirmed != true) return;
 
     try {
+      if (!mounted) return;
       final auth = context.read<AuthProvider>();
       final token = await auth.getToken();
       await ApiService.revokeSecret(id, token);

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../services/auth_provider.dart';
 import '../theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -106,6 +107,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_success != null)
                     _buildBanner(_success!, AppTheme.success, LucideIcons.check),
                   if (_error != null || _success != null) const SizedBox(height: 16),
+
+                  // Subscription Plan Card
+                  if (_profile != null) _buildSubscriptionCard(),
+                  if (_profile != null) const SizedBox(height: 20),
 
                   // Form card
                   Container(
@@ -263,6 +268,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildSubscriptionCard() {
+    final isPro = _profile?['plan'] == 'pro';
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSecondary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderDefault),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Subscription', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPro ? AppTheme.accentPrimary.withValues(alpha: 0.1) : AppTheme.bgTertiary,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isPro ? AppTheme.accentPrimary.withValues(alpha: 0.3) : AppTheme.borderDefault,
+                  ),
+                ),
+                child: Text(
+                  isPro ? 'PRO PLAN' : 'FREE PLAN',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isPro ? AppTheme.accentPrimary : AppTheme.textTertiary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (!isPro) ...[
+            const SizedBox(height: 16),
+            const Text('Upgrade to Pro to unlock API keys and unlimited secrets.', style: TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentPrimary,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => launchUrl(Uri.parse('https://www.ilusion.io/pricing?source=app')),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(LucideIcons.zap, size: 16),
+                    SizedBox(width: 8),
+                    Text('Upgrade to Pro'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

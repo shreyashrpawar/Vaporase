@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../services/auth_provider.dart';
 import '../theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -18,8 +19,10 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _secrets = [];
+  Map<String, dynamic>? _profile;
   bool _isLoading = true;
   String? _error;
+  int? _lastRefreshCount;
 
   int get _activeCount => _secrets.where((s) => s['status'] == 'active').length;
   int get _burnedCount => _secrets.where((s) => s['status'] == 'burned').length;
@@ -31,13 +34,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _fetchSecrets();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthProvider>();
+    if (_lastRefreshCount != null && _lastRefreshCount != auth.refreshCount) {
+      // Small delay to allow webhook to process on backend
+      Future.delayed(const Duration(seconds: 1), () => _fetchSecrets());
+    }
+    _lastRefreshCount = auth.refreshCount;
+  }
+
   Future<void> _fetchSecrets() async {
     try {
       setState(() { _isLoading = true; _error = null; });
       final auth = context.read<AuthProvider>();
       final token = await auth.getToken();
       final secrets = await ApiService.getDashboardSecrets(token);
-      setState(() => _secrets = secrets);
+      final profile = await ApiService.getProfile(token);
+      if (mounted) {
+        setState(() {
+          _secrets = secrets;
+          _profile = profile;
+        });
+      }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -82,6 +102,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 20),
 
                       // Quick actions
+                      if (_profile?['plan'] != 'pro') ...[
+                        _buildUpgradeBanner(),
+                        const SizedBox(height: 20),
+                      ],
                       _buildQuickActions(),
                       const SizedBox(height: 20),
 
@@ -110,14 +134,76 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final auth = context.watch<AuthProvider>();
     final user = auth.user;
     final name = user?.firstName ?? 'there';
+    final isPro = _profile?['plan'] == 'pro';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Welcome back, $name', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        Row(
+          children: [
+            Text('Welcome back, $name', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            if (isPro) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentPrimary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppTheme.accentPrimary.withValues(alpha: 0.3)),
+                ),
+                child: const Text('PRO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accentPrimary)),
+              ),
+            ],
+          ],
+        ),
         const SizedBox(height: 4),
         const Text("Here's your security dashboard.", style: TextStyle(fontSize: 13, color: AppTheme.textTertiary)),
       ],
+    );
+  }
+
+  Widget _buildUpgradeBanner() {
+    return GestureDetector(
+      onTap: () => launchUrl(Uri.parse('https://www.ilusion.io/pricing?source=app')),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.accentPrimary.withValues(alpha: 0.15),
+              AppTheme.accentPrimary.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.accentPrimary.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.accentPrimary.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(LucideIcons.zap, color: AppTheme.accentPrimary, size: 20),
+            ),
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Upgrade to Pro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textPrimary)),
+                  SizedBox(height: 2),
+                  Text('Unlock API keys and unlimited secrets', style: TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
+                ],
+              ),
+            ),
+            const Icon(LucideIcons.arrowRight, size: 16, color: AppTheme.accentPrimary),
+          ],
+        ),
+      ),
     );
   }
 

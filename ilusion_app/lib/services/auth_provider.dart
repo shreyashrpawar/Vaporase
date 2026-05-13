@@ -16,6 +16,14 @@ class AuthProvider extends ChangeNotifier {
   clerk.User? get user => _auth.user;
   clerk.Session? get session => _auth.session;
 
+  int _refreshCount = 0;
+  int get refreshCount => _refreshCount;
+
+  void triggerRefresh() {
+    _refreshCount++;
+    notifyListeners();
+  }
+
   // Helper to refresh state when Auth notifies us
   void updateState() {
     notifyListeners();
