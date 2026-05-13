@@ -155,17 +155,32 @@ export default function CreateSecretPage() {
         }
 
         const { url, fileKey: key } = await presignRes.json();
-        setUploadProgress(30);
+        setUploadProgress(35);
 
-        const uploadRes = await fetch(url, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
+        // Use XMLHttpRequest to track progress
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', url);
+          xhr.setRequestHeader('Content-Type', file.type);
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percentComplete = (event.loaded / event.total) * 40; // 40% of the total progress bar (from 30% to 70%)
+              setUploadProgress(30 + percentComplete);
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(xhr.response);
+            } else {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send(file);
         });
-
-        if (!uploadRes.ok) {
-          throw new Error('Failed to upload file');
-        }
 
         fileKey = key;
         fileName = file.name;
