@@ -15,7 +15,6 @@ const PRICING_PLANS = [
       'Up to 50MB file uploads',
       'End-to-End Encryption',
       'Self-destructing links',
-      'Password protection',
       'Standard support',
     ],
     buttonText: 'Current Plan',
@@ -29,6 +28,7 @@ const PRICING_PLANS = [
     description: 'For power users who need more space and security.',
     features: [
       'Up to 500MB file uploads',
+      'Password Protection',
       'Custom expiration (up to 30 days)',
       'IP Access Restrictions',
       'Advanced link tracking',

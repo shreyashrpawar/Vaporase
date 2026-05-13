@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone, Clock } from 'lucide-react';
+import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone, Clock, Check } from 'lucide-react';
 import { getLocalSecrets, LocalSecret } from '@/lib/local-history';
 import { useState } from 'react';
 
@@ -218,6 +218,62 @@ export default function LandingPage() {
           <Link href="/sign-up" className="btn-primary !text-sm group">
             Claim Your Inbox <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
+        </div>
+      </section>
+
+      {/* ═══ Pricing ═══ */}
+      <section id="pricing" className="relative z-10 px-6 py-24 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--text-primary)' }}>
+            Transparent <span className="text-gradient">Pricing</span>
+          </h2>
+          <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
+            Simple plans for individuals and power users.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Free Plan */}
+          <div className="card gradient-border p-8 flex flex-col group transition-transform hover:scale-[1.02]">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold mb-2">Free</h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-3xl font-bold">$0</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Perfect for one-off secure sharing.</p>
+            </div>
+            <ul className="space-y-4 mb-8 flex-1">
+              {['Up to 50MB file uploads', 'E2E Encryption', 'Self-destructing links', 'Standard Support'].map(f => (
+                <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-4 h-4 text-accent" /> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/create" className="btn-secondary !text-sm w-full text-center">Get Started</Link>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="card gradient-border p-8 flex flex-col relative group transition-transform hover:scale-[1.05]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+              Recommended
+            </div>
+            <div className="mb-6">
+              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-3xl font-bold">$9</span>
+                <span className="text-xs text-muted-foreground">/mo</span>
+              </div>
+              <p className="text-xs text-muted-foreground">For power users who need more space.</p>
+            </div>
+            <ul className="space-y-4 mb-8 flex-1">
+              {['Up to 500MB file uploads', 'Password Protection', 'IP Access Restrictions', 'Custom Expiry (30 days)', 'Priority Support'].map(f => (
+                <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-4 h-4 text-accent" /> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/pricing" className="btn-primary !text-sm w-full text-center">Go Pro with Dodo</Link>
+          </div>
         </div>
       </section>
 

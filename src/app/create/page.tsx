@@ -550,7 +550,7 @@ export default function CreateSecretPage() {
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-1 block">Optional Password</label>
                     <p className="text-xs text-muted-foreground mb-2">Require a password to unlock the secret.</p>
-                    {isSignedIn ? (
+                    {userPlan === 'pro' ? (
                       <input
                         type="password"
                         value={password}
@@ -563,7 +563,7 @@ export default function CreateSecretPage() {
                         <input
                           disabled
                           type="password"
-                          placeholder="Sign in to add password protection"
+                          placeholder={isSignedIn ? "Upgrade to Pro for password protection" : "Sign in to add password protection"}
                           className="input opacity-50 cursor-not-allowed pr-10"
                         />
                         <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
