@@ -20,7 +20,7 @@ export default function ApiKeysPage() {
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          if (data.profile?.plan) setUserPlan(data.profile.plan);
+          if (data.plan) setUserPlan(data.plan);
         })
         .catch(err => console.error('Error fetching profile:', err));
     }
