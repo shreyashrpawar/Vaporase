@@ -56,27 +56,42 @@ export default function RootLayout({
   return (
     <ClerkProvider
       appearance={{
-        baseTheme: dark,
         variables: {
           colorPrimary: '#6366f1',
-          colorBackground: '#18181b',
-          colorInputBackground: '#27272a',
-          colorInputText: '#fafafa',
-          colorText: '#fafafa',
-          colorTextSecondary: '#a1a1aa',
+          colorBackground: 'var(--bg-elevated)',
+          colorInputBackground: 'var(--bg-inset)',
+          colorInputText: 'var(--text-primary)',
+          colorText: 'var(--text-primary)',
+          colorTextSecondary: 'var(--text-secondary)',
           borderRadius: '0.75rem',
         },
         elements: {
           userButtonPopoverCard: {
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+            border: '1px solid var(--border-default)',
+            boxShadow: 'var(--shadow-lg)',
             zIndex: 99999,
+            backgroundColor: 'var(--bg-elevated)',
           },
           userButtonPopoverActionButton: {
             '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              backgroundColor: 'var(--surface-overlay)',
             }
-          }
+          },
+          userButtonPopoverActionButtonText: {
+            color: 'var(--text-primary)',
+          },
+          userButtonPopoverFooter: {
+            display: 'none', // Optional: cleans up the footer if desired
+          },
+          userButtonPopoverMain: {
+            color: 'var(--text-primary)',
+          },
+          userPreviewMainIdentifier: {
+            color: 'var(--text-primary)',
+          },
+          userPreviewSecondaryIdentifier: {
+            color: 'var(--text-secondary)',
+          },
         }
       }}
     >
