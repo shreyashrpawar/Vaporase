@@ -31,6 +31,10 @@ export async function POST(req: Request) {
         email: userEmail || '',
         name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Valued Customer',
       },
+      billing_address: {
+        country: 'US',
+        zipcode: '10001',
+      },
       metadata: {
         user_id: userId,
       },
