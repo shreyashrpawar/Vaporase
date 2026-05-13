@@ -19,10 +19,28 @@ class _InboxScreenState extends State<InboxScreen> {
   String? _error;
   String _searchQuery = '';
 
+  String? _lastAuthHash;
+
   @override
-  void initState() {
-    super.initState();
-    _fetchInbox();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthProvider>();
+    final authHash = '${auth.isSignedIn}_${auth.refreshCount}';
+
+    if (_lastAuthHash != authHash) {
+      final isRefresh = _lastAuthHash != null && _lastAuthHash!.split('_')[0] == 'true' && auth.isSignedIn;
+      _lastAuthHash = authHash;
+
+      if (auth.isSignedIn) {
+        if (isRefresh) {
+          Future.delayed(const Duration(seconds: 1), () => _fetchInbox());
+        } else {
+          _fetchInbox();
+        }
+      } else {
+        setState(() => _secrets = []);
+      }
+    }
   }
 
   Future<void> _fetchInbox() async {

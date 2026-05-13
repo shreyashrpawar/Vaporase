@@ -28,10 +28,22 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
   PlatformFile? _selectedFile;
   Map<String, dynamic>? _userProfile;
 
+  String? _lastAuthHash;
+
   @override
-  void initState() {
-    super.initState();
-    _fetchProfile();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthProvider>();
+    final authHash = '${auth.isSignedIn}_${auth.refreshCount}';
+    
+    if (_lastAuthHash != authHash) {
+      _lastAuthHash = authHash;
+      if (auth.isSignedIn) {
+        _fetchProfile();
+      } else {
+        setState(() => _userProfile = null);
+      }
+    }
   }
 
   Future<void> _fetchProfile() async {

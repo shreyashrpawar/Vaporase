@@ -46,10 +46,26 @@ class _SendScreenState extends State<SendScreen> {
     168.0: '7d',
   };
 
+  String? _lastAuthHash;
+
   @override
-  void initState() {
-    super.initState();
-    _fetchCurrentUserProfile();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthProvider>();
+    final authHash = '${auth.isSignedIn}_${auth.refreshCount}';
+    
+    if (_lastAuthHash != authHash) {
+      _lastAuthHash = authHash;
+      if (auth.isSignedIn) {
+        _fetchCurrentUserProfile();
+      } else {
+        setState(() {
+          _userProfile = null;
+          _profile = null; // Also clear the searched user profile
+          _queryController.clear();
+        });
+      }
+    }
   }
 
   Future<void> _fetchCurrentUserProfile() async {

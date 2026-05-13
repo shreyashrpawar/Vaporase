@@ -17,10 +17,28 @@ class _SecretsScreenState extends State<SecretsScreen> {
   bool _isLoading = true;
   String? _error;
 
+  String? _lastAuthHash;
+
   @override
-  void initState() {
-    super.initState();
-    _fetchSecrets();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthProvider>();
+    final authHash = '${auth.isSignedIn}_${auth.refreshCount}';
+
+    if (_lastAuthHash != authHash) {
+      final isRefresh = _lastAuthHash != null && _lastAuthHash!.split('_')[0] == 'true' && auth.isSignedIn;
+      _lastAuthHash = authHash;
+
+      if (auth.isSignedIn) {
+        if (isRefresh) {
+          Future.delayed(const Duration(seconds: 1), () => _fetchSecrets());
+        } else {
+          _fetchSecrets();
+        }
+      } else {
+        setState(() => _secrets = []);
+      }
+    }
   }
 
   Future<void> _fetchSecrets() async {

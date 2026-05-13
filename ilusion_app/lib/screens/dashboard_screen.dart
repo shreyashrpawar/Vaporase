@@ -22,27 +22,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _profile;
   bool _isLoading = true;
   String? _error;
-  int? _lastRefreshCount;
+  String? _lastAuthHash;
 
   int get _activeCount => _secrets.where((s) => s['status'] == 'active').length;
   int get _burnedCount => _secrets.where((s) => s['status'] == 'burned').length;
   int get _totalCount => _secrets.length;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchSecrets();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final auth = context.watch<AuthProvider>();
-    if (_lastRefreshCount != null && _lastRefreshCount != auth.refreshCount) {
-      // Small delay to allow webhook to process on backend
-      Future.delayed(const Duration(seconds: 1), () => _fetchSecrets());
+    final authHash = '${auth.isSignedIn}_${auth.refreshCount}';
+
+    if (_lastAuthHash != authHash) {
+      final isRefresh = _lastAuthHash != null && _lastAuthHash!.split('_')[0] == 'true' && auth.isSignedIn;
+      _lastAuthHash = authHash;
+
+      if (auth.isSignedIn) {
+        if (isRefresh) {
+          // Small delay to allow webhook to process on backend
+          Future.delayed(const Duration(seconds: 1), () => _fetchSecrets());
+        } else {
+          _fetchSecrets();
+        }
+      } else {
+        setState(() {
+          _secrets = [];
+          _profile = null;
+        });
+      }
     }
-    _lastRefreshCount = auth.refreshCount;
   }
 
   Future<void> _fetchSecrets() async {
