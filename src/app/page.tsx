@@ -80,7 +80,7 @@ export default function LandingPage() {
               Create a Secret
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="/ilusion.apk" download className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
+            <a href="/app-release.apk" download className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
               <Smartphone className="w-4 h-4" />
               Download App
             </a>
