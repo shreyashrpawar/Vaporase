@@ -21,6 +21,9 @@ import {
   EyeOff,
   Sparkles,
   Settings,
+  Clock,
+  Zap,
+  ArrowRight,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
