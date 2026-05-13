@@ -55,6 +55,8 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
       // 2. Open the Iframe/Overlay
       await DodoPayments.Checkout.open({
         checkoutUrl: data.checkoutUrl,
+        // @ts-ignore - Some SDK versions use sessionId explicitly
+        sessionId: data.sessionId,
       });
 
       // Done loading once the overlay is initiated

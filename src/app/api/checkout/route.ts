@@ -38,7 +38,10 @@ export async function POST(req: Request) {
       return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
     });
 
-    return NextResponse.json({ checkoutUrl: checkout.checkout_url });
+    return NextResponse.json({ 
+      checkoutUrl: checkout.checkout_url,
+      sessionId: checkout.session_id 
+    });
   } catch (error: any) {
     console.error('Dodo Checkout Error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
