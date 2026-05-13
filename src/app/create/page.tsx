@@ -139,13 +139,15 @@ export default function CreateSecretPage() {
       if (file) {
         setUploadProgress(10);
 
+        const actualFileType = file.type || 'application/octet-stream';
+
         const presignRes = await fetch('/api/secrets/presign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             fileName: file.name,
             fileSize: file.size,
-            fileType: file.type,
+            fileType: actualFileType,
           }),
         });
 
@@ -161,7 +163,7 @@ export default function CreateSecretPage() {
         await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open('PUT', url);
-          xhr.setRequestHeader('Content-Type', file.type);
+          xhr.setRequestHeader('Content-Type', actualFileType);
 
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
@@ -174,18 +176,18 @@ export default function CreateSecretPage() {
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve(xhr.response);
             } else {
-              reject(new Error(`Upload failed with status ${xhr.status}`));
+              reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
             }
           };
 
-          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.onerror = () => reject(new Error('Network error during upload. This might be a CORS issue or connection drop.'));
           xhr.send(file);
         });
 
         fileKey = key;
         fileName = file.name;
         fileSize = file.size;
-        fileType = file.type;
+        fileType = actualFileType;
         setUploadProgress(70);
       }
 

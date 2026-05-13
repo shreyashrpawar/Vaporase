@@ -20,8 +20,8 @@ export async function generatePresignedUrl(fileKey: string, mimeType: string) {
     ContentType: mimeType,
   });
 
-  // URL expires in 5 minutes
-  return getSignedUrl(s3, command, { expiresIn: 300 });
+  // URL expires in 1 hour
+  return getSignedUrl(s3, command, { expiresIn: 3600 });
 }
 
 export async function deleteFileFromR2(fileKey: string) {
