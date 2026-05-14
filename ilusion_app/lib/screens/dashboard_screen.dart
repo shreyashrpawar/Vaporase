@@ -144,6 +144,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final user = auth.user;
     final name = user?.firstName ?? 'there';
     final isPro = _profile?['plan'] == 'pro';
+    final expiresAtStr = _profile?['planExpiresAt'];
+    DateTime? expiresAt;
+    if (expiresAtStr != null) {
+      expiresAt = DateTime.tryParse(expiresAtStr);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,7 +171,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         const SizedBox(height: 4),
-        const Text("Here's your security dashboard.", style: TextStyle(fontSize: 13, color: AppTheme.textTertiary)),
+        if (isPro && expiresAt != null)
+          Text(
+            "Your Pro plan expires on ${expiresAt.day}/${expiresAt.month}/${expiresAt.year}",
+            style: const TextStyle(fontSize: 12, color: AppTheme.accentPrimary, fontWeight: FontWeight.w500),
+          )
+        else
+          const Text("Here's your security dashboard.", style: TextStyle(fontSize: 13, color: AppTheme.textTertiary)),
       ],
     );
   }

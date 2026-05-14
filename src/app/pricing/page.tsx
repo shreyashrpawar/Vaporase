@@ -55,6 +55,21 @@ function PricingContent() {
   const searchParams = useSearchParams();
   const source = searchParams.get('source') || undefined;
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [profile, setProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      setLoadingProfile(true);
+      fetch('/api/profile')
+        .then(res => res.json())
+        .then(data => setProfile(data))
+        .catch(err => console.error('Failed to fetch profile:', err))
+        .finally(() => setLoadingProfile(false));
+    }
+  }, [isSignedIn]);
+
+  const isUserPro = profile?.plan === 'pro';
 
   const plans = [
     {
@@ -67,17 +82,15 @@ function PricingContent() {
         'Self-destructing links',
         'Standard support',
       ],
-      buttonText: 'Current Plan',
+      buttonText: !isUserPro ? 'Current Plan' : 'Basic Plan',
       buttonLink: '/create',
       highlight: false,
     },
     {
-      name: 'Pro',
-      price: billingCycle === 'monthly' ? '$2' : '$18',
-      period: billingCycle === 'monthly' ? '/month' : '/year',
-      description: billingCycle === 'monthly' 
-        ? 'For power users who need more space and security.' 
-        : 'Professional security at the best possible value.',
+      name: 'Pro Monthly',
+      price: '$2',
+      period: '/month',
+      description: 'For power users who need more space and security.',
       features: [
         'Up to 100MB file uploads',
         'Password Protection',
@@ -87,42 +100,44 @@ function PricingContent() {
         'Priority Support',
         'API Access Key',
       ],
-      buttonText: 'Upgrade to Pro',
-      productId: billingCycle === 'monthly' 
-        ? process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO 
-        : process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY,
+      buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
+      productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO,
+      highlight: false,
+    },
+    {
+      name: 'Pro Yearly',
+      price: '$18',
+      period: '/year',
+      description: 'Professional security at the best possible value.',
+      features: [
+        'Everything in Monthly',
+        '25% Savings',
+        '365 Days of Pro access',
+        'Priority Support',
+        'Advanced link tracking',
+        'Priority Support',
+        'API Access Key',
+      ],
+      buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
+      productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY,
       highlight: true,
-      badge: billingCycle === 'yearly' ? 'Save 25%' : undefined
+      badge: 'Best Value — Save 25%'
     },
   ];
 
   return (
     <div className="min-h-screen bg-background text-foreground py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
             Simple, Transparent Pricing
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-10">
             Secure your digital life with Ilusion. Choose the plan that fits your needs.
           </p>
-
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-zinc-500'}`}>Monthly</span>
-            <button 
-              onClick={() => setBillingCycle(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
-              className="w-12 h-6 rounded-full bg-zinc-800 p-1 relative transition-colors hover:bg-zinc-700"
-            >
-              <div className={`w-4 h-4 rounded-full bg-accent transition-transform duration-200 ${billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-0'}`} />
-            </button>
-            <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-white' : 'text-zinc-500'}`}>
-              Yearly <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full ml-1">Save 25%</span>
-            </span>
-          </div>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+ 
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -160,11 +175,22 @@ function PricingContent() {
 
               {plan.highlight ? (
                 isSignedIn ? (
-                  plan.productId ? (
+                  loadingProfile ? (
+                    <button className="w-full py-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2" disabled>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Checking status...
+                    </button>
+                  ) : isUserPro ? (
+                    <Link
+                      href="/dashboard"
+                      className="w-full block text-center py-4 rounded-xl bg-accent/20 border border-accent/30 text-accent font-bold hover:bg-accent/30 transition-all"
+                    >
+                      Active Plan — Go to Dashboard
+                    </Link>
+                  ) : plan.productId ? (
                     <DodoEmbeddedCheckout productId={plan.productId} source={source} />
                   ) : (
-                    <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/[0.02] transition-colors font-semibold disabled:opacity-50" disabled={plan.name === 'Free'}>
-                      {plan.name === 'Free' ? 'Current Plan' : plan.buttonText}
+                    <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/[0.02] transition-colors font-semibold" disabled>
+                      {plan.buttonText}
                     </button>
                   )
                 ) : (
@@ -175,7 +201,11 @@ function PricingContent() {
               ) : (
                 <Link
                   href={plan.buttonLink || '#'}
-                  className="w-full block text-center py-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-medium"
+                  className={`w-full block text-center py-4 rounded-xl border transition-all font-medium ${
+                    !isUserPro 
+                      ? 'bg-white/10 border-white/20 cursor-default' 
+                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  }`}
                 >
                   {plan.buttonText}
                 </Link>

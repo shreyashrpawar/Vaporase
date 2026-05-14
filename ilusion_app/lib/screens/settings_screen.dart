@@ -287,6 +287,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSubscriptionCard() {
     final isPro = _profile?['plan'] == 'pro';
+    final expiresAtStr = _profile?['planExpiresAt'];
+    DateTime? expiresAt;
+    if (expiresAtStr != null) {
+      expiresAt = DateTime.tryParse(expiresAtStr);
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -323,9 +328,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          if (!isPro) ...[
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
+          if (isPro && expiresAt != null)
+            Text(
+              'Your plan expires on ${expiresAt.day}/${expiresAt.month}/${expiresAt.year}.',
+              style: const TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+            )
+          else if (!isPro)
             const Text('Upgrade to Pro to unlock API keys and unlimited secrets.', style: TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
+          
+          if (!isPro) ...[
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,

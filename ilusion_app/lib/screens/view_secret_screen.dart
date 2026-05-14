@@ -222,7 +222,10 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
                       final List<Barcode> barcodes = capture.barcodes;
                       if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
                         final String code = barcodes.first.rawValue!;
-                        if (code.startsWith('https://www.ilusion.io/secret/') || code.startsWith('https://ilusion.io/secret/')) {
+                        if (code.startsWith('https://www.ilusion.io/secret/') || 
+                            code.startsWith('https://ilusion.io/secret/') ||
+                            code.startsWith('https://www.ilusion.io/s/') || 
+                            code.startsWith('https://ilusion.io/s/')) {
                           Navigator.pop(context);
                           setState(() {
                             _urlController.text = code;

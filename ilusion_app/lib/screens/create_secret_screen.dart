@@ -520,7 +520,8 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 title: const Text('Use Custom Alias', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 subtitle: const Text('Creates a clean, easy-to-type link', style: TextStyle(fontSize: 12)),
                 value: _useAlias,
-                activeColor: AppTheme.accentPrimary,
+                activeTrackColor: AppTheme.accentPrimary.withValues(alpha: 0.5),
+                activeThumbColor: AppTheme.accentPrimary,
                 onChanged: (val) => setState(() => _useAlias = val),
               ),
               if (_useAlias) ...[

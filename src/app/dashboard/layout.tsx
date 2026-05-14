@@ -15,6 +15,7 @@ import {
   Send,
   Plus,
   Eye,
+  Smartphone,
 } from 'lucide-react';
 
 const navItems = [
@@ -114,6 +115,19 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+          
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Download App */}
+          <a
+            href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk"
+            download="Ilusion.apk"
+            className="rail-item group"
+          >
+            <Smartphone className="w-[18px] h-[18px] text-zinc-500 group-hover:text-accent transition-colors" />
+            <span className="tooltip">Get Android App</span>
+          </a>
         </div>
       </aside>
 
@@ -135,10 +149,17 @@ export default function DashboardLayout({
       </div>
 
       {/* ═══ Main Content ═══ */}
-      <main className="pt-14 lg:pl-16 pb-20 lg:pb-0 min-h-screen">
-        <div className="p-5 lg:p-8 max-w-[1200px] mx-auto">
+      <main className="pt-14 lg:pl-16 pb-20 lg:pb-0 min-h-screen flex flex-col">
+        <div className="p-5 lg:p-8 max-w-[1200px] mx-auto flex-1 w-full">
           {children}
         </div>
+        
+        {/* Support Footer */}
+        <footer className="p-4 text-center border-t border-border/50 bg-white/[0.01]">
+          <p className="text-[10px] text-muted-foreground">
+            Need help? Contact us at <a href="mailto:hello@ilusion.io" className="text-accent hover:underline font-medium">hello@ilusion.io</a>
+          </p>
+        </footer>
       </main>
     </div>
   );

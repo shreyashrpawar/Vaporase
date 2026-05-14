@@ -216,6 +216,58 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ Mobile App Section ═══ */}
+      <section className="relative z-10 px-6 py-24 max-w-5xl mx-auto w-full">
+        <div className="card gradient-border overflow-hidden p-0" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="flex-1 p-8 md:p-12 text-left">
+              <div className="badge badge-accent mb-4">Native Experience</div>
+              <h2 className="text-3xl font-bold mb-4">Ilusion on your <span className="text-gradient">Android</span></h2>
+              <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+                Take security with you. Our mobile app features biometric unlock, 
+                instant push notifications for your Inbox, and deep-link support 
+                to reveal secrets directly from your messaging apps.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <a 
+                  href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk" 
+                  download="Ilusion.apk"
+                  className="btn-primary !py-3 !px-6 !text-xs flex items-center gap-2"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  Download APK
+                </a>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-[10px] text-muted-foreground">
+                  <Check className="w-3 h-3 text-success" />
+                  Verified & Secure
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 relative h-[300px] md:h-[450px] w-full bg-accent/5 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 mesh-gradient opacity-30" />
+              {/* Phone Mockup (CSS only) */}
+              <div className="relative w-[180px] h-[360px] bg-zinc-900 rounded-[30px] border-[6px] border-zinc-800 shadow-2xl flex flex-col items-center p-4">
+                <div className="w-16 h-1 bg-zinc-800 rounded-full mb-4" />
+                <div className="w-full flex-1 rounded-xl bg-zinc-950 border border-white/5 p-3 flex flex-col gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center mb-2">
+                    <Lock className="w-4 h-4 text-accent" />
+                  </div>
+                  <div className="h-2 w-full bg-white/10 rounded-full" />
+                  <div className="h-2 w-[80%] bg-white/10 rounded-full" />
+                  <div className="mt-auto h-8 w-full bg-accent/20 border border-accent/30 rounded-lg flex items-center justify-center text-[8px] font-bold text-accent">
+                    Reveal Secret
+                  </div>
+                </div>
+                <div className="mt-4 w-8 h-8 rounded-full border-2 border-zinc-800" />
+              </div>
+              {/* Decorative circles */}
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ Steps ═══ */}
       <section className="relative z-10 px-6 py-20 max-w-3xl mx-auto w-full">
         <div className="text-center mb-12">
@@ -268,7 +320,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Free Plan */}
           <div className="card gradient-border p-8 flex flex-col group transition-transform hover:scale-[1.02]">
             <div className="mb-6">
@@ -279,7 +331,7 @@ export default function LandingPage() {
               <p className="text-xs text-muted-foreground">Perfect for one-off secure sharing.</p>
             </div>
             <ul className="space-y-4 mb-8 flex-1">
-              {['Up to 50MB file uploads', 'E2E Encryption', 'Self-destructing links', 'Standard Support'].map(f => (
+              {['Up to 50MB uploads', 'E2E Encryption', 'Burn on Read', 'Standard Support'].map(f => (
                 <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <Check className="w-4 h-4 text-accent" /> {f}
                 </li>
@@ -288,27 +340,47 @@ export default function LandingPage() {
             <Link href="/create" className="btn-secondary !text-sm w-full text-center">Get Started</Link>
           </div>
 
-          {/* Pro Plan */}
-          <div className="card gradient-border p-8 flex flex-col relative group transition-transform hover:scale-[1.05]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-              Recommended
-            </div>
+          {/* Pro Monthly */}
+          <div className="card gradient-border p-8 flex flex-col relative group transition-transform hover:scale-[1.02]" style={{ background: 'var(--surface-overlay)' }}>
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <h3 className="text-xl font-bold mb-2">Pro Monthly</h3>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-3xl font-bold">$2</span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
-              <p className="text-xs text-muted-foreground">For power users who need more space.</p>
+              <p className="text-xs text-muted-foreground">Advanced security for power users.</p>
             </div>
             <ul className="space-y-4 mb-8 flex-1">
-              {['Up to 100MB file uploads', 'Password Protection', 'IP Access Restrictions', 'Custom Expiry (30 days)', 'Priority Support'].map(f => (
+              {['100MB uploads', 'Password Protection', 'IP Restrictions', '30-day Expiry'].map(f => (
                 <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <Check className="w-4 h-4 text-accent" /> {f}
                 </li>
               ))}
             </ul>
-            <Link href="/pricing" className="btn-primary !text-sm w-full text-center">Go Pro with Dodo</Link>
+            <Link href="/pricing" className="btn-secondary !text-sm w-full text-center">Select Monthly</Link>
+          </div>
+
+          {/* Pro Yearly */}
+          <div className="card gradient-border p-8 flex flex-col relative group transition-transform hover:scale-[1.05]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+              Best Value — Save 25%
+            </div>
+            <div className="mb-6">
+              <h3 className="text-xl font-bold mb-2">Pro Yearly</h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-3xl font-bold">$18</span>
+                <span className="text-xs text-muted-foreground">/year</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Professional security at $1.50/mo.</p>
+            </div>
+            <ul className="space-y-4 mb-8 flex-1">
+              {['All Pro Features', 'Priority Support', 'API Access Key', 'Unlimited Secrets'].map(f => (
+                <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-4 h-4 text-accent" /> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/pricing" className="btn-primary !text-sm w-full text-center">Select Yearly</Link>
           </div>
         </div>
       </section>
@@ -332,6 +404,7 @@ export default function LandingPage() {
             <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>ilusion.io — Secure Ephemeral Sharing</span>
           </div>
           <div className="flex items-center gap-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            <Link href="/contact" className="hover:underline">Contact</Link>
             <a href="#" className="hover:underline">Privacy</a>
             <a href="#" className="hover:underline">Terms</a>
             <Link href="/dashboard/api-keys" className="hover:underline">API</Link>
