@@ -548,7 +548,7 @@ export default function CreateSecretPage() {
                 <div className="mt-4 space-y-4 animate-fade-in-up">
                   <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
                     <div>
-                      <label className="text-sm font-semibold text-foreground block">Use Custom Alias</label>
+                      <label className="text-sm font-semibold text-foreground">Use Custom Alias</label>
                       <p className="text-[11px] text-muted-foreground">Creates a clean link without a key fragment.</p>
                     </div>
                     <button
@@ -561,15 +561,21 @@ export default function CreateSecretPage() {
                   </div>
 
                   {useAlias && (
-                    <div className="animate-fade-in-up">
+                    <div className="mt-2 px-1">
                       <label className="text-sm font-semibold text-foreground mb-1 block">Alias</label>
-                      <input
-                        type="text"
-                        value={alias}
-                        onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        placeholder="e.g. meeting-notes"
-                        className="input"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={alias}
+                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="e.g. meeting-notes"
+                          className="input !py-3"
+                          autoFocus
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
+                        Only letters, numbers, and hyphens allowed.
+                      </p>
                     </div>
                   )}
 
