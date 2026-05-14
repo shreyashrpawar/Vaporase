@@ -22,12 +22,15 @@ export async function POST(req: Request) {
       const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
 
       if (userId) {
-        const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO;
-        const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY;
-        const productId = data?.product_id || data?.product?.id;
+        const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || process.env.DODO_PRODUCT_ID_PRO;
+        const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY || process.env.DODO_PRODUCT_ID_YEARLY;
+        
+        // Robust product ID detection
+        const productId = String(data?.product_id || data?.productId || data?.product?.id || '').trim();
+        const cleanYearlyId = String(YEARLY_PRODUCT_ID || '').trim();
 
         const expiryDate = new Date();
-        if (productId === YEARLY_PRODUCT_ID) {
+        if (productId === cleanYearlyId && cleanYearlyId !== '') {
           expiryDate.setFullYear(expiryDate.getFullYear() + 1);
         } else {
           expiryDate.setDate(expiryDate.getDate() + 30);
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
           })
           .where(eq(userProfiles.userId, userId));
         
-        console.log(`User ${userId} upgraded to PRO (${productId === YEARLY_PRODUCT_ID ? 'Yearly' : 'Monthly'}). Expires: ${expiryDate}`);
+        console.log(`User ${userId} upgraded to PRO (${productId === cleanYearlyId ? 'Yearly' : 'Monthly'}). Expires: ${expiryDate}`);
       } else {
         console.warn('Webhook received without external_id (userId)', data?.metadata);
       }

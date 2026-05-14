@@ -23,8 +23,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
     }
 
-    const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO;
-    const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY;
+    const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || process.env.DODO_PRODUCT_ID_PRO;
+    const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY || process.env.DODO_PRODUCT_ID_YEARLY;
 
     let isValid = false;
     let productId = '';
@@ -32,20 +32,26 @@ export async function POST(req: Request) {
     if (subscription_id) {
       const subscription = await dodo.subscriptions.retrieve(subscription_id);
       isValid = subscription && (subscription.status === 'active' || subscription.status === 'pending');
-      productId = (subscription as any).product_id;
+      // SDK might return snake_case or camelCase
+      productId = (subscription as any).product_id || (subscription as any).productId;
     } else if (payment_id) {
       const payment = await dodo.payments.retrieve(payment_id);
-      // Use any cast to bypass strict status type check which might be missing 'succeeded' or 'captured' in some SDK versions
       const status = (payment as any).status;
       isValid = payment && (status === 'succeeded' || status === 'captured');
-      productId = (payment as any).product_id;
+      productId = (payment as any).product_id || (payment as any).productId;
     }
+
+    console.log('Verification Debug:', { productId, YEARLY_PRODUCT_ID, isValid });
 
     if (isValid) {
       const expiryDate = new Date();
       
       // Handle Yearly vs Monthly expiration
-      if (productId === YEARLY_PRODUCT_ID) {
+      // Be extra careful with comparison - ensure both are strings and trimmed
+      const cleanProductId = String(productId || '').trim();
+      const cleanYearlyId = String(YEARLY_PRODUCT_ID || '').trim();
+
+      if (cleanProductId === cleanYearlyId && cleanYearlyId !== '') {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       } else {
         expiryDate.setDate(expiryDate.getDate() + 30);
