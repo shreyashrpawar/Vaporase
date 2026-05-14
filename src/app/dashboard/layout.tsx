@@ -14,10 +14,12 @@ import {
   Settings,
   Send,
   Plus,
+  Eye,
 } from 'lucide-react';
 
 const navItems = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Reveal', href: '/view', icon: Eye },
   { name: 'Inbox', href: '/dashboard/inbox', icon: Inbox },
   { name: 'Send', href: '/dashboard/send', icon: Send },
   { name: 'Secrets', href: '/dashboard/secrets', icon: Shield },
