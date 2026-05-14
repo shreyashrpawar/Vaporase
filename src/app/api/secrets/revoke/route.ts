@@ -20,9 +20,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing secret ID' }, { status: 400 });
     }
 
-    // Verify ownership and fetch current state
+    // Verify ownership and fetch current state (Support UUID or Alias)
     const secretRecord = await db.query.secrets.findFirst({
-      where: and(eq(secrets.id, id), eq(secrets.userId, userId))
+      where: and(
+        or(eq(secrets.id, id), eq(secrets.alias, id)),
+        eq(secrets.userId, userId)
+      )
     });
 
     if (!secretRecord) {
@@ -39,7 +42,7 @@ export async function POST(req: Request) {
       fileKey: null,
       status: 'revoked',
       // Note: We don't set readAt/readByIp because it wasn't read, it was revoked.
-    }).where(eq(secrets.id, id));
+    }).where(eq(secrets.id, secretRecord.id));
 
     // Immediately delete the file from R2
     if (secretRecord.fileKey) {

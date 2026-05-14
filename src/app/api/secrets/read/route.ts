@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         encryptedContent: null,
         fileKey: null,
         status: 'burned',
-      }).where(eq(secrets.id, id));
+      }).where(eq(secrets.id, secretRecord.id));
       return NextResponse.json({ error: 'Secret has expired and been destroyed' }, { status: 404 });
     }
 
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
         // for this specific session, but we mark the status as burned.
         status: 'burned',
         readAt: new Date(),
-      }).where(eq(secrets.id, id));
+      }).where(eq(secrets.id, secretRecord.id));
 
       // Send email notification
       // Note: Using hardcoded email for Mailtrap sandbox as requested. 
