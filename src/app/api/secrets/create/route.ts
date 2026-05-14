@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/db';
 import { secrets, apiKeys } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, gt } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 export async function POST(req: Request) {
@@ -39,7 +39,8 @@ export async function POST(req: Request) {
       allowedIp,
       isE2EE = false,
       recipientId,
-      dropKey
+      dropKey,
+      alias
     } = await req.json();
 
     if (!encryptedContent && !fileKey) {
@@ -49,6 +50,28 @@ export async function POST(req: Request) {
     const id = nanoid(8); // 8 char random string for the URL
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
+
+    if (alias) {
+      if (!/^[a-zA-Z0-9-]+$/.test(alias)) {
+        return NextResponse.json({ error: 'Alias can only contain letters, numbers, and hyphens' }, { status: 400 });
+      }
+      if (alias.length < 3 || alias.length > 30) {
+        return NextResponse.json({ error: 'Alias must be between 3 and 30 characters' }, { status: 400 });
+      }
+
+      // Check for alias uniqueness against active secrets
+      const existingSecret = await db.query.secrets.findFirst({
+        where: and(
+          eq(secrets.alias, alias),
+          eq(secrets.status, 'active'),
+          gt(secrets.expiresAt, now)
+        )
+      });
+
+      if (existingSecret) {
+        return NextResponse.json({ error: 'This alias is currently in use. Please choose another.' }, { status: 400 });
+      }
+    }
 
     await db.insert(secrets).values({
       id,
@@ -67,6 +90,7 @@ export async function POST(req: Request) {
       isE2EE,
       recipientId: recipientId || null,
       dropKey: dropKey || null,
+      alias: alias || null,
     });
 
     return NextResponse.json({ id, expiresAt });

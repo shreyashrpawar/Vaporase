@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../utils/crypto_utils.dart';
 import '../services/api_service.dart';
 import '../services/auth_provider.dart';
@@ -20,6 +21,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
   final TextEditingController _secretController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _ipController = TextEditingController();
+  final TextEditingController _aliasController = TextEditingController();
   double _expiryValue = 24; // Default 24 hours
   bool _isLoading = false;
   bool _showAdvanced = false;
@@ -27,6 +29,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
   String? _error;
   PlatformFile? _selectedFile;
   Map<String, dynamic>? _userProfile;
+  double _uploadProgress = 0; // 0.0 to 1.0
 
   String? _lastAuthHash;
 
@@ -35,7 +38,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
     super.didChangeDependencies();
     final auth = context.watch<AuthProvider>();
     final authHash = '${auth.isSignedIn}_${auth.refreshCount}';
-    
+
     if (_lastAuthHash != authHash) {
       _lastAuthHash = authHash;
       if (auth.isSignedIn) {
@@ -81,7 +84,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         final auth = context.read<AuthProvider>();
         final token = await auth.getToken();
         final limit = token != null ? 100 * 1024 * 1024 : 50 * 1024 * 1024;
-        
+
         if (file.size > limit) {
           setState(() {
             _error = "File exceeds the ${limit / (1024 * 1024)}MB limit.";
@@ -126,9 +129,9 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
       if (_selectedFile != null) {
         fileName = _selectedFile!.name;
         fileSize = _selectedFile!.size;
-        fileType = _selectedFile!.extension != null 
-          ? 'application/${_selectedFile!.extension}' 
-          : 'application/octet-stream';
+        fileType = _selectedFile!.extension != null
+            ? 'application/${_selectedFile!.extension}'
+            : 'application/octet-stream';
 
         final presignRes = await ApiService.getPresignedUrl(
           fileName: fileName,
@@ -150,7 +153,22 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
           throw Exception("Could not read file data.");
         }
 
-        await ApiService.uploadFile(presignedUrl, fileBytes, fileType);
+        if (!mounted) return;
+        setState(() => _uploadProgress = 0.05);
+
+        await ApiService.uploadFile(
+          presignedUrl,
+          fileBytes,
+          fileType,
+          onProgress: (p) {
+            if (mounted) {
+              setState(
+                () => _uploadProgress = 0.05 + (p * 0.9),
+              ); // 5% to 95% is actual upload
+            }
+          },
+        );
+        if (mounted) setState(() => _uploadProgress = 0.95);
       }
 
       String? encryptedContent;
@@ -177,20 +195,37 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         token: token,
         expiresInHours: _expiryValue.toInt() > 0 ? _expiryValue.toInt() : 1,
         passwordHash: passwordHash,
-        allowedIp: _ipController.text.trim().isNotEmpty ? _ipController.text.trim() : null,
+        allowedIp: _ipController.text.trim().isNotEmpty
+            ? _ipController.text.trim()
+            : null,
         isE2EE: text.isNotEmpty,
+        alias: _aliasController.text.trim().isNotEmpty
+            ? _aliasController.text
+                .trim()
+                .toLowerCase()
+                .replaceAll(RegExp(r'[^a-z0-9-]'), '')
+            : null,
       );
 
       final id = response['id'];
-      
+      final aliasUsed = _aliasController.text.trim().isNotEmpty
+          ? _aliasController.text
+              .trim()
+              .toLowerCase()
+              .replaceAll(RegExp(r'[^a-z0-9-]'), '')
+          : null;
+
       // 4. Construct Link
-      String link = 'https://www.ilusion.io/secret/$id';
+      String link = aliasUsed != null
+          ? 'https://www.ilusion.io/s/$aliasUsed'
+          : 'https://www.ilusion.io/secret/$id';
       if (keyStr != null) {
         link += '#key=$keyStr';
       }
-      
+
       setState(() {
         _generatedLink = link;
+        _uploadProgress = 1.0;
       });
     } catch (e) {
       setState(() {
@@ -210,9 +245,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Secret'),
-      ),
+      appBar: AppBar(title: const Text('Create Secret')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -225,13 +258,65 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: AppTheme.error.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   children: [
                     const Icon(LucideIcons.alertCircle, color: AppTheme.error),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(_error!, style: const TextStyle(color: AppTheme.error))),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(color: AppTheme.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            if (_isLoading && _selectedFile != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _uploadProgress < 0.9
+                              ? 'Uploading File...'
+                              : 'Finalizing...',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          '${(_uploadProgress * 100).toInt()}%',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.accentPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: _uploadProgress,
+                        backgroundColor: AppTheme.bgSecondary,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppTheme.accentPrimary,
+                        ),
+                        minHeight: 8,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -244,9 +329,9 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 hintText: 'Enter your sensitive information here...',
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // File Attachment UI
             if (_selectedFile == null)
               InkWell(
@@ -255,24 +340,43 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppTheme.borderDefault, style: BorderStyle.solid),
+                    border: Border.all(
+                      color: AppTheme.borderDefault,
+                      style: BorderStyle.solid,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                     color: AppTheme.bgSecondary,
                   ),
                   child: const Column(
                     children: [
-                      Icon(LucideIcons.uploadCloud, size: 32, color: AppTheme.accentPrimary),
+                      Icon(
+                        LucideIcons.uploadCloud,
+                        size: 32,
+                        color: AppTheme.accentPrimary,
+                      ),
                       SizedBox(height: 12),
-                      Text('Tap to attach a file', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Tap to attach a file',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       SizedBox(height: 4),
-                      Text('Images, videos, documents', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                      Text(
+                        'Images, videos, documents',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               )
             else
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.bgSecondary,
                   borderRadius: BorderRadius.circular(12),
@@ -280,14 +384,28 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.fileText, color: AppTheme.accentPrimary),
+                    const Icon(
+                      LucideIcons.fileText,
+                      color: AppTheme.accentPrimary,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_selectedFile!.name, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          Text('${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                          Text(
+                            _selectedFile!.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -298,7 +416,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                           _selectedFile = null;
                         });
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -313,14 +431,31 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(LucideIcons.timer, size: 18, color: AppTheme.textSecondary),
+                        Icon(
+                          LucideIcons.timer,
+                          size: 18,
+                          color: AppTheme.textSecondary,
+                        ),
                         SizedBox(width: 8),
-                        Text('Expires in', style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text(
+                          'Expires in',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Slider(
-                      value: _expiryOptions.keys.toList().indexOf(_expiryValue).toDouble() == -1 ? 5 : _expiryOptions.keys.toList().indexOf(_expiryValue).toDouble(),
+                      value:
+                          _expiryOptions.keys
+                                  .toList()
+                                  .indexOf(_expiryValue)
+                                  .toDouble() ==
+                              -1
+                          ? 5
+                          : _expiryOptions.keys
+                                .toList()
+                                .indexOf(_expiryValue)
+                                .toDouble(),
                       min: 0,
                       max: (_expiryOptions.length - 1).toDouble(),
                       divisions: _expiryOptions.length - 1,
@@ -328,7 +463,8 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                       inactiveColor: AppTheme.borderDefault,
                       onChanged: (val) {
                         setState(() {
-                          _expiryValue = _expiryOptions.keys.toList()[val.toInt()];
+                          _expiryValue = _expiryOptions.keys
+                              .toList()[val.toInt()];
                         });
                       },
                     ),
@@ -336,7 +472,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                       child: Text(
                         _expiryOptions[_expiryValue] ?? '24h',
                         style: const TextStyle(
-                          color: AppTheme.accentPrimary, 
+                          color: AppTheme.accentPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -356,9 +492,22 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 child: Row(
                   children: [
-                    Icon(_showAdvanced ? LucideIcons.chevronDown : LucideIcons.chevronRight, size: 18, color: AppTheme.textTertiary),
+                    Icon(
+                      _showAdvanced
+                          ? LucideIcons.chevronDown
+                          : LucideIcons.chevronRight,
+                      size: 18,
+                      color: AppTheme.textTertiary,
+                    ),
                     const SizedBox(width: 8),
-                    const Text('Advanced Options', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                    const Text(
+                      'Advanced Options',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -366,17 +515,41 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
             if (_showAdvanced) ...[
               const SizedBox(height: 12),
+              // Alias
+              TextField(
+                controller: _aliasController,
+                decoration: const InputDecoration(
+                  hintText: 'Custom Alias (Optional)',
+                  prefixIcon: Icon(LucideIcons.link, size: 18),
+                ),
+                onChanged: (val) {
+                  final clean = val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '');
+                  if (clean != val) {
+                    _aliasController.value = TextEditingValue(
+                      text: clean,
+                      selection: TextSelection.collapsed(offset: clean.length),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
               // Password
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 enabled: _userProfile?['plan'] == 'pro',
                 decoration: InputDecoration(
-                  hintText: _userProfile?['plan'] == 'pro' ? 'Password (Optional)' : 'Password (PRO Only)',
+                  hintText: _userProfile?['plan'] == 'pro'
+                      ? 'Password (Optional)'
+                      : 'Password (PRO Only)',
                   prefixIcon: const Icon(LucideIcons.lock, size: 18),
-                  suffixIcon: _userProfile?['plan'] != 'pro' 
-                    ? const Icon(LucideIcons.crown, color: AppTheme.accentPrimary, size: 16) 
-                    : null,
+                  suffixIcon: _userProfile?['plan'] != 'pro'
+                      ? const Icon(
+                          LucideIcons.crown,
+                          color: AppTheme.accentPrimary,
+                          size: 16,
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(height: 12),
@@ -385,11 +558,17 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 controller: _ipController,
                 enabled: _userProfile?['plan'] == 'pro',
                 decoration: InputDecoration(
-                  hintText: _userProfile?['plan'] == 'pro' ? 'Allowed IP (Optional)' : 'Allowed IP (PRO Only)',
+                  hintText: _userProfile?['plan'] == 'pro'
+                      ? 'Allowed IP (Optional)'
+                      : 'Allowed IP (PRO Only)',
                   prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
-                  suffixIcon: _userProfile?['plan'] != 'pro' 
-                    ? const Icon(LucideIcons.crown, color: AppTheme.accentPrimary, size: 16) 
-                    : null,
+                  suffixIcon: _userProfile?['plan'] != 'pro'
+                      ? const Icon(
+                          LucideIcons.crown,
+                          color: AppTheme.accentPrimary,
+                          size: 16,
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(height: 12),
@@ -399,20 +578,23 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
             ElevatedButton(
               onPressed: _isLoading ? null : _createSecret,
-              child: _isLoading 
-                ? const SizedBox(
-                    width: 20, 
-                    height: 20, 
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
-                  )
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(LucideIcons.lock, size: 18),
-                      SizedBox(width: 8),
-                      Text('Create Secure Link'),
-                    ],
-                  ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.lock, size: 18),
+                        SizedBox(width: 8),
+                        Text('Create Secure Link'),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -422,16 +604,18 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
   Widget _buildSuccessView() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Success'),
-      ),
+      appBar: AppBar(title: const Text('Success')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(LucideIcons.checkCircle2, size: 64, color: AppTheme.success),
+            const Icon(
+              LucideIcons.checkCircle2,
+              size: 64,
+              color: AppTheme.success,
+            ),
             const SizedBox(height: 24),
             const Text(
               'Your secret is ready.',
@@ -454,7 +638,36 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
               ),
               child: SelectableText(
                 _generatedLink!,
-                style: const TextStyle(color: AppTheme.textPrimary, fontFamily: 'monospace'),
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: QrImageView(
+                  data: _generatedLink!,
+                  version: QrVersions.auto,
+                  size: 160.0,
+                  gapless: false,
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -475,11 +688,21 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                   _selectedFile = null;
                 });
               },
-              child: const Text('Create Another', style: TextStyle(color: AppTheme.textSecondary)),
+              child: const Text('Create Another',
+                  style: TextStyle(color: AppTheme.textSecondary)),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _secretController.dispose();
+    _passwordController.dispose();
+    _ipController.dispose();
+    _aliasController.dispose();
+    super.dispose();
   }
 }

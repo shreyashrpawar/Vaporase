@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1778732732290,
+      "tag": "0000_jittery_medusa",
+      "breakpoints": true
+    }
+  ]
+}

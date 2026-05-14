@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 import '../utils/crypto_utils.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -127,15 +130,40 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
   }
   
   Future<void> _downloadFile() async {
-    if (_fileUrl != null) {
-      final uri = Uri.parse(_fileUrl!);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (_fileUrl == null) return;
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await http.get(Uri.parse(_fileUrl!));
+      if (response.statusCode == 200) {
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/${_fileName ?? 'file'}';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Downloaded: $_fileName')),
+          );
+        }
+
+        // Open the file
+        await OpenFile.open(filePath);
       } else {
-        setState(() {
-          _error = "Could not launch download URL.";
-        });
+        throw Exception('Download failed with status: ${response.statusCode}');
       }
+    } catch (e) {
+      setState(() {
+        _error = "Could not download file: $e";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 

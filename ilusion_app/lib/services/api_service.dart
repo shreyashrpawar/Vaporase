@@ -28,6 +28,7 @@ class ApiService {
     bool isE2EE = false,
     String? recipientId,
     String? dropKey,
+    String? alias,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/secrets/create'),
@@ -45,6 +46,7 @@ class ApiService {
         'isE2EE': isE2EE,
         'recipientId': recipientId,
         'dropKey': dropKey,
+        'alias': alias,
       }),
     );
 
@@ -198,19 +200,54 @@ class ApiService {
     }
   }
 
-  /// Upload file bytes to presigned URL
-  static Future<void> uploadFile(String presignedUrl, List<int> bytes, String fileType) async {
-    final response = await http.put(
-      Uri.parse(presignedUrl),
-      headers: {
-        'Content-Type': fileType,
-        'Content-Length': bytes.length.toString(),
-      },
-      body: bytes,
-    );
+  /// Upload file bytes to presigned URL with progress tracking
+  static Future<void> uploadFile(
+    String presignedUrl, 
+    List<int> bytes, 
+    String fileType, {
+    Function(double progress)? onProgress,
+  }) async {
+    final uri = Uri.parse(presignedUrl);
+    final request = http.StreamedRequest('PUT', uri);
+    
+    request.headers['Content-Type'] = fileType;
+    request.contentLength = bytes.length;
+
+    final total = bytes.length;
+    int sent = 0;
+    
+    // For very small files, chunkSize should be reasonable
+    final chunkSize = total > 64 * 1024 ? 64 * 1024 : total;
+
+    // Create a stream of chunks
+    final chunkStream = Stream.fromIterable([
+      for (int i = 0; i < total; i += chunkSize)
+        bytes.sublist(i, (i + chunkSize < total) ? i + chunkSize : total)
+    ]);
+
+    // Map the stream to track progress as it is consumed
+    final progressStream = chunkStream.asyncMap((chunk) async {
+      sent += chunk.length;
+      if (onProgress != null) {
+        onProgress(sent / total);
+      }
+      // Give a tiny breather for the UI
+      await Future.delayed(const Duration(milliseconds: 1));
+      return chunk;
+    });
+
+    // Use a future to handle the response
+    final responseFuture = request.send();
+
+    // Start sending bytes via the stream
+    await request.sink.addStream(progressStream);
+    await request.sink.close();
+
+    final response = await responseFuture;
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Failed to upload file to R2: ${response.statusCode}');
+      final body = await response.stream.bytesToString();
+      throw Exception('Failed to upload file to R2: ${response.statusCode} - $body');
     }
   }
 }

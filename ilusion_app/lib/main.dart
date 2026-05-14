@@ -48,7 +48,7 @@ class _IlusionAppState extends State<IlusionApp> {
   /// Clerk SDK should handle.
   Future<Uri?> _handleDeepLink(Uri uri) async {
     // 1. Handle our custom secret links
-    if (uri.path.startsWith('/secret/')) {
+    if (uri.path.startsWith('/secret/') || uri.path.startsWith('/s/')) {
       _navigatorKey.currentState?.push(
         MaterialPageRoute(
           builder: (context) => ViewSecretScreen(initialUrl: uri.toString()),

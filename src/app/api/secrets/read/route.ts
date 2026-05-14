@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { secrets, userProfiles } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { s3, BUCKET_NAME } from '@/lib/s3';
 import { GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     // 1. Fetch the secret and sender profile
     const secretRecord = await db.query.secrets.findFirst({
-      where: eq(secrets.id, id)
+      where: or(eq(secrets.id, id), eq(secrets.alias, id))
     });
 
     let senderProfile = null;

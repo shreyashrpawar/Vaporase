@@ -71,6 +71,7 @@ export default function CreateSecretPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
+  const [alias, setAlias] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
@@ -232,6 +233,7 @@ export default function CreateSecretPage() {
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
           allowedIp: allowedIp || null,
+          alias: alias || null,
           isE2EE: !!secretText, // True if we encrypted text
         }),
       });
@@ -243,7 +245,7 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/secret/${id}`;
+      let link = `${window.location.origin}/s/${alias || id}`;
       if (decryptionKey) {
         link += `#key=${decryptionKey}`;
       }
@@ -592,6 +594,17 @@ export default function CreateSecretPage() {
                         <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       </div>
                     )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1 block">Custom Alias</label>
+                    <p className="text-xs text-muted-foreground mb-2">Create a human-readable link (e.g., apple, meeting-notes).</p>
+                    <input
+                      type="text"
+                      value={alias}
+                      onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="Enter a custom alias..."
+                      className="input"
+                    />
                   </div>
                 </div>
               )}

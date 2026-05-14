@@ -20,6 +20,7 @@ export const secrets = sqliteTable('secrets', {
   readLocation: text('read_location'),
   recipientId: text('recipient_id'), // To distinguish between sent vs. received secrets
   dropKey: text('drop_key'), // Server-stored key for drop box secrets (not E2EE)
+  alias: text('alias'), // Custom human-readable alias
 });
 
 export const userProfiles = sqliteTable('user_profiles', {
