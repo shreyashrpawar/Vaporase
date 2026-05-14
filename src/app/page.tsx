@@ -202,7 +202,7 @@ export default function LandingPage() {
           {[
             { icon: Eye, title: 'Burn on Read', desc: 'Permanently deleted once viewed. No second chances.', color: 'var(--accent-primary)', bg: 'var(--accent-subtle)' },
             { icon: Timer, title: 'Auto-Expiry', desc: 'Set a timer. Unread secrets self-destruct.', color: 'var(--warning)', bg: 'color-mix(in srgb, var(--warning) 10%, transparent)' },
-            { icon: FileText, title: 'File Sharing', desc: 'Encrypted files up to 100MB. Ephemeral.', color: 'var(--success)', bg: 'color-mix(in srgb, var(--success) 10%, transparent)' },
+            { icon: Lock, title: 'Developer API', desc: 'Programmatically generate secrets via REST API.', color: 'var(--accent-primary)', bg: 'var(--accent-subtle)' },
             { icon: Zap, title: 'Edge Fast', desc: 'Served from the nearest edge location.', color: '#60a5fa', bg: 'color-mix(in srgb, #3b82f6 10%, transparent)' },
           ].map((f) => (
             <div key={f.title} className="card card-glow p-5 group">
@@ -263,6 +263,44 @@ export default function LandingPage() {
               {/* Decorative circles */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ API Section ═══ */}
+      <section className="relative z-10 px-6 py-20 max-w-5xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row gap-12 items-center">
+          <div className="flex-1 text-left">
+            <div className="badge badge-accent mb-4">For Developers</div>
+            <h2 className="text-3xl font-bold mb-4">Programmatic <span className="text-gradient">Secret Generation</span></h2>
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+              Integrate ilusion.io directly into your CI/CD pipelines, support tools, or custom applications. 
+              Our simple REST API allows you to automate the creation of secure, temporary links for credentials and logs.
+            </p>
+            <Link href="/docs/api" className="text-sm font-bold text-accent hover:underline flex items-center gap-2">
+              View API Documentation <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="flex-1 w-full">
+            <div className="card bg-zinc-950 border border-white/10 p-0 overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-1.5 px-4 py-3 bg-white/5 border-b border-white/10">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
+                <span className="text-[10px] font-mono text-muted-foreground ml-2">POST /api/secrets/create</span>
+              </div>
+              <div className="p-5 overflow-x-auto">
+                <pre className="text-xs font-mono leading-relaxed text-zinc-300">
+                  <code>{`curl -X POST https://ilusion.io/api/secrets/create \\
+  -H "Authorization: Bearer \${ILUSION_KEY}" \\
+  -d '{
+    "encryptedContent": "sensitive-data",
+    "expiresInHours": 1,
+    "alias": "deploy-logs"
+  }'`}</code>
+                </pre>
+              </div>
             </div>
           </div>
         </div>
@@ -403,11 +441,11 @@ export default function LandingPage() {
             <Lock className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
             <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>ilusion.io — Secure Ephemeral Sharing</span>
           </div>
-          <div className="flex items-center gap-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <div className="flex items-center gap-6 text-xs text-muted-foreground">
             <Link href="/contact" className="hover:underline">Contact</Link>
-            <a href="#" className="hover:underline">Privacy</a>
-            <a href="#" className="hover:underline">Terms</a>
-            <Link href="/dashboard/api-keys" className="hover:underline">API</Link>
+            <Link href="/privacy" className="hover:underline">Privacy</Link>
+            <Link href="/terms" className="hover:underline">Terms</Link>
+            <Link href="/docs/api" className="hover:underline">API Docs</Link>
           </div>
         </div>
       </footer>

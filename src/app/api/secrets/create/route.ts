@@ -93,7 +93,13 @@ export async function POST(req: Request) {
       alias: alias || null,
     });
 
-    return NextResponse.json({ id, expiresAt });
+    const protocol = req.headers.get('x-forwarded-proto') || 'https';
+    const host = req.headers.get('host') || 'www.ilusion.io';
+    const link = alias 
+      ? `${protocol}://${host}/s/${alias}` 
+      : `${protocol}://${host}/secret/${id}`;
+
+    return NextResponse.json({ id, alias, expiresAt, link });
   } catch (error) {
     console.error('Create Secret Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

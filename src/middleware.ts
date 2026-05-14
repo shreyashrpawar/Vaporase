@@ -10,6 +10,10 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)', 
   '/sign-up(.*)',
   '/create(.*)',
+  '/contact(.*)',
+  '/docs(.*)',
+  '/privacy(.*)',
+  '/terms(.*)',
   '/ilusion.apk'
 ]);
 

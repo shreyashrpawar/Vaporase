@@ -29,7 +29,7 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
   useEffect(() => {
     if (!isDodoInitialized) {
       DodoPayments.Initialize({
-        mode: 'test',
+        mode: 'live',
         displayType: 'overlay',
       });
       isDodoInitialized = true;
