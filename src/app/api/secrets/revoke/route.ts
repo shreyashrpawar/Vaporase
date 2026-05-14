@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/db';
 import { secrets } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { s3, BUCKET_NAME } from '@/lib/s3';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 
