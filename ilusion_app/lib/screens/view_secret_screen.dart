@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_filex/open_filex.dart';
 import '../utils/crypto_utils.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -20,8 +20,10 @@ class ViewSecretScreen extends StatefulWidget {
 
 class _ViewSecretScreenState extends State<ViewSecretScreen> {
   final TextEditingController _urlController = TextEditingController();
+  final TextEditingController _aliasController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _revealByAlias = false;
   bool _requirePassword = false;
   bool _obscurePassword = true;
   String? _error;
@@ -43,10 +45,40 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
   }
 
   void _fetchAndDecrypt() async {
-    final urlStr = _urlController.text.trim();
-    if (urlStr.isEmpty) {
-      setState(() => _error = "Please enter a valid Ilusion URL.");
-      return;
+    String id;
+    String? keyStr;
+    
+    if (_revealByAlias) {
+      final aliasStr = _aliasController.text.trim();
+      if (aliasStr.isEmpty) {
+        setState(() => _error = "Please enter an alias.");
+        return;
+      }
+      id = aliasStr;
+    } else {
+      final urlStr = _urlController.text.trim();
+      if (urlStr.isEmpty) {
+        setState(() => _error = "Please enter a valid Ilusion URL.");
+        return;
+      }
+
+      try {
+        final uri = Uri.parse(urlStr);
+        final segments = uri.pathSegments;
+        
+        if (segments.length < 2 || (segments[0] != 'secret' && segments[0] != 's')) {
+          throw Exception('Invalid secret URL format.');
+        }
+        
+        id = segments[1];
+        
+        if (uri.hasFragment && uri.fragment.startsWith('key=')) {
+          keyStr = uri.fragment.substring(4);
+        }
+      } catch (e) {
+        setState(() => _error = "Invalid URL format.");
+        return;
+      }
     }
 
     setState(() {
@@ -59,20 +91,6 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
     });
 
     try {
-      final uri = Uri.parse(urlStr);
-      final segments = uri.pathSegments;
-      
-      if (segments.length < 2 || segments[0] != 'secret') {
-        throw Exception('Invalid secret URL format.');
-      }
-      
-      final id = segments[1];
-      
-      String? keyStr;
-      if (uri.hasFragment && uri.fragment.startsWith('key=')) {
-        keyStr = uri.fragment.substring(4);
-      }
-
       String? passwordHash;
       if (_passwordController.text.isNotEmpty) {
         passwordHash = CryptoUtils.hashPassword(_passwordController.text);
@@ -90,18 +108,28 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
         throw Exception('No content found in this secret.');
       }
 
-      if (encryptedContent != null) {
-        // Priority: 1. URL Fragment (#key=), 2. Server stored key (dropKey)
-        final effectiveKey = keyStr ?? serverDropKey;
+      final bool isE2EE = response['isE2EE'] ?? true;
 
-        if (effectiveKey != null) {
-          final decrypted = await CryptoUtils.decryptText(encryptedContent, effectiveKey);
+      if (encryptedContent != null) {
+        if (!isE2EE) {
+          // If not E2EE, the content is plain text
           setState(() {
-            _decryptedSecret = decrypted;
+            _decryptedSecret = encryptedContent;
             _requirePassword = false;
           });
         } else {
-          throw Exception('Decryption key missing. If this is a standard secret, ensure the URL contains the #key= fragment.');
+          // Priority: 1. URL Fragment (#key=), 2. Server stored key (dropKey)
+          final effectiveKey = keyStr ?? serverDropKey;
+
+          if (effectiveKey != null) {
+            final decrypted = await CryptoUtils.decryptText(encryptedContent, effectiveKey);
+            setState(() {
+              _decryptedSecret = decrypted;
+              _requirePassword = false;
+            });
+          } else {
+            throw Exception('Decryption key missing. If this is a standard secret, ensure the URL contains the #key= fragment.');
+          }
         }
       } else {
         setState(() {
@@ -152,7 +180,7 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
         }
 
         // Open the file
-        await OpenFile.open(filePath);
+        await OpenFilex.open(filePath);
       } else {
         throw Exception('Download failed with status: ${response.statusCode}');
       }
@@ -248,33 +276,115 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
                 ),
               ),
 
-            const Text(
-              'Paste Secure Link',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Once you view this secret, it will be permanently destroyed.',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _revealByAlias = false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: !_revealByAlias ? AppTheme.accentPrimary : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Reveal by Link',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: !_revealByAlias ? AppTheme.textPrimary : AppTheme.textTertiary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _revealByAlias = true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: _revealByAlias ? AppTheme.accentPrimary : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Reveal by Alias',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: _revealByAlias ? AppTheme.textPrimary : AppTheme.textTertiary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
-            TextField(
-              controller: _urlController,
-              style: const TextStyle(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'https://www.ilusion.io/secret/...',
-                prefixIcon: const Icon(LucideIcons.link, color: AppTheme.textTertiary),
-                suffixIcon: IconButton(
-                  icon: const Icon(LucideIcons.qrCode, color: AppTheme.accentPrimary),
-                  onPressed: _scanQR,
-                  tooltip: 'Scan QR Code',
-                ),
+            if (!_revealByAlias) ...[
+              const Text(
+                'Paste Secure Link',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              onChanged: (_) {
-                if (_requirePassword) setState(() => _requirePassword = false);
-              },
-            ),
+              const SizedBox(height: 8),
+              const Text(
+                'Once you view this secret, it will be permanently destroyed.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+
+              TextField(
+                controller: _urlController,
+                style: const TextStyle(color: AppTheme.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'https://www.ilusion.io/secret/...',
+                  prefixIcon: const Icon(LucideIcons.link, color: AppTheme.textTertiary),
+                  suffixIcon: IconButton(
+                    icon: const Icon(LucideIcons.qrCode, color: AppTheme.accentPrimary),
+                    onPressed: _scanQR,
+                    tooltip: 'Scan QR Code',
+                  ),
+                ),
+                onChanged: (_) {
+                  if (_requirePassword) setState(() => _requirePassword = false);
+                },
+              ),
+            ] else ...[
+              const Text(
+                'Enter Custom Alias',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Direct access via human-readable identifiers.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+
+              TextField(
+                controller: _aliasController,
+                style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+                decoration: const InputDecoration(
+                  prefixText: 'ilusion.io/s/',
+                  prefixStyle: TextStyle(color: AppTheme.accentPrimary, fontWeight: FontWeight.bold),
+                  hintText: 'alias-name',
+                ),
+                onChanged: (_) {
+                  if (_requirePassword) setState(() => _requirePassword = false);
+                },
+              ),
+            ],
             
             if (_requirePassword) ...[
               const SizedBox(height: 20),
@@ -431,5 +541,12 @@ class _ViewSecretScreenState extends State<ViewSecretScreen> {
         ),
       ),
     );
+  }
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _aliasController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

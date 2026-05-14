@@ -30,6 +30,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
   PlatformFile? _selectedFile;
   Map<String, dynamic>? _userProfile;
   double _uploadProgress = 0; // 0.0 to 1.0
+  bool _useAlias = false;
 
   String? _lastAuthHash;
 
@@ -154,7 +155,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         }
 
         if (!mounted) return;
-        setState(() => _uploadProgress = 0.05);
+        setState(() => _uploadProgress = 0.0);
 
         await ApiService.uploadFile(
           presignedUrl,
@@ -163,21 +164,23 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
           onProgress: (p) {
             if (mounted) {
               setState(
-                () => _uploadProgress = 0.05 + (p * 0.9),
-              ); // 5% to 95% is actual upload
+                () => _uploadProgress = p * 0.9, // 0 to 90% is upload
+              );
             }
           },
         );
-        if (mounted) setState(() => _uploadProgress = 0.95);
+        if (mounted) setState(() => _uploadProgress = 0.9);
       }
 
       String? encryptedContent;
       String? keyStr;
 
       // 2. Encrypt Text if present
-      if (text.isNotEmpty) {
+      if (text.isNotEmpty && !_useAlias) {
         keyStr = await CryptoUtils.generateKey();
         encryptedContent = await CryptoUtils.encryptText(text, keyStr);
+      } else {
+        encryptedContent = text;
       }
 
       String? passwordHash;
@@ -198,12 +201,9 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         allowedIp: _ipController.text.trim().isNotEmpty
             ? _ipController.text.trim()
             : null,
-        isE2EE: text.isNotEmpty,
-        alias: _aliasController.text.trim().isNotEmpty
-            ? _aliasController.text
-                .trim()
-                .toLowerCase()
-                .replaceAll(RegExp(r'[^a-z0-9-]'), '')
+        isE2EE: text.isNotEmpty && !_useAlias,
+        alias: _useAlias && _aliasController.text.trim().isNotEmpty
+            ? _aliasController.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '')
             : null,
       );
 
@@ -515,25 +515,35 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
             if (_showAdvanced) ...[
               const SizedBox(height: 12),
-              // Alias
-              TextField(
-                controller: _aliasController,
-                decoration: const InputDecoration(
-                  hintText: 'Custom Alias (Optional)',
-                  prefixIcon: Icon(LucideIcons.link, size: 18),
-                ),
-                onChanged: (val) {
-                  final clean = val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '');
-                  if (clean != val) {
-                    _aliasController.value = TextEditingValue(
-                      text: clean,
-                      selection: TextSelection.collapsed(offset: clean.length),
-                    );
-                  }
-                },
+              // Custom Alias Toggle
+              SwitchListTile(
+                title: const Text('Use Custom Alias', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Creates a clean, easy-to-type link', style: TextStyle(fontSize: 12)),
+                value: _useAlias,
+                activeColor: AppTheme.accentPrimary,
+                onChanged: (val) => setState(() => _useAlias = val),
               ),
+              if (_useAlias) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _aliasController,
+                  decoration: const InputDecoration(
+                    hintText: 'e.g. my-secret-link',
+                    prefixIcon: Icon(LucideIcons.link, size: 18),
+                  ),
+                  onChanged: (val) {
+                    final clean = val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '');
+                    if (clean != val) {
+                      _aliasController.value = TextEditingValue(
+                        text: clean,
+                        selection: TextSelection.collapsed(offset: clean.length),
+                      );
+                    }
+                  },
+                ),
+              ],
               const SizedBox(height: 12),
-              // Password
+              // Password (PRO/Login)
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -544,16 +554,12 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                       : 'Password (PRO Only)',
                   prefixIcon: const Icon(LucideIcons.lock, size: 18),
                   suffixIcon: _userProfile?['plan'] != 'pro'
-                      ? const Icon(
-                          LucideIcons.crown,
-                          color: AppTheme.accentPrimary,
-                          size: 16,
-                        )
+                      ? const Icon(LucideIcons.lock, color: AppTheme.textTertiary, size: 16)
                       : null,
                 ),
               ),
               const SizedBox(height: 12),
-              // IP Whitelist
+              // IP Whitelist (PRO/Login)
               TextField(
                 controller: _ipController,
                 enabled: _userProfile?['plan'] == 'pro',
@@ -563,11 +569,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                       : 'Allowed IP (PRO Only)',
                   prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
                   suffixIcon: _userProfile?['plan'] != 'pro'
-                      ? const Icon(
-                          LucideIcons.crown,
-                          color: AppTheme.accentPrimary,
-                          size: 16,
-                        )
+                      ? const Icon(LucideIcons.lock, color: AppTheme.textTertiary, size: 16)
                       : null,
                 ),
               ),
@@ -657,7 +659,7 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
                 child: QrImageView(
                   data: _generatedLink!,
                   version: QrVersions.auto,
-                  size: 160.0,
+                  size: 200.0,
                   gapless: false,
                   dataModuleStyle: const QrDataModuleStyle(
                     dataModuleShape: QrDataModuleShape.square,

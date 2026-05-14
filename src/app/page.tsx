@@ -13,6 +13,7 @@ export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
+  const [quickAlias, setQuickAlias] = useState('');
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
@@ -42,6 +43,7 @@ export default function LandingPage() {
           {!isSignedIn ? (
             <>
               <Link href="/pricing" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>Pricing</Link>
+              <Link href="/view" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>View</Link>
               <Link href="/sign-in" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>Sign In</Link>
               <Link href="/sign-up" className="btn-primary !py-2 !px-4 !text-xs">Get Started</Link>
             </>
@@ -75,15 +77,45 @@ export default function LandingPage() {
             Once viewed, your secret is permanently destroyed.
           </p>
 
-          <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-3 justify-center mb-16">
+          <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-3 justify-center mb-8">
             <Link href="/create" className="btn-primary !py-3.5 !px-7 !text-sm group">
               Create a Secret
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="/app-release.apk" download className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
+            <a href="https://github.com/shreyashrpawar/Vaporase/releases/download/v1/Ilusion.apk" target="_blank" rel="noopener noreferrer" className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
               <Smartphone className="w-4 h-4" />
               Download App
             </a>
+          </div>
+
+          <div className="animate-fade-in-up opacity-0 delay-350 max-w-sm mx-auto mb-16">
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-xs font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
+                ilusion.io/s/
+              </div>
+              <input
+                type="text"
+                value={quickAlias}
+                onChange={(e) => setQuickAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                placeholder="alias-name"
+                className="input !pl-[90px] !pr-10 !py-3 !text-sm font-bold"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && quickAlias) {
+                    router.push(`/s/${quickAlias}`);
+                  }
+                }}
+              />
+              <button
+                onClick={() => quickAlias && router.push(`/s/${quickAlias}`)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-accent/20"
+                style={{ color: 'var(--accent-primary)' }}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-[10px] mt-2" style={{ color: 'var(--text-tertiary)' }}>
+              Quick access: reveal a secret using its human-readable alias.
+            </p>
           </div>
 
           {/* Terminal mockup */}

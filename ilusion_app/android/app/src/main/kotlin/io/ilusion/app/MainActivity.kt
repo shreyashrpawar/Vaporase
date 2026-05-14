@@ -1,4 +1,4 @@
-package com.example.ilusion_app
+package io.ilusion.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -84,7 +84,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.logOut, size: 20),
-            onPressed: () => context.read<AuthProvider>().signOut(),
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              
+              await context.read<AuthProvider>().signOut();
+              
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Logged out successfully'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              // Return to dashboard/home
+              navigator.pop();
+            },
             tooltip: 'Sign Out',
           ),
           const SizedBox(width: 8),

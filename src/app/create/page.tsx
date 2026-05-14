@@ -72,6 +72,7 @@ export default function CreateSecretPage() {
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
   const [alias, setAlias] = useState('');
+  const [useAlias, setUseAlias] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
@@ -206,17 +207,20 @@ export default function CreateSecretPage() {
         setUploadProgress(70);
       }
 
-      let finalEncryptedContent = secretText || null;
-      let finalPasswordHash = null;
+      // 1. Client-Side Encryption (Skip if using Custom Alias)
+      const isE2EE = !!secretText && !useAlias;
+      let finalEncryptedContent = null;
       let decryptionKey = null;
-
-      // 1. Client-Side Encryption
-      if (secretText) {
+      
+      if (isE2EE) {
         decryptionKey = await generateKey();
         finalEncryptedContent = await encryptText(secretText, decryptionKey);
+      } else {
+        finalEncryptedContent = secretText || null;
       }
 
       // 2. Hash Password if provided
+      let finalPasswordHash = null;
       if (password) {
         finalPasswordHash = await hashPassword(password);
       }
@@ -233,8 +237,8 @@ export default function CreateSecretPage() {
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
           allowedIp: allowedIp || null,
-          alias: alias || null,
-          isE2EE: !!secretText, // True if we encrypted text
+          alias: useAlias && alias ? alias : null,
+          isE2EE, // True if we encrypted text
         }),
       });
 
@@ -245,7 +249,7 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/s/${alias || id}`;
+      let link = `${window.location.origin}/s/${(useAlias && alias) ? alias : id}`;
       if (decryptionKey) {
         link += `#key=${decryptionKey}`;
       }
@@ -504,26 +508,19 @@ export default function CreateSecretPage() {
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {EXPIRY_OPTIONS.map((option) => {
-                  const isDisabled = 
-                    (!isSignedIn && option.value !== 5 / 60) || 
-                    (isSignedIn && userPlan === 'free' && option.value > 24);
                   return (
                     <button
                       key={option.value}
                       type="button"
-                      disabled={isDisabled}
                       onClick={() => setExpiryHours(option.value)}
                       className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                         expiryHours === option.value
                           ? 'btn-primary !py-2.5 !px-3 !text-xs'
-                          : isDisabled 
-                            ? 'opacity-40 cursor-not-allowed filter grayscale'
-                            : ''
+                          : ''
                       }`}
                       style={expiryHours !== option.value ? { background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' } : {}}
                     >
                       {option.label}
-                      {isDisabled && <Lock className="w-2.5 h-2.5 ml-1 inline-block opacity-60" />}
                     </button>
                   );
                 })}
@@ -549,62 +546,66 @@ export default function CreateSecretPage() {
 
               {showAdvanced && (
                 <div className="mt-4 space-y-4 animate-fade-in-up">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                    <div>
+                      <label className="text-sm font-semibold text-foreground block">Use Custom Alias</label>
+                      <p className="text-[11px] text-muted-foreground">Creates a clean link without a key fragment.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setUseAlias(!useAlias)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${useAlias ? 'bg-accent' : 'bg-white/10'}`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAlias ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+
+                  {useAlias && (
+                    <div className="animate-fade-in-up">
+                      <label className="text-sm font-semibold text-foreground mb-1 block">Alias</label>
+                      <input
+                        type="text"
+                        value={alias}
+                        onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        placeholder="e.g. meeting-notes"
+                        className="input"
+                      />
+                    </div>
+                  )}
+
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-1 block">Optional Password</label>
+                    <label className="text-sm font-semibold text-foreground mb-1 block">
+                      Optional Password {userPlan !== 'pro' && <span className="text-[10px] text-accent-light ml-1">PRO</span>}
+                    </label>
                     <p className="text-xs text-muted-foreground mb-2">Require a password to unlock the secret.</p>
-                    {userPlan === 'pro' ? (
+                    <div className="relative">
                       <input
                         type="password"
                         value={password}
+                        disabled={userPlan !== 'pro'}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter a secure password..."
-                        className="input"
+                        placeholder={userPlan === 'pro' ? "Enter a secure password..." : "Requires Pro membership"}
+                        className="input disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                    ) : (
-                      <div className="relative group">
-                        <input
-                          disabled
-                          type="password"
-                          placeholder={isSignedIn ? "Upgrade to Pro for password protection" : "Sign in to add password protection"}
-                          className="input opacity-50 cursor-not-allowed pr-10"
-                        />
-                        <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
+                      {userPlan !== 'pro' && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />}
+                    </div>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-1 block">Restrict by IP Address</label>
+                    <label className="text-sm font-semibold text-foreground mb-1 block">
+                      Restrict by IP Address {userPlan !== 'pro' && <span className="text-[10px] text-accent-light ml-1">PRO</span>}
+                    </label>
                     <p className="text-xs text-muted-foreground mb-2">Only allow this exact IP address to view the secret.</p>
-                    {userPlan === 'pro' ? (
+                    <div className="relative">
                       <input
                         type="text"
                         value={allowedIp}
+                        disabled={userPlan !== 'pro'}
                         onChange={(e) => setAllowedIp(e.target.value)}
-                        placeholder="e.g., 192.168.1.1"
-                        className="input !font-mono"
+                        placeholder={userPlan === 'pro' ? "e.g., 192.168.1.1" : "Requires Pro membership"}
+                        className="input !font-mono disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                    ) : (
-                      <div className="relative group">
-                        <input
-                          disabled
-                          type="text"
-                          placeholder={isSignedIn ? "Upgrade to Pro to restrict by IP" : "Sign in to restrict by IP"}
-                          className="input !font-mono opacity-50 cursor-not-allowed pr-10"
-                        />
-                        <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-foreground mb-1 block">Custom Alias</label>
-                    <p className="text-xs text-muted-foreground mb-2">Create a human-readable link (e.g., apple, meeting-notes).</p>
-                    <input
-                      type="text"
-                      value={alias}
-                      onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                      placeholder="Enter a custom alias..."
-                      className="input"
-                    />
+                      {userPlan !== 'pro' && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />}
+                    </div>
                   </div>
                 </div>
               )}
