@@ -210,7 +210,7 @@ export default function CreateSecretPage() {
       // 1. Client-Side Encryption (Skip if using Custom Alias)
       const isE2EE = !!secretText && !useAlias;
       let finalEncryptedContent = null;
-      let decryptionKey = null;
+      let decryptionKey: string | null = null;
       
       if (isE2EE) {
         decryptionKey = await generateKey();
@@ -533,6 +533,41 @@ export default function CreateSecretPage() {
               )}
             </div>
 
+            {/* Custom Alias (Free & Always Visible) */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] overflow-hidden">
+              <div className="flex items-center justify-between p-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground">Use Custom Alias</label>
+                  <p className="text-[11px] text-muted-foreground">Creates a clean link without a key fragment.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUseAlias(!useAlias)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ${useAlias ? 'bg-accent' : 'bg-muted border border-border'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${useAlias ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {useAlias && (
+                <div className="p-4 pt-0 border-t border-white/[0.05] bg-white/[0.02]">
+                  <div className="mt-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">Custom URL Alias</label>
+                    <input
+                      type="text"
+                      value={alias}
+                      onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="e.g. secret-meeting"
+                      className="input"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Link: {window.location.origin}/s/<span className="text-accent font-medium">{alias || 'your-alias'}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Advanced Options Toggle */}
             <div className="border-t border-white/[0.06] pt-4">
               <button
@@ -541,43 +576,12 @@ export default function CreateSecretPage() {
                 className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors"
               >
                 <Settings className="w-4 h-4" />
-                {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
+                {showAdvanced ? 'Hide Security Options' : 'More Security Options'}
               </button>
 
               {showAdvanced && (
                 <div className="mt-4 space-y-4 animate-fade-in-up">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                    <div>
-                      <label className="text-sm font-semibold text-foreground">Use Custom Alias</label>
-                      <p className="text-[11px] text-muted-foreground">Creates a clean link without a key fragment.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setUseAlias(!useAlias)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${useAlias ? 'bg-accent' : 'bg-white/10'}`}
-                    >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAlias ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
-                  </div>
 
-                  {useAlias && (
-                    <div className="mt-2 px-1">
-                      <label className="text-sm font-semibold text-foreground mb-1 block">Alias</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={alias}
-                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                          placeholder="e.g. meeting-notes"
-                          className="input !py-3"
-                          autoFocus
-                        />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
-                        Only letters, numbers, and hyphens allowed.
-                      </p>
-                    </div>
-                  )}
 
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-1 block">

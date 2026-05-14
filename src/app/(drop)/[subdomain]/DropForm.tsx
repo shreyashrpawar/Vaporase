@@ -66,6 +66,8 @@ export default function DropForm({ profile }: { profile: any }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
+  const [alias, setAlias] = useState('');
+  const [useAlias, setUseAlias] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,11 +168,16 @@ export default function DropForm({ profile }: { profile: any }) {
 
       let finalEncryptedContent = secretText || null;
       let finalPasswordHash = null;
-      let decryptionKey = await generateKey();
-
-      // 1. Client-Side Encryption
-      if (secretText) {
+      let decryptionKey: string | null = null;
+      
+      // 1. Client-Side Encryption (Skip if using Custom Alias for a clean link)
+      const isE2EE = !!secretText && !useAlias;
+      
+      if (isE2EE) {
+        decryptionKey = await generateKey();
         finalEncryptedContent = await encryptText(secretText, decryptionKey);
+      } else {
+        finalEncryptedContent = secretText || null;
       }
 
       // 2. Hash Password if provided
@@ -190,9 +197,10 @@ export default function DropForm({ profile }: { profile: any }) {
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
           allowedIp: allowedIp || null,
-          isE2EE: true, // We always generate a key for drop boxes
+          isE2EE, // True if we encrypted text
           recipientId: profile.userId, // Send to the profile owner
-          dropKey: decryptionKey, // Store key on server for recipient
+          dropKey: decryptionKey, // Store key on server for recipient (null if not E2EE)
+          alias: useAlias && alias ? alias : null,
         }),
       });
 
@@ -203,7 +211,11 @@ export default function DropForm({ profile }: { profile: any }) {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/secret/${id}#key=${decryptionKey}`;
+      
+      let link = `${window.location.origin}/s/${(useAlias && alias) ? alias : id}`;
+      if (decryptionKey && !useAlias) {
+        link = `${window.location.origin}/secret/${id}#key=${decryptionKey}`;
+      }
       setGeneratedLink(link);
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
@@ -428,6 +440,41 @@ export default function DropForm({ profile }: { profile: any }) {
                   >
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Custom Alias (Free & Always Visible) */}
+            <div className="rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+              <div className="flex items-center justify-between p-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground">Use Custom Alias</label>
+                  <p className="text-[11px] text-muted-foreground">Creates a clean link without a key fragment.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUseAlias(!useAlias)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ${useAlias ? 'bg-accent' : 'bg-slate-200 border border-slate-300'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${useAlias ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {useAlias && (
+                <div className="p-4 pt-0 border-t border-slate-100">
+                  <div className="mt-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">Custom URL Alias</label>
+                    <input
+                      type="text"
+                      value={alias}
+                      onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="e.g. for-shreyash"
+                      className="w-full bg-white border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Link: {typeof window !== 'undefined' ? window.location.origin : ''}/s/<span className="text-accent font-medium">{alias || 'your-alias'}</span>
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
