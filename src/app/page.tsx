@@ -82,7 +82,7 @@ export default function LandingPage() {
               Create a Secret
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk" target="_blank" rel="noopener noreferrer" className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
+            <a href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk" download="Ilusion.apk" className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
               <Smartphone className="w-4 h-4" />
               Download App
             </a>
