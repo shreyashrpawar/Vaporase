@@ -4,11 +4,11 @@ import { SignIn } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 import { useEffect, useState } from 'react';
 
 export default function SignInPage() {
-  const { theme, resolvedTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function SignInPage() {
 
   if (!mounted) return null;
 
-  const isDark = resolvedTheme === 'dark';
+  const isDark = theme === 'dark';
 
   return (
     <div className="dot-grid min-h-screen flex flex-col items-center justify-center px-6 py-12" style={{ background: 'var(--bg-primary)' }}>

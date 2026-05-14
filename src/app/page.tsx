@@ -92,14 +92,15 @@ export default function LandingPage() {
             </a>
           </div>
 
-          <div className="animate-fade-in-up opacity-0 delay-350 max-w-sm mx-auto mb-16 relative group">
+          <div className="animate-fade-in-up opacity-0 delay-350 max-w-sm mx-auto mb-16">
+            <div className="relative group">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-sm font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
                 ilusion.io/s/
               </div>
               <input
                 type="text"
                 value={quickAlias}
-                onChange={(e) => setQuickAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                onChange={(e) => setQuickAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-9]/g, ''))}
                 placeholder="alias-name"
                 className="input !pl-[140px] !pr-10 !py-4 !text-sm font-bold"
                 onKeyDown={(e) => {
