@@ -173,7 +173,7 @@ function PricingContent() {
                 ))}
               </ul>
 
-              {plan.highlight ? (
+              {plan.productId ? (
                 isSignedIn ? (
                   loadingProfile ? (
                     <button className="w-full py-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2" disabled>
@@ -186,12 +186,8 @@ function PricingContent() {
                     >
                       Active Plan — Go to Dashboard
                     </Link>
-                  ) : plan.productId ? (
-                    <DodoEmbeddedCheckout productId={plan.productId} source={source} />
                   ) : (
-                    <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/[0.02] transition-colors font-semibold" disabled>
-                      {plan.buttonText}
-                    </button>
+                    <DodoEmbeddedCheckout productId={plan.productId} source={source} />
                   )
                 ) : (
                   <SignInButton mode="modal">
@@ -202,7 +198,7 @@ function PricingContent() {
                 <Link
                   href={plan.buttonLink || '#'}
                   className={`w-full block text-center py-4 rounded-xl border transition-all font-medium ${
-                    !isUserPro 
+                    !isUserPro && plan.name === 'Free'
                       ? 'bg-white/10 border-white/20 cursor-default' 
                       : 'bg-white/5 border-white/10 hover:bg-white/10'
                   }`}
