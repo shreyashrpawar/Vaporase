@@ -54,21 +54,76 @@ function PricingContent() {
   const { isLoaded, isSignedIn, user } = useUser();
   const searchParams = useSearchParams();
   const source = searchParams.get('source') || undefined;
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
+  const plans = [
+    {
+      name: 'Free',
+      price: '$0',
+      description: 'Perfect for quick, one-off secure sharing.',
+      features: [
+        'Up to 50MB file uploads',
+        'End-to-End Encryption',
+        'Self-destructing links',
+        'Standard support',
+      ],
+      buttonText: 'Current Plan',
+      buttonLink: '/create',
+      highlight: false,
+    },
+    {
+      name: 'Pro',
+      price: billingCycle === 'monthly' ? '$2' : '$18',
+      period: billingCycle === 'monthly' ? '/month' : '/year',
+      description: billingCycle === 'monthly' 
+        ? 'For power users who need more space and security.' 
+        : 'Professional security at the best possible value.',
+      features: [
+        'Up to 100MB file uploads',
+        'Password Protection',
+        'Custom expiration (up to 30 days)',
+        'IP Access Restrictions',
+        'Advanced link tracking',
+        'Priority Support',
+        'API Access Key',
+      ],
+      buttonText: 'Upgrade to Pro',
+      productId: billingCycle === 'monthly' 
+        ? process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO 
+        : process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY,
+      highlight: true,
+      badge: billingCycle === 'yearly' ? 'Save 25%' : undefined
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-10">
             Secure your digital life with Ilusion. Choose the plan that fits your needs.
           </p>
+
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-zinc-500'}`}>Monthly</span>
+            <button 
+              onClick={() => setBillingCycle(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
+              className="w-12 h-6 rounded-full bg-zinc-800 p-1 relative transition-colors hover:bg-zinc-700"
+            >
+              <div className={`w-4 h-4 rounded-full bg-accent transition-transform duration-200 ${billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-0'}`} />
+            </button>
+            <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-white' : 'text-zinc-500'}`}>
+              Yearly <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full ml-1">Save 25%</span>
+            </span>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {PRICING_PLANS.map((plan) => (
+          {plans.map((plan) => (
             <div
               key={plan.name}
               className={`relative p-8 rounded-3xl border transition-all duration-300 ${
@@ -79,7 +134,7 @@ function PricingContent() {
             >
               {plan.highlight && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Recommended
+                  {plan.badge || 'Recommended'}
                 </div>
               )}
 

@@ -17,26 +17,51 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { subscription_id } = await req.json();
+    const { subscription_id, payment_id } = await req.json();
 
-    if (!subscription_id) {
-      return NextResponse.json({ error: 'Missing subscription ID' }, { status: 400 });
+    if (!subscription_id && !payment_id) {
+      return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
     }
 
-    // Verify the subscription directly with Dodo Payments
-    const subscription = await dodo.subscriptions.retrieve(subscription_id);
+    const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO;
+    const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY;
 
-    if (subscription && (subscription.status === 'active' || subscription.status === 'pending')) {
-      // Dodo Payments confirms it's active/processing
+    let isValid = false;
+    let productId = '';
+
+    if (subscription_id) {
+      const subscription = await dodo.subscriptions.retrieve(subscription_id);
+      isValid = subscription && (subscription.status === 'active' || subscription.status === 'pending');
+      productId = (subscription as any).product_id;
+    } else if (payment_id) {
+      const payment = await dodo.payments.retrieve(payment_id);
+      // Use any cast to bypass strict status type check which might be missing 'succeeded' or 'captured' in some SDK versions
+      const status = (payment as any).status;
+      isValid = payment && (status === 'succeeded' || status === 'captured');
+      productId = (payment as any).product_id;
+    }
+
+    if (isValid) {
+      const expiryDate = new Date();
       
-      // Update user to Pro status in our database
+      // Handle Yearly vs Monthly expiration
+      if (productId === YEARLY_PRODUCT_ID) {
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      } else {
+        expiryDate.setDate(expiryDate.getDate() + 30);
+      }
+
       await db.update(userProfiles)
-        .set({ plan: 'pro', updatedAt: new Date() })
+        .set({ 
+          plan: 'pro', 
+          planExpiresAt: expiryDate,
+          updatedAt: new Date() 
+        })
         .where(eq(userProfiles.userId, userId));
       
-      return NextResponse.json({ success: true, plan: 'pro' });
+      return NextResponse.json({ success: true, plan: 'pro', expiresAt: expiryDate });
     } else {
-      return NextResponse.json({ error: 'Subscription not active' }, { status: 400 });
+      return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
     }
 
   } catch (error: any) {

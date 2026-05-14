@@ -1,0 +1,1 @@
+ALTER TABLE `user_profiles` ADD `plan_expires_at` integer;

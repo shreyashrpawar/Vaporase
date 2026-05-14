@@ -22,12 +22,27 @@ export async function POST(req: Request) {
       const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
 
       if (userId) {
+        const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO;
+        const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY;
+        const productId = data?.product_id || data?.product?.id;
+
+        const expiryDate = new Date();
+        if (productId === YEARLY_PRODUCT_ID) {
+          expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        } else {
+          expiryDate.setDate(expiryDate.getDate() + 30);
+        }
+
         // Update user to Pro status in our database
         await db.update(userProfiles)
-          .set({ plan: 'pro', updatedAt: new Date() })
+          .set({ 
+            plan: 'pro', 
+            planExpiresAt: expiryDate,
+            updatedAt: new Date() 
+          })
           .where(eq(userProfiles.userId, userId));
         
-        console.log(`User ${userId} has been upgraded to PRO via webhook`);
+        console.log(`User ${userId} upgraded to PRO (${productId === YEARLY_PRODUCT_ID ? 'Yearly' : 'Monthly'}). Expires: ${expiryDate}`);
       } else {
         console.warn('Webhook received without external_id (userId)', data?.metadata);
       }

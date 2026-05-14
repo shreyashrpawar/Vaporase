@@ -22,29 +22,35 @@ export default function DashboardOverview() {
   const { isLoaded, isSignedIn } = useAuth();
   const [stats, setStats] = useState({ active: 0, total: 0, burned: 0 });
   const [recentSecrets, setRecentSecrets] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchDashboardData();
+      fetchProfile();
 
       // Verify payment if returning from checkout
       const searchParams = new URLSearchParams(window.location.search);
       const payment = searchParams.get('payment');
       const subscriptionId = searchParams.get('subscription_id');
+      const paymentId = searchParams.get('payment_id');
 
-      if (payment === 'success' && subscriptionId) {
-        verifyPayment(subscriptionId);
+      if (payment === 'success' && (subscriptionId || paymentId)) {
+        verifyPayment(subscriptionId, paymentId);
       }
     }
   }, [isLoaded, isSignedIn]);
 
-  const verifyPayment = async (subscriptionId: string) => {
+  const verifyPayment = async (subscriptionId: string | null, paymentId: string | null) => {
     try {
       const res = await fetch('/api/checkout/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription_id: subscriptionId })
+        body: JSON.stringify({ 
+          subscription_id: subscriptionId,
+          payment_id: paymentId 
+        })
       });
       if (res.ok) {
         // Clean up URL
@@ -54,6 +60,18 @@ export default function DashboardOverview() {
       }
     } catch (err) {
       console.error('Payment verification failed:', err);
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('/api/profile');
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
     }
   };
 
@@ -91,9 +109,23 @@ export default function DashboardOverview() {
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Overview
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
-            Welcome back. Here&apos;s your security dashboard.
-          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+              Welcome back. Here&apos;s your security dashboard.
+            </p>
+            {profile?.plan === 'pro' ? (
+              <div className="flex items-center gap-2">
+                <span className="badge badge-accent">Pro Plan</span>
+                {profile.planExpiresAt && (
+                  <span className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                    Expires: {new Date(profile.planExpiresAt).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="badge !bg-zinc-100 !text-zinc-500 border border-zinc-200">Free Tier</span>
+            )}
+          </div>
         </div>
       </div>
 

@@ -15,6 +15,10 @@ export async function GET(req: Request) {
 
     const userId = user.id;
 
+    // Use plan manager to handle lazy expiration
+    const { getUserPlan } = await import('@/lib/plan-manager');
+    await getUserPlan(userId);
+
     let profile = await db.query.userProfiles.findFirst({
       where: eq(userProfiles.userId, userId),
     });

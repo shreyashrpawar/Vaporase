@@ -8,6 +8,13 @@
       "when": 1778732732290,
       "tag": "0000_jittery_medusa",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1778749020590,
+      "tag": "0001_add_plan_expiry",
+      "breakpoints": true
     }
   ]
 }
