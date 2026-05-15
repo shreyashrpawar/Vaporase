@@ -76,7 +76,7 @@ export default function CreateSecretPage() {
   const [alias, setAlias] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
-  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('pro');
   const [contentType, setContentType] = useState<'text' | 'file'>('text');
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,11 +100,12 @@ export default function CreateSecretPage() {
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          if (data.plan) {
-            setUserPlan(data.plan);
-          }
+          // We still fetch, but we force 'pro' for the UI
+          setUserPlan('pro');
         })
         .catch(err => console.error('Error fetching profile:', err));
+    } else {
+      setUserPlan('pro'); // Even for guests
     }
   }, [isSignedIn]);
 
@@ -511,15 +512,10 @@ export default function CreateSecretPage() {
 
                   {/* Pro-only controls */}
                   <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-5">
-                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4 text-accent" />
-                        <h3 className="text-xs font-bold tracking-tight text-foreground">Pro Security Controls</h3>
+                        <h3 className="text-xs font-bold tracking-tight text-foreground">Security Controls</h3>
                       </div>
-                      {userPlan !== 'pro' && (
-                        <Link href="/pricing" className="badge badge-accent text-[9px] px-3 py-1">Unlock Pro</Link>
-                      )}
-                    </div>
 
                     <div className="grid sm:grid-cols-3 gap-4">
                       {/* Password */}
@@ -530,9 +526,8 @@ export default function CreateSecretPage() {
                             type={showPassword ? 'text' : 'password'}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder={userPlan === 'pro' ? 'Lock with key...' : 'Pro only'}
-                            disabled={userPlan !== 'pro'}
-                            className="input !py-2 !text-xs !bg-white/[0.02] !pr-10 disabled:opacity-40 disabled:cursor-not-allowed"
+                            placeholder="Lock with key..."
+                            className="input !py-2 !text-xs !bg-white/[0.02] !pr-10"
                           />
                           {userPlan === 'pro' && (
                             <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -549,9 +544,8 @@ export default function CreateSecretPage() {
                         <input
                           value={allowedIp}
                           onChange={(e) => setAllowedIp(e.target.value)}
-                          placeholder={userPlan === 'pro' ? 'e.g. 192.168.1.1' : 'Pro only'}
-                          disabled={userPlan !== 'pro'}
-                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-40 disabled:cursor-not-allowed"
+                          placeholder="e.g. 192.168.1.1"
+                          className="input !py-2 !text-xs !bg-white/[0.02]"
                         />
                       </div>
 
@@ -561,9 +555,8 @@ export default function CreateSecretPage() {
                         <input
                           value={alias}
                           onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                          placeholder={userPlan === 'pro' ? 'my-secret' : 'Pro only'}
-                          disabled={userPlan !== 'pro'}
-                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-40 disabled:cursor-not-allowed"
+                          placeholder="my-secret"
+                          className="input !py-2 !text-xs !bg-white/[0.02]"
                         />
                       </div>
                     </div>

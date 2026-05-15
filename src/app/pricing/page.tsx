@@ -9,35 +9,19 @@ import Link from 'next/link';
 
 const PRICING_PLANS = [
   {
-    name: 'Free',
+    name: 'Standard',
     price: '$0',
-    description: 'Perfect for quick, one-off secure sharing.',
-    features: [
-      'Up to 50MB file uploads',
-      'End-to-End Encryption',
-      'Self-destructing links',
-      'Standard support',
-    ],
-    buttonText: 'Current Plan',
-    buttonLink: '/create',
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: '$2',
-    period: '/month',
-    description: 'For power users who need more space and security.',
+    description: 'Our standard high-security plan, now free for everyone.',
     features: [
       'Up to 100MB file uploads',
+      'End-to-End Encryption',
       'Password Protection',
-      'Custom expiration (up to 30 days)',
+      'Custom Alias Support',
       'IP Access Restrictions',
-      'Advanced link tracking',
-      'Priority Support',
-      'API Access Key',
+      'Self-destructing links',
     ],
-    buttonText: 'Upgrade to Pro',
-    productId: 'pdt_0NejTudTcUkCYcSyOLm2L',
+    buttonText: 'Active Plan',
+    buttonLink: '/create',
     highlight: true,
   },
 ];
@@ -73,55 +57,23 @@ function PricingContent() {
 
   const plans = [
     {
-      name: 'Free',
+      name: 'Community Plan',
       price: '$0',
-      description: 'Perfect for quick, one-off secure sharing.',
+      period: '',
+      badge: 'Limited Time — Everything Unlocked',
+      description: 'The full Ilusion experience, unlocked for all users for a limited time.',
       features: [
-        'Up to 50MB file uploads',
-        'End-to-End Encryption',
-        'Self-destructing links',
-        'Standard support',
-      ],
-      buttonText: !isUserPro ? 'Current Plan' : 'Basic Plan',
-      buttonLink: '/create',
-      highlight: false,
-    },
-    {
-      name: 'Pro Monthly',
-      price: '$2',
-      period: '/month',
-      description: 'For power users who need more space and security.',
-      features: [
-        'Up to 100MB file uploads',
+        '100MB file uploads',
         'Password Protection',
-        'Custom expiration (up to 30 days)',
+        'Custom Alias Links',
         'IP Access Restrictions',
-        'Advanced link tracking',
-        'Priority Support',
+        'End-to-End Encryption',
+        'Burn-on-Read Guarantee',
         'API Access Key',
       ],
-      buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
-      productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO,
-      highlight: false,
-    },
-    {
-      name: 'Pro Yearly',
-      price: '$18',
-      period: '/year',
-      description: 'Professional security at the best possible value.',
-      features: [
-        'Everything in Monthly',
-        '25% Savings',
-        '365 Days of Pro access',
-        'Priority Support',
-        'Advanced link tracking',
-        'Priority Support',
-        'API Access Key',
-      ],
-      buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
-      productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY,
+      buttonText: 'Start Creating Now',
+      buttonLink: '/create',
       highlight: true,
-      badge: 'Best Value — Save 25%'
     },
   ];
 
@@ -185,43 +137,12 @@ function PricingContent() {
               </ul>
 
               <div className="mt-auto">
-                {plan.productId ? (
-                  isSignedIn ? (
-                    loadingProfile ? (
-                      <button className="w-full py-4.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-sm font-bold" disabled>
-                        <Loader2 className="w-4 h-4 animate-spin" /> Authenticating...
-                      </button>
-                    ) : isUserPro ? (
-                      <Link
-                        href="/dashboard"
-                        className="w-full block text-center py-4.5 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-bold hover:bg-accent/20 transition-all text-sm uppercase tracking-widest"
-                      >
-                        Active Plan — Open Dashboard
-                      </Link>
-                    ) : (
-                      <div className="hover:scale-[1.01] transition-transform">
-                        <DodoEmbeddedCheckout productId={plan.productId} source={source} />
-                      </div>
-                    )
-                  ) : (
-                    <SignInButton mode="modal">
-                      <button className="w-full btn-primary !py-4.5 !rounded-2xl !text-sm font-bold uppercase tracking-widest shadow-xl shadow-accent/20">
-                        Sign in to Upgrade
-                      </button>
-                    </SignInButton>
-                  )
-                ) : (
-                  <Link
-                    href={plan.buttonLink || '#'}
-                    className={`w-full block text-center py-4.5 rounded-2xl border transition-all text-sm font-bold uppercase tracking-widest ${
-                      !isUserPro && plan.name === 'Free'
-                        ? 'bg-white/[0.03] border-white/10 text-muted-foreground cursor-default' 
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-foreground'
-                    }`}
-                  >
-                    {plan.buttonText}
-                  </Link>
-                )}
+                <Link
+                  href={plan.buttonLink || '#'}
+                  className="w-full block text-center py-4.5 rounded-2xl bg-accent text-white font-bold uppercase tracking-widest shadow-xl shadow-accent/20 hover:scale-[1.02] transition-all text-sm"
+                >
+                  {plan.buttonText}
+                </Link>
               </div>
             </div>
           ))}

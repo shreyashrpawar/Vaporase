@@ -20,7 +20,8 @@ export default function ApiKeysPage() {
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          if (data.plan) setUserPlan(data.plan);
+          // Force pro for UI
+          setUserPlan('pro');
         })
         .catch(err => console.error('Error fetching profile:', err));
     }
@@ -109,28 +110,21 @@ export default function ApiKeysPage() {
           <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Programmatic Access</h2>
           <p className="text-xs text-muted-foreground mt-1">Manage authentication keys for your integrations.</p>
         </div>
-        {userPlan === 'pro' ? (
-          <form onSubmit={handleCreateKey} className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Key Name..."
-              value={newKeyName}
-              onChange={(e) => setNewKeyName(e.target.value)}
-              className="input !py-2 !text-xs !bg-white/[0.02] !w-40 sm:!w-48"
-              maxLength={50}
-              required
-            />
-            <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !py-2 !px-4 !text-xs">
-              {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-              Create Key
-            </button>
-          </form>
-        ) : (
-          <Link href="/pricing" className="btn-primary !py-2 !px-4 !text-xs flex items-center gap-2">
-            <Lock className="w-3.5 h-3.5" />
-            Unlock API <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded ml-1">PRO</span>
-          </Link>
-        )}
+        <form onSubmit={handleCreateKey} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Key Name..."
+            value={newKeyName}
+            onChange={(e) => setNewKeyName(e.target.value)}
+            className="input !py-2 !text-xs !bg-white/[0.02] !w-40 sm:!w-48"
+            maxLength={50}
+            required
+          />
+          <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !py-2 !px-4 !text-xs">
+            {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            Create Key
+          </button>
+        </form>
       </div>
 
       {error && (

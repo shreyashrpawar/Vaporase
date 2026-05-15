@@ -113,18 +113,12 @@ export default function DashboardOverview() {
             <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
               Welcome back. Here&apos;s your security dashboard.
             </p>
-            {profile?.plan === 'pro' ? (
-              <div className="flex items-center gap-2">
-                <span className="badge badge-accent">Pro Plan</span>
-                {profile.planExpiresAt && (
-                  <span className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
-                    Expires: {new Date(profile.planExpiresAt).toLocaleDateString()}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <span className="badge !bg-zinc-100 !text-zinc-500 border border-zinc-200">Free Tier</span>
-            )}
+            <div className="flex items-center gap-2">
+              <span className="badge badge-accent">Community Pro</span>
+              <span className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                Full Features Unlocked
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -95,9 +95,12 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          if (data.plan) setUserPlan(data.plan);
+          // Force pro for UI
+          setUserPlan('pro');
         })
         .catch(err => console.error('Error fetching profile:', err));
+    } else {
+      setUserPlan('pro');
     }
   }, [isSignedIn]);
 
@@ -497,16 +500,14 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
                 Password
-                {!isPro && <Lock className="w-2.5 h-2.5" style={{ color: 'var(--accent-primary)' }} />}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={isPro ? 'Lock with key...' : 'Pro only'}
-                  disabled={!isPro}
-                  className="input !py-2.5 !text-xs !bg-white/[0.02] !pr-10 disabled:opacity-40 disabled:cursor-not-allowed"
+                  placeholder="Lock with key..."
+                  className="input !py-2.5 !text-xs !bg-white/[0.02] !pr-10"
                 />
                 {isPro && (
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -526,7 +527,6 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           >
             <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
             Advanced Controls
-            {!isPro && <span className="badge badge-accent !text-[8px] !py-0 !px-1.5">PRO</span>}
           </button>
 
           {showAdvanced && (
@@ -536,9 +536,8 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
                 <input
                   value={alias}
                   onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder={isPro ? 'my-secret-link' : 'Pro only'}
-                  disabled={!isPro}
-                  className="input !py-2.5 !text-xs !bg-white/[0.02] disabled:opacity-40 disabled:cursor-not-allowed"
+                  placeholder="my-secret-link"
+                  className="input !py-2.5 !text-xs !bg-white/[0.02]"
                 />
               </div>
               <div className="space-y-2">
@@ -546,9 +545,8 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
                 <input
                   value={allowedIp}
                   onChange={(e) => setAllowedIp(e.target.value)}
-                  placeholder={isPro ? '192.168.1.1' : 'Pro only'}
-                  disabled={!isPro}
-                  className="input !py-2.5 !text-xs !bg-white/[0.02] disabled:opacity-40 disabled:cursor-not-allowed"
+                  placeholder="192.168.1.1"
+                  className="input !py-2.5 !text-xs !bg-white/[0.02]"
                 />
               </div>
             </div>

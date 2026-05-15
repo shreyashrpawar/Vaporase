@@ -48,28 +48,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Secret must contain text or a file' }, { status: 400 });
     }
 
-    // Server-side Pro enforcement — strip Pro features for non-Pro users
+    // Server-side Pro enforcement — disabled for now (Community Pro mode)
     let finalPasswordHash = passwordHash;
     let finalAllowedIp = allowedIp;
     let finalAlias = alias;
-
-    if (userId) {
-      const userProfile = await db.query.userProfiles.findFirst({
-        where: eq(userProfiles.userId, userId),
-      });
-      const isPro = userProfile?.plan === 'pro';
-
-      if (!isPro) {
-        finalPasswordHash = null;
-        finalAllowedIp = null;
-        finalAlias = null;
-      }
-    } else {
-      // Unauthenticated users (guests) can never use Pro features
-      finalPasswordHash = null;
-      finalAllowedIp = null;
-      finalAlias = null;
-    }
 
     const id = nanoid(8); // 8 char random string for the URL
     const now = new Date();

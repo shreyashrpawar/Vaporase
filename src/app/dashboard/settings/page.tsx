@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Settings as SettingsIcon, Globe, Check, Loader2, AlertCircle, Save, Lock, Eye } from 'lucide-react';
+import { Settings as SettingsIcon, Globe, Check, Loader2, AlertCircle, Save, Lock, Eye, Shield } from 'lucide-react';
 
 export default function SettingsPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -143,16 +143,16 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-white/[0.02] border border-white/[0.05] rounded-3xl space-y-4 opacity-50 relative group cursor-not-allowed">
+              <div className="p-6 bg-white/[0.02] border border-white/[0.05] rounded-3xl space-y-4 relative group">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold">IP Restrictions</h4>
-                  <Lock className="w-3.5 h-3.5 text-accent" />
+                  <Shield className="w-3.5 h-3.5 text-accent" />
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
                   Restrict access to your drop link to specific IP ranges or regions.
                 </p>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="badge badge-accent !text-[9px]">Requires Pro</span>
+                  <span className="badge badge-accent !text-[9px]">Included</span>
                 </div>
               </div>
             </div>
