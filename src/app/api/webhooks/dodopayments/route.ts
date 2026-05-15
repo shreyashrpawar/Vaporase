@@ -3,21 +3,41 @@ import { db } from '@/db';
 import { userProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+import DodoPayments from 'dodopayments';
+
+const dodo = new DodoPayments({
+  bearerToken: process.env.DODO_API_KEY!,
+});
+
+import { createHmac } from 'crypto';
+
 // This is the webhook handler for Dodo Payments
 export async function POST(req: Request) {
   try {
-    const payload = await req.json();
+    const body = await req.text(); // Get raw body for signature verification
+    const signature = req.headers.get('x-dodo-signature');
+    const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
+
+    // Verify signature if secret is provided
+    if (webhookSecret && signature) {
+      const computedSignature = createHmac('sha256', webhookSecret)
+        .update(body)
+        .digest('hex');
+
+      if (computedSignature !== signature) {
+        console.error('Webhook signature verification failed');
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+    }
+
+    const payload = JSON.parse(body);
     const eventType = payload.type;
     const data = payload.data;
 
     console.log(`Received Dodo Webhook: ${eventType}`);
 
-    // Handle payment or subscription success
-    if (
-      eventType === 'payment.succeeded' || 
-      eventType === 'subscription.created' || 
-      eventType === 'subscription.active'
-    ) {
+    // Handle payment success
+    if (eventType === 'payment.succeeded') {
       // Dodo Payments includes our metadata in the data object
       const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
 
@@ -45,20 +65,9 @@ export async function POST(req: Request) {
           })
           .where(eq(userProfiles.userId, userId));
         
-        console.log(`User ${userId} upgraded to PRO (${productId === cleanYearlyId ? 'Yearly' : 'Monthly'}). Expires: ${expiryDate}`);
+        console.log(`User ${userId} upgraded to PRO via one-time payment. Expires: ${expiryDate}`);
       } else {
-        console.warn('Webhook received without external_id (userId)', data?.metadata);
-      }
-    }
-
-    // Handle cancellations if needed
-    if (eventType === 'subscription.cancelled') {
-      const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
-      if (userId) {
-        await db.update(userProfiles)
-          .set({ plan: 'free', updatedAt: new Date() })
-          .where(eq(userProfiles.userId, userId));
-        console.log(`User ${userId} subscription cancelled`);
+        console.warn('Webhook received without metadata user_id', data?.metadata);
       }
     }
 

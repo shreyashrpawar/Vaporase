@@ -17,10 +17,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { subscription_id, payment_id } = await req.json();
+    const { payment_id } = await req.json();
 
-    if (!subscription_id && !payment_id) {
-      return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+    if (!payment_id) {
+      return NextResponse.json({ error: 'Missing Payment ID' }, { status: 400 });
     }
 
     const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || process.env.DODO_PRODUCT_ID_PRO;
@@ -29,17 +29,10 @@ export async function POST(req: Request) {
     let isValid = false;
     let productId = '';
 
-    if (subscription_id) {
-      const subscription = await dodo.subscriptions.retrieve(subscription_id);
-      isValid = subscription && (subscription.status === 'active' || subscription.status === 'pending');
-      // SDK might return snake_case or camelCase
-      productId = (subscription as any).product_id || (subscription as any).productId;
-    } else if (payment_id) {
-      const payment = await dodo.payments.retrieve(payment_id);
-      const status = (payment as any).status;
-      isValid = payment && (status === 'succeeded' || status === 'captured');
-      productId = (payment as any).product_id || (payment as any).productId;
-    }
+    const payment = await dodo.payments.retrieve(payment_id);
+    const status = (payment as any).status;
+    isValid = payment && (status === 'succeeded' || status === 'captured');
+    productId = (payment as any).product_id || (payment as any).productId;
 
     console.log('Verification Debug:', { productId, YEARLY_PRODUCT_ID, isValid });
 
