@@ -73,7 +73,10 @@ export async function POST(req: Request) {
       }
     }
 
-    const senderIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const senderIp = 
+      req.headers.get('x-forwarded-for')?.split(',')[0] || 
+      req.headers.get('x-real-ip') || 
+      'unknown';
 
     // Rate limit for Inbox/DropBox (One active drop per IP)
     if (recipientId) {

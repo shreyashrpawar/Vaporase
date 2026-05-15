@@ -23,12 +23,6 @@ export default async function DropPage({ params }: DropPageProps) {
     notFound();
   }
 
-  // Require auth to drop (no anonymous)
-  const { userId } = await auth();
-  if (!userId) {
-    // We could show a nice sign-in prompt, but redirecting to sign-in is standard
-    redirect('/sign-in');
-  }
-
+  // Authenticated users are welcome, but guests can drop too
   return <DropForm profile={profile} />;
 }
