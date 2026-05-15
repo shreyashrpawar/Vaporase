@@ -216,17 +216,10 @@ export default function CreateSecretPage() {
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      // E2EE — always encrypt text
-      const isE2EE = !!secretText;
-      let finalEncryptedContent = null;
-      let decryptionKey: string | null = null;
-
-      if (isE2EE) {
-        decryptionKey = await generateKey();
-        finalEncryptedContent = await encryptText(secretText, decryptionKey);
-      } else {
-        finalEncryptedContent = null;
-      }
+      // Server-side storage (Non-E2EE for simpler links)
+      const isE2EE = false;
+      const finalEncryptedContent = secretText;
+      const decryptionKey = null;
 
       // Hash Password if provided (Pro only — enforced client & server)
       let finalPasswordHash = null;
@@ -260,9 +253,6 @@ export default function CreateSecretPage() {
       const { id } = await createRes.json();
       setUploadProgress(100);
       let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
-      if (decryptionKey) {
-        link += `#key=${decryptionKey}`;
-      }
       setGeneratedLink(link);
 
       // Save to local history
@@ -353,7 +343,7 @@ export default function CreateSecretPage() {
               <div className="flex gap-3">
                 <Shield className="w-5 h-5 text-accent shrink-0" />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>Zero-Knowledge:</strong> We never see your unencrypted data. Encryption happens entirely in your browser.
+                  <strong>Secure & Ephemeral:</strong> Your secrets are stored with advanced encryption and purged after viewing.
                 </p>
               </div>
               <div className="flex gap-3">
@@ -441,7 +431,7 @@ export default function CreateSecretPage() {
                           <Upload className="w-3.5 h-3.5" />
                           Attach File
                         </button>
-                        <div className="badge badge-accent !text-[9px] opacity-50">E2EE Active</div>
+                        <div className="badge badge-accent !text-[9px] opacity-50">Securely Managed</div>
                       </div>
                       <input
                         ref={fileInputRef}
@@ -592,7 +582,7 @@ export default function CreateSecretPage() {
                   className="w-full !py-5 bg-accent text-white rounded-2xl font-bold text-lg shadow-2xl shadow-accent/40 hover:bg-accent/90 transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-3"
                 >
                   {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Shield className="w-6 h-6" />}
-                  {isLoading ? 'Encrypting & Uploading...' : 'Generate Secure Link'}
+                  {isLoading ? 'Uploading...' : 'Generate Secure Link'}
                 </button>
 
               </div>

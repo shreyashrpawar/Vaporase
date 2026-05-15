@@ -209,7 +209,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Decrypting...
+                    Revealing...
                   </>
                 ) : (
                   <>

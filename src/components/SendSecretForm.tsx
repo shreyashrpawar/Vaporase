@@ -227,15 +227,10 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      // E2EE — always encrypt text
-      const isE2EE = !!secretText;
-      let finalEncryptedContent = null;
-      let decryptionKey: string | null = null;
-
-      if (isE2EE) {
-        decryptionKey = await generateKey();
-        finalEncryptedContent = await encryptText(secretText, decryptionKey);
-      }
+      // Server-side storage (Non-E2EE for simpler links)
+      const isE2EE = false;
+      const finalEncryptedContent = secretText;
+      const decryptionKey = null;
 
       // Hash password (Pro only)
       let finalPasswordHash = null;
@@ -273,9 +268,6 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       const { id } = await createRes.json();
       setUploadProgress(100);
       let link = `${window.location.origin}/secret/${(alias && isPro) ? alias : id}`;
-      if (decryptionKey) {
-        link += `#key=${decryptionKey}`;
-      }
       setGeneratedLink(link);
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
