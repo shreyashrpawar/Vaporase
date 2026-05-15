@@ -18,15 +18,6 @@ import {
   Smartphone,
 } from 'lucide-react';
 
-const navItems = [
-  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Reveal', href: '/view', icon: Eye },
-  { name: 'Inbox', href: '/dashboard/inbox', icon: Inbox },
-  { name: 'Send', href: '/dashboard/send', icon: Send },
-  { name: 'Secrets', href: '/dashboard/secrets', icon: Shield },
-  { name: 'API', href: '/dashboard/api-keys', icon: Key },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
 
 export default function DashboardLayout({
   children,
@@ -59,6 +50,12 @@ export default function DashboardLayout({
       items: [
         { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
         { name: 'Documentation', href: '/docs/api', icon: Lock },
+      ]
+    },
+    {
+      group: 'Preferences',
+      items: [
+        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
       ]
     }
   ];
