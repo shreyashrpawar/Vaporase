@@ -45,8 +45,16 @@ export async function POST(req: Request) {
         const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || process.env.DODO_PRODUCT_ID_PRO;
         const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY || process.env.DODO_PRODUCT_ID_YEARLY;
         
-        // Robust product ID detection
-        const productId = String(data?.product_id || data?.productId || data?.product?.id || '').trim();
+        // Robust product ID detection - checking top level and product_cart array
+        const productId = String(
+          data?.product_id || 
+          data?.productId || 
+          data?.product?.id || 
+          data?.product_cart?.[0]?.product_id || 
+          data?.product_cart?.[0]?.productId ||
+          ''
+        ).trim();
+        
         const cleanYearlyId = String(YEARLY_PRODUCT_ID || '').trim();
 
         const expiryDate = new Date();

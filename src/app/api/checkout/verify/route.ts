@@ -32,9 +32,19 @@ export async function POST(req: Request) {
     const payment = await dodo.payments.retrieve(payment_id);
     const status = (payment as any).status;
     isValid = payment && (status === 'succeeded' || status === 'captured');
-    productId = (payment as any).product_id || (payment as any).productId;
+    
+    // Dodo often puts product info in a product_cart array
+    productId = (payment as any).product_id || 
+                (payment as any).productId || 
+                (payment as any).product_cart?.[0]?.product_id || 
+                (payment as any).product_cart?.[0]?.productId;
 
-    console.log('Verification Debug:', { productId, YEARLY_PRODUCT_ID, isValid });
+    console.log('Verification Debug:', { 
+      productId, 
+      YEARLY_PRODUCT_ID, 
+      isValid,
+      full_cart: (payment as any).product_cart 
+    });
 
     if (isValid) {
       const expiryDate = new Date();
