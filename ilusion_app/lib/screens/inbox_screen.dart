@@ -57,41 +57,6 @@ class _InboxScreenState extends State<InboxScreen> {
     }
   }
 
-  Future<void> _revokeSecret(String id) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.bgSecondary,
-        title: const Text('Delete Secret'),
-        content: const Text('Delete this secret without reading it?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: AppTheme.error)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    try {
-      if (!mounted) return;
-      final auth = context.read<AuthProvider>();
-      final token = await auth.getToken();
-      await ApiService.revokeSecret(id, token);
-      setState(() {
-        final index = _secrets.indexWhere((s) => s['id'] == id);
-        if (index != -1) _secrets[index]['status'] = 'revoked';
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: $e')),
-      );
-    }
-  }
-
   void _openSecret(String id) {
     Navigator.push(
       context,
@@ -115,193 +80,121 @@ class _InboxScreenState extends State<InboxScreen> {
     final past = filtered.where((s) => s['status'] != 'active').toList();
 
     return Scaffold(
+      backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
-        title: const Text('Inbox'),
+        title: const Text('INBOX'),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.refreshCw, size: 20),
+            icon: const Icon(LucideIcons.refreshCw, size: 18),
             onPressed: _fetchInbox,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
           : _error != null
               ? _buildError()
               : RefreshIndicator(
                   onRefresh: _fetchInbox,
+                  displacement: 20,
+                  color: AppTheme.accentPrimary,
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                     children: [
                       // Search
-                      TextField(
-                        onChanged: (v) => setState(() => _searchQuery = v),
-                        decoration: InputDecoration(
-                          hintText: 'Search inbox...',
-                          prefixIcon: const Icon(LucideIcons.search, size: 18),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      Container(
+                        decoration: AppTheme.cardDecoration,
+                        child: TextField(
+                          onChanged: (v) => setState(() => _searchQuery = v),
+                          style: const TextStyle(fontSize: 14),
+                          decoration: const InputDecoration(
+                            hintText: 'Search your inbox...',
+                            prefixIcon: Icon(LucideIcons.search, size: 16),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
 
-                      // New section
-                      Row(
-                        children: [
-                          const Icon(LucideIcons.mailOpen, size: 18, color: AppTheme.accentPrimary),
-                          const SizedBox(width: 8),
-                          Text('New (${active.length})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
+                      _buildSectionHeader('NEW SECRETS', active.length, LucideIcons.mail, AppTheme.accentPrimary),
+                      const SizedBox(height: 16),
                       if (active.isEmpty)
                         _buildEmptyState()
                       else
                         ...active.map(_buildActiveItem),
 
-                      // History section
                       if (past.isNotEmpty) ...[
-                        const SizedBox(height: 32),
-                        Container(height: 1, color: AppTheme.borderSubtle),
+                        const SizedBox(height: 40),
+                        _buildSectionHeader('HISTORY', past.length, LucideIcons.archive, AppTheme.textTertiary),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            const Icon(LucideIcons.lock, size: 18, color: AppTheme.textTertiary),
-                            const SizedBox(width: 8),
-                            Text('History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textTertiary)),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
                         ...past.map(_buildPastItem),
                       ],
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
     );
   }
 
+  Widget _buildSectionHeader(String title, int count, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            color: color == AppTheme.accentPrimary ? AppTheme.textPrimary : AppTheme.textTertiary,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+          child: Text('$count', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color)),
+        ),
+      ],
+    );
+  }
+
   Widget _buildError() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(LucideIcons.alertCircle, size: 48, color: AppTheme.error),
-          const SizedBox(height: 16),
-          Text(_error!, style: const TextStyle(color: AppTheme.error)),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _fetchInbox, child: const Text('Retry')),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(LucideIcons.alertTriangle, size: 48, color: AppTheme.error),
+            const SizedBox(height: 16),
+            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.error, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 24),
+            ElevatedButton(onPressed: _fetchInbox, child: const Text('RETRY')),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     return Container(
-      padding: const EdgeInsets.all(48),
-      decoration: BoxDecoration(
-        color: AppTheme.bgSecondary,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderDefault),
-      ),
-      child: Column(
-        children: [
-          const Icon(LucideIcons.inbox, size: 40, color: AppTheme.textTertiary),
-          const SizedBox(height: 12),
-          const Text('Your inbox is empty', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-          const SizedBox(height: 4),
-          Text('Secrets dropped into your profile appear here.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActiveItem(dynamic secret) {
-    final sender = secret['sender'];
-    final senderName = sender?['displayName'] ?? 'Unknown';
-    final date = DateTime.tryParse(secret['createdAt'] ?? '');
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      decoration: AppTheme.cardDecoration,
+      child: Center(
+        child: Column(
           children: [
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: AppTheme.accentSubtle,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(LucideIcons.mailOpen, size: 18, color: AppTheme.accentPrimary),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '${(secret['id'] ?? '').toString().substring(0, (secret['id'] ?? '').toString().length.clamp(0, 12))}...',
-                        style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentSubtle,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text('Unread', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accentPrimary)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(LucideIcons.user, size: 12, color: AppTheme.textTertiary),
-                      const SizedBox(width: 4),
-                      Text(senderName, style: const TextStyle(fontSize: 11, color: AppTheme.textTertiary)),
-                      if (date != null) ...[
-                        const SizedBox(width: 12),
-                        Text(
-                          '${date.day}/${date.month}/${date.year}',
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textTertiary),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 32,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openSecret(secret['id']),
-                    icon: const Icon(LucideIcons.eye, size: 14),
-                    label: const Text('Open', style: TextStyle(fontSize: 12)),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                SizedBox(
-                  height: 32, width: 32,
-                  child: IconButton(
-                    onPressed: () => _revokeSecret(secret['id']),
-                    icon: const Icon(LucideIcons.trash2, size: 16, color: AppTheme.error),
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
+            const Icon(LucideIcons.inbox, size: 32, color: AppTheme.bgTertiary),
+            const SizedBox(height: 16),
+            const Text('Your inbox is clear.', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+            const SizedBox(height: 4),
+            const Text(
+              'Secrets shared with you will appear here.',
+              style: TextStyle(fontSize: 12, color: AppTheme.textTertiary, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -309,34 +202,104 @@ class _InboxScreenState extends State<InboxScreen> {
     );
   }
 
+  Widget _buildActiveItem(dynamic secret) {
+    final sender = secret['sender'];
+    final senderName = sender?['displayName'] ?? 'External User';
+    final date = DateTime.tryParse(secret['createdAt'] ?? '');
+    final id = secret['id'] ?? '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: AppTheme.cardDecoration,
+      child: InkWell(
+        onTap: () => _openSecret(id),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(color: AppTheme.accentPrimary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                child: const Icon(LucideIcons.mail, size: 20, color: AppTheme.accentPrimary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Secret from $senderName',
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Ref: ${id.toString().substring(0, id.toString().length.clamp(0, 8))}...',
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: AppTheme.textTertiary, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (date != null)
+                    Text('${date.day}/${date.month}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textTertiary)),
+                  const SizedBox(height: 4),
+                  const Icon(LucideIcons.chevronRight, size: 14, color: AppTheme.textTertiary),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPastItem(dynamic secret) {
     final isBurned = secret['status'] == 'burned';
-    return Opacity(
-      opacity: 0.6,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.bgSecondary,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderSubtle),
-        ),
+    final id = secret['id'] ?? '';
+    final sender = secret['sender']?['displayName'] ?? 'External User';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: AppTheme.cardDecoration.copyWith(color: Colors.white.withValues(alpha: 0.5)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '${(secret['id'] ?? '').toString().substring(0, (secret['id'] ?? '').toString().length.clamp(0, 12))}...',
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12, decoration: TextDecoration.lineThrough, color: AppTheme.textTertiary),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'From $sender',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                  ),
+                  Text(
+                    id,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 10,
+                      decoration: TextDecoration.lineThrough,
+                      color: AppTheme.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: isBurned ? AppTheme.accentPrimary.withValues(alpha: 0.15) : AppTheme.error.withValues(alpha: 0.15),
+                color: isBurned ? AppTheme.success.withValues(alpha: 0.08) : AppTheme.error.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                secret['status'] ?? 'unknown',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isBurned ? AppTheme.accentPrimary : AppTheme.error),
+                isBurned ? 'READ' : 'DELETED',
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: isBurned ? AppTheme.success : AppTheme.error),
               ),
             ),
           ],

@@ -18,7 +18,7 @@ const COMPETITORS: Record<string, any> = {
       { feature: 'Developer API', ilusion: true, comp: true },
       { feature: 'File Sharing', ilusion: true, comp: true },
       { feature: 'E2E Encryption', ilusion: true, comp: true },
-      { feature: 'Android App', ilusion: true, comp: true },
+      { feature: 'Android App (Soon)', ilusion: false, comp: true },
     ]
   },
   'firefox-send': {
@@ -44,7 +44,7 @@ const COMPETITORS: Record<string, any> = {
     matrix: [
       { feature: 'Anonymous Guest Drops', ilusion: true, comp: false },
       { feature: 'Custom Alias Links', ilusion: true, comp: true },
-      { feature: 'Mobile Android App', ilusion: true, comp: true },
+      { feature: 'Mobile Android App (Soon)', ilusion: false, comp: true },
       { feature: 'Burn on Read', ilusion: true, comp: true },
       { feature: 'Unified Dashboard', ilusion: true, comp: true },
     ]
@@ -158,7 +158,7 @@ export default function ComparisonPage({ params }: { params: Promise<{ competito
           <div className="text-center p-6">
             <Smartphone className="w-8 h-8 mx-auto mb-4 text-accent opacity-50" />
             <h4 className="font-bold mb-2">Android App</h4>
-            <p className="text-[11px] text-muted-foreground">Native mobile support for sharing on the go.</p>
+            <p className="text-[11px] text-muted-foreground">Coming Soon to the Play Store.</p>
           </div>
           <div className="text-center p-6">
             <Mail className="w-8 h-8 mx-auto mb-4 text-accent opacity-50" />

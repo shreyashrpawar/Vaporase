@@ -142,10 +142,10 @@ export default function LandingPage() {
               <Eye className="w-4 h-4" />
               Reveal a Secret
             </Link>
-            <a href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk" download="Ilusion.apk" className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2">
+            <div className="btn-secondary !py-3.5 !px-7 !text-sm flex items-center gap-2 opacity-50 cursor-not-allowed">
               <Smartphone className="w-4 h-4" />
-              Download App
-            </a>
+              Android Coming Soon
+            </div>
           </div>
 
           <div className="animate-fade-in-up opacity-0 delay-350 max-w-sm mx-auto mb-16">
@@ -333,14 +333,10 @@ export default function LandingPage() {
                 to reveal secrets directly from your messaging apps.
               </p>
               <div className="flex flex-wrap gap-4">
-                <a
-                  href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk"
-                  download="Ilusion.apk"
-                  className="btn-primary !py-3 !px-6 !text-xs flex items-center gap-2"
-                >
+                <div className="btn-primary !py-3 !px-6 !text-xs flex items-center gap-2 opacity-50 cursor-not-allowed">
                   <Smartphone className="w-4 h-4" />
-                  Download APK
-                </a>
+                  Coming Soon to Play Store
+                </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-[10px] text-muted-foreground">
                   <Check className="w-3 h-3 text-success" />
                   Verified & Secure

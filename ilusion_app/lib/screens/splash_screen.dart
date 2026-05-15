@@ -10,28 +10,21 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: AppTheme.bgPrimary,
       body: Stack(
         children: [
-          // Background subtle gradients
+          // Elegant decorative background elements
           Positioned(
-            top: -100,
-            right: -100,
+            top: -150,
+            right: -150,
             child: Container(
-              width: 300,
-              height: 300,
+              width: 400,
+              height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.accentPrimary.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -50,
-            left: -50,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.accentPrimary.withValues(alpha: 0.03),
+                gradient: RadialGradient(
+                  colors: [
+                    AppTheme.accentPrimary.withValues(alpha: 0.08),
+                    AppTheme.accentPrimary.withValues(alpha: 0),
+                  ],
+                ),
               ),
             ),
           ),
@@ -40,34 +33,35 @@ class SplashScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Animated Logo
+                // Premium Logo Container with refined animation
                 TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.8, end: 1.0),
-                  duration: const Duration(milliseconds: 800),
-                  curve: Curves.easeOutBack,
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(seconds: 1),
+                  curve: Curves.easeOutQuart,
                   builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: value,
-                      child: Opacity(
-                        opacity: (value - 0.8) / 0.2,
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, 20 * (1 - value)),
                         child: child,
                       ),
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: AppTheme.bgSecondary,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: AppTheme.borderDefault,
-                        width: 1,
-                      ),
+                      borderRadius: BorderRadius.circular(32),
                       boxShadow: [
                         BoxShadow(
+                          color: AppTheme.textPrimary.withValues(alpha: 0.04),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                        ),
+                        BoxShadow(
                           color: AppTheme.accentPrimary.withValues(alpha: 0.1),
-                          blurRadius: 40,
-                          spreadRadius: 5,
+                          blurRadius: 20,
+                          spreadRadius: -5,
                         ),
                       ],
                     ),
@@ -78,66 +72,77 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 
-                // Branding text
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'ilusion',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.5,
-                      ),
+                // Professional Typography
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [AppTheme.textPrimary, AppTheme.accentPrimary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+                  child: const Text(
+                    'ILUSION',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 2,
                     ),
-                    Text(
-                      '.io',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.accentPrimary,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 
-                const SizedBox(height: 48),
+                const SizedBox(height: 60),
                 
-                // Sleek loading indicator
+                // Minimalist & High-end loading indicator
                 SizedBox(
-                  width: 120,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: const LinearProgressIndicator(
-                      backgroundColor: AppTheme.bgTertiary,
-                      color: AppTheme.accentPrimary,
-                      minHeight: 2,
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.accentPrimary.withValues(alpha: 0.8),
                     ),
+                    backgroundColor: AppTheme.accentPrimary.withValues(alpha: 0.1),
                   ),
                 ),
               ],
             ),
           ),
           
-          // Bottom tagline
-          const Positioned(
-            bottom: 40,
+          // Refined bottom branding
+          Positioned(
+            bottom: 60,
             left: 0,
             right: 0,
-            child: Center(
-              child: Text(
-                'Secure & Ephemeral',
-                style: TextStyle(
-                  color: AppTheme.textTertiary,
-                  fontSize: 12,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w500,
+            child: Column(
+              children: [
+                Text(
+                  'SECURE & EPHEMERAL'.toUpperCase(),
+                  style: TextStyle(
+                    color: AppTheme.textTertiary,
+                    fontSize: 10,
+                    letterSpacing: 3,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.shield_outlined, size: 14, color: AppTheme.accentPrimary.withValues(alpha: 0.5)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'End-to-End Encrypted',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

@@ -29,9 +29,6 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
   String? _error;
   PlatformFile? _selectedFile;
   Map<String, dynamic>? _userProfile;
-  double _uploadProgress = 0; // 0.0 to 1.0
-  bool _useAlias = false;
-
   String? _lastAuthHash;
 
   @override
@@ -155,28 +152,23 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         }
 
         if (!mounted) return;
-        setState(() => _uploadProgress = 0.0);
-
         await ApiService.uploadFile(
           presignedUrl,
           fileBytes,
           fileType,
           onProgress: (p) {
-            if (mounted) {
-              setState(
-                () => _uploadProgress = p * 0.9, // 0 to 90% is upload
-              );
-            }
+            // Progress tracking not visualized yet
           },
         );
-        if (mounted) setState(() => _uploadProgress = 0.9);
       }
 
       String? encryptedContent;
       String? keyStr;
 
+      final bool isUsingAlias = _aliasController.text.trim().isNotEmpty;
+
       // 2. Encrypt Text if present
-      if (text.isNotEmpty && !_useAlias) {
+      if (text.isNotEmpty && !isUsingAlias) {
         keyStr = await CryptoUtils.generateKey();
         encryptedContent = await CryptoUtils.encryptText(text, keyStr);
       } else {
@@ -201,10 +193,8 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
         allowedIp: _ipController.text.trim().isNotEmpty
             ? _ipController.text.trim()
             : null,
-        isE2EE: text.isNotEmpty && !_useAlias,
-        alias: _useAlias && _aliasController.text.trim().isNotEmpty
-            ? _aliasController.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '')
-            : null,
+        isE2EE: text.isNotEmpty && !isUsingAlias,
+        alias: isUsingAlias ? _aliasController.text.trim().toLowerCase() : null,
       );
 
       final id = response['id'];
@@ -225,7 +215,6 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
       setState(() {
         _generatedLink = link;
-        _uploadProgress = 1.0;
       });
     } catch (e) {
       setState(() {
@@ -243,362 +232,259 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
     if (_generatedLink != null) {
       return _buildSuccessView();
     }
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Secret')),
+      backgroundColor: AppTheme.bgPrimary,
+      appBar: AppBar(
+        title: const Text('NEW SECRET'),
+        actions: [
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Welcome / Instruction Header
+            const Text(
+              'Share sensitive data securely.',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.8,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Encrypted links automatically self-destruct after they are viewed.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 32),
+
             if (_error != null)
               Container(
                 padding: const EdgeInsets.all(16),
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: AppTheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppTheme.error.withValues(alpha: 0.2),
-                  ),
+                  color: AppTheme.error.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.error.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.alertCircle, color: AppTheme.error),
+                    const Icon(LucideIcons.alertCircle, color: AppTheme.error, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _error!,
-                        style: const TextStyle(color: AppTheme.error),
+                        style: const TextStyle(color: AppTheme.error, fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
                 ),
               ),
 
-            if (_isLoading && _selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _uploadProgress < 0.9
-                              ? 'Uploading File...'
-                              : 'Finalizing...',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          '${(_uploadProgress * 100).toInt()}%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.accentPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _uploadProgress,
-                        backgroundColor: AppTheme.bgSecondary,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppTheme.accentPrimary,
-                        ),
-                        minHeight: 8,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            TextField(
-              controller: _secretController,
-              maxLines: 6,
-              style: const TextStyle(color: AppTheme.textPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Enter your sensitive information here...',
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // File Attachment UI
-            if (_selectedFile == null)
-              InkWell(
-                onTap: _pickFile,
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppTheme.borderDefault,
-                      style: BorderStyle.solid,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    color: AppTheme.bgSecondary,
-                  ),
-                  child: const Column(
-                    children: [
-                      Icon(
-                        LucideIcons.uploadCloud,
-                        size: 32,
-                        color: AppTheme.accentPrimary,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Tap to attach a file',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Images, videos, documents',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.bgSecondary,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderDefault),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      LucideIcons.fileText,
-                      color: AppTheme.accentPrimary,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _selectedFile!.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(LucideIcons.x, size: 20),
-                      onPressed: () {
-                        setState(() {
-                          _selectedFile = null;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 24),
-
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          LucideIcons.timer,
-                          size: 18,
-                          color: AppTheme.textSecondary,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Expires in',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Slider(
-                      value:
-                          _expiryOptions.keys
-                                  .toList()
-                                  .indexOf(_expiryValue)
-                                  .toDouble() ==
-                              -1
-                          ? 5
-                          : _expiryOptions.keys
-                                .toList()
-                                .indexOf(_expiryValue)
-                                .toDouble(),
-                      min: 0,
-                      max: (_expiryOptions.length - 1).toDouble(),
-                      divisions: _expiryOptions.length - 1,
-                      activeColor: AppTheme.accentPrimary,
-                      inactiveColor: AppTheme.borderDefault,
-                      onChanged: (val) {
-                        setState(() {
-                          _expiryValue = _expiryOptions.keys
-                              .toList()[val.toInt()];
-                        });
-                      },
-                    ),
-                    Center(
-                      child: Text(
-                        _expiryOptions[_expiryValue] ?? '24h',
-                        style: const TextStyle(
-                          color: AppTheme.accentPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
+            // Content Section
+            const _SectionHeader(title: 'SECRET CONTENT', icon: LucideIcons.fileText),
             const SizedBox(height: 12),
-
-            // Advanced Options Toggle
-            InkWell(
-              onTap: () => setState(() => _showAdvanced = !_showAdvanced),
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      _showAdvanced
-                          ? LucideIcons.chevronDown
-                          : LucideIcons.chevronRight,
-                      size: 18,
-                      color: AppTheme.textTertiary,
+            Container(
+              decoration: AppTheme.cardDecoration,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _secretController,
+                    maxLines: 5,
+                    style: const TextStyle(fontSize: 15, height: 1.5),
+                    decoration: InputDecoration(
+                      hintText: 'Type or paste your secret message here...',
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(20),
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Advanced Options',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textTertiary,
+                  ),
+                  
+                  // File Attachment Inline
+                  if (_selectedFile != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.bgTertiary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(LucideIcons.file, size: 18, color: AppTheme.accentPrimary),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(_selectedFile!.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  Text('${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB', style: const TextStyle(fontSize: 10, color: AppTheme.textTertiary)),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.x, size: 16),
+                              onPressed: () => setState(() => _selectedFile = null),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  
+                  if (_selectedFile == null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: InkWell(
+                        onTap: _pickFile,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppTheme.borderDefault, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.paperclip, size: 16, color: AppTheme.textSecondary),
+                              SizedBox(width: 8),
+                              Text('Attach a file', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-
-            if (_showAdvanced) ...[
-              const SizedBox(height: 12),
-              // Custom Alias Toggle
-              SwitchListTile(
-                title: const Text('Use Custom Alias', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                subtitle: const Text('Creates a clean, easy-to-type link', style: TextStyle(fontSize: 12)),
-                value: _useAlias,
-                activeTrackColor: AppTheme.accentPrimary.withValues(alpha: 0.5),
-                activeThumbColor: AppTheme.accentPrimary,
-                onChanged: (val) => setState(() => _useAlias = val),
-              ),
-              if (_useAlias) ...[
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _aliasController,
-                  decoration: const InputDecoration(
-                    hintText: 'e.g. my-secret-link',
-                    prefixIcon: Icon(LucideIcons.link, size: 18),
-                  ),
-                  onChanged: (val) {
-                    final clean = val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '');
-                    if (clean != val) {
-                      _aliasController.value = TextEditingValue(
-                        text: clean,
-                        selection: TextSelection.collapsed(offset: clean.length),
-                      );
-                    }
-                  },
-                ),
-              ],
-              const SizedBox(height: 12),
-              // Password (PRO/Login)
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                enabled: _userProfile?['plan'] == 'pro',
-                decoration: InputDecoration(
-                  hintText: _userProfile?['plan'] == 'pro'
-                      ? 'Password (Optional)'
-                      : 'Password (PRO Only)',
-                  prefixIcon: const Icon(LucideIcons.lock, size: 18),
-                  suffixIcon: _userProfile?['plan'] != 'pro'
-                      ? const Icon(LucideIcons.lock, color: AppTheme.textTertiary, size: 16)
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // IP Whitelist (PRO/Login)
-              TextField(
-                controller: _ipController,
-                enabled: _userProfile?['plan'] == 'pro',
-                decoration: InputDecoration(
-                  hintText: _userProfile?['plan'] == 'pro'
-                      ? 'Allowed IP (Optional)'
-                      : 'Allowed IP (PRO Only)',
-                  prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
-                  suffixIcon: _userProfile?['plan'] != 'pro'
-                      ? const Icon(LucideIcons.lock, color: AppTheme.textTertiary, size: 16)
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
 
             const SizedBox(height: 32),
 
+            // Security Section
+            const _SectionHeader(title: 'SECURITY SETTINGS', icon: LucideIcons.shieldCheck),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: AppTheme.cardDecoration,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.clock, size: 16, color: AppTheme.textSecondary),
+                      const SizedBox(width: 8),
+                      const Text('Expiry Time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      const Spacer(),
+                      Text(
+                        _expiryOptions[_expiryValue] ?? '24h',
+                        style: const TextStyle(color: AppTheme.accentPrimary, fontWeight: FontWeight.w900, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 4,
+                      activeTrackColor: AppTheme.accentPrimary,
+                      inactiveTrackColor: AppTheme.bgTertiary,
+                      thumbColor: Colors.white,
+                      overlayColor: AppTheme.accentPrimary.withValues(alpha: 0.1),
+                    ),
+                    child: Slider(
+                      value: _expiryOptions.keys.toList().indexOf(_expiryValue).toDouble(),
+                      min: 0,
+                      max: (_expiryOptions.length - 1).toDouble(),
+                      divisions: _expiryOptions.length - 1,
+                      onChanged: (val) {
+                        setState(() => _expiryValue = _expiryOptions.keys.toList()[val.toInt()]);
+                      },
+                    ),
+                  ),
+                  
+                  const Divider(height: 32, color: AppTheme.borderSubtle),
+                  
+                  // Advanced Toggle Header
+                  InkWell(
+                    onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+                    child: Row(
+                      children: [
+                        const Text('Advanced Protection', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        const Spacer(),
+                        Icon(
+                          _showAdvanced ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                          size: 16,
+                          color: AppTheme.textTertiary,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  if (_showAdvanced) ...[
+                    const SizedBox(height: 20),
+                    _CustomInputField(
+                      controller: _aliasController,
+                      label: 'CUSTOM ALIAS',
+                      icon: LucideIcons.link,
+                      hint: 'e.g. secret-message',
+                      onChanged: (val) {
+                        final clean = val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9-]'), '');
+                        if (clean != val) {
+                          _aliasController.value = TextEditingValue(
+                            text: clean,
+                            selection: TextSelection.collapsed(offset: clean.length),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _CustomInputField(
+                      controller: _passwordController,
+                      label: 'PASSWORD PROTECTION',
+                      icon: LucideIcons.key,
+                      hint: _userProfile?['plan'] == 'pro' ? 'Optional password' : 'PRO Feature Only',
+                      obscureText: true,
+                      enabled: _userProfile?['plan'] == 'pro',
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Submit Button
             ElevatedButton(
               onPressed: _isLoading ? null : _createSecret,
               child: _isLoading
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                     )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(LucideIcons.lock, size: 18),
-                        SizedBox(width: 8),
-                        Text('Create Secure Link'),
-                      ],
-                    ),
+                  : const Text('GENERATE SECURE LINK'),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -607,93 +493,139 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
 
   Widget _buildSuccessView() {
     return Scaffold(
-      appBar: AppBar(title: const Text('Success')),
-      body: Padding(
+      backgroundColor: AppTheme.bgPrimary,
+      appBar: AppBar(
+        title: const Text('SECRET READY'),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft),
+          onPressed: () => setState(() => _generatedLink = null),
+        ),
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(
-              LucideIcons.checkCircle2,
-              size: 64,
-              color: AppTheme.success,
+            const SizedBox(height: 20),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppTheme.success.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.checkCircle2,
+                  size: 48,
+                  color: AppTheme.success,
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'Your secret is ready.',
+              'Secure link generated.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.8),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Share this link. It will self-destruct after being viewed.',
+              'Share this link with your recipient. It will be deleted permanently after the first view.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
             ),
-            const SizedBox(height: 32),
+            
+            const SizedBox(height: 40),
+            
+            const _SectionHeader(title: 'SHAREABLE LINK', icon: LucideIcons.link),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.bgSecondary,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.borderDefault),
-              ),
-              child: SelectableText(
-                _generatedLink!,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontFamily: 'monospace',
-                  fontSize: 13,
-                ),
-                textAlign: TextAlign.center,
+              padding: const EdgeInsets.all(20),
+              decoration: AppTheme.cardDecoration,
+              child: Column(
+                children: [
+                  SelectableText(
+                    _generatedLink!,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: _generatedLink!));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Link copied to clipboard')),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.copy, size: 16),
+                        SizedBox(width: 10),
+                        Text('COPY LINK'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
+            
+            const SizedBox(height: 32),
+            
+            const _SectionHeader(title: 'QR CODE', icon: LucideIcons.qrCode),
+            const SizedBox(height: 12),
             Center(
               child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                padding: const EdgeInsets.all(24),
+                decoration: AppTheme.cardDecoration,
                 child: QrImageView(
                   data: _generatedLink!,
                   version: QrVersions.auto,
-                  size: 200.0,
+                  size: 180.0,
                   gapless: false,
                   dataModuleStyle: const QrDataModuleStyle(
                     dataModuleShape: QrDataModuleShape.square,
-                    color: Colors.black,
+                    color: AppTheme.textPrimary,
                   ),
                   eyeStyle: const QrEyeStyle(
                     eyeShape: QrEyeShape.square,
-                    color: Colors.black,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: _generatedLink!));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Link copied to clipboard')),
-                );
-              },
-              child: const Text('Copy Link'),
-            ),
+            
+            const SizedBox(height: 48),
+            
             TextButton(
               onPressed: () {
                 setState(() {
                   _generatedLink = null;
                   _secretController.clear();
                   _selectedFile = null;
+                  _passwordController.clear();
+                  _aliasController.clear();
+                  _ipController.clear();
                 });
               },
-              child: const Text('Create Another',
-                  style: TextStyle(color: AppTheme.textSecondary)),
+              child: const Text(
+                'CREATE ANOTHER SECRET',
+                style: TextStyle(
+                  color: AppTheme.accentPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  letterSpacing: 1,
+                ),
+              ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -709,3 +641,72 @@ class _CreateSecretScreenState extends State<CreateSecretScreen> {
     super.dispose();
   }
 }
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  const _SectionHeader({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppTheme.textTertiary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textTertiary,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final bool obscureText;
+  final bool enabled;
+  final Function(String)? onChanged;
+
+  const _CustomInputField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.obscureText = false,
+    this.enabled = true,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textSecondary)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          obscureText: obscureText,
+          enabled: enabled,
+          onChanged: onChanged,
+          style: const TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(icon, size: 16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+}
+

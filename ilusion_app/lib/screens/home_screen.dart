@@ -4,10 +4,8 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_provider.dart';
 import 'create_secret_screen.dart';
-import 'view_secret_screen.dart';
 import 'dashboard_screen.dart';
 import 'inbox_screen.dart';
-import 'send_screen.dart';
 import 'secrets_screen.dart';
 import 'sign_in_screen.dart';
 
@@ -36,61 +34,70 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final List<Widget> screens = [
       const CreateSecretScreen(),                          // 0: Create
-      authGate(const InboxScreen()),                       // 1: Inbox
-      authGate(const SendScreen()),                        // 2: Send
-      authGate(const SecretsScreen()),                     // 3: Secrets
-      const ViewSecretScreen(),                            // 4: View
-      authGate(DashboardScreen(onNavigate: _navigateTo)),  // 5: Overview/Settings
+      authGate(const SecretsScreen()),                     // 1: Vault
+      authGate(const InboxScreen()),                       // 2: Inbox
+      authGate(DashboardScreen(onNavigate: _navigateTo)),  // 3: More (Overview/Settings)
     ];
 
     return Scaffold(
+      backgroundColor: AppTheme.bgPrimary,
       body: IndexedStack(
         index: _currentIndex,
         children: screens,
       ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
+        decoration: BoxDecoration(
+          color: AppTheme.bgSecondary,
+          border: const Border(
             top: BorderSide(color: AppTheme.borderDefault, width: 1),
           ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _navigateTo,
-          backgroundColor: AppTheme.bgPrimary,
-          selectedItemColor: AppTheme.accentPrimary,
-          unselectedItemColor: AppTheme.textTertiary,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 11,
-          unselectedFontSize: 10,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 3), child: Icon(LucideIcons.lock, size: 20)),
-              label: 'Create',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 3), child: Icon(LucideIcons.inbox, size: 20)),
-              label: 'Inbox',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 3), child: Icon(LucideIcons.send, size: 20)),
-              label: 'Send',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 3), child: Icon(LucideIcons.shield, size: 20)),
-              label: 'Secrets',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 3), child: Icon(LucideIcons.eye, size: 20)),
-              label: 'View',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 3), child: Icon(LucideIcons.layoutDashboard, size: 20)),
-              label: 'More',
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.textPrimary.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
             ),
           ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: _navigateTo,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              selectedItemColor: AppTheme.accentPrimary,
+              unselectedItemColor: AppTheme.textTertiary,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.plusCircle, size: 22),
+                  activeIcon: Icon(LucideIcons.plusCircle, size: 22),
+                  label: 'Create',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.shield, size: 22),
+                  activeIcon: Icon(LucideIcons.shield, size: 22),
+                  label: 'Vault',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.inbox, size: 22),
+                  activeIcon: Icon(LucideIcons.inbox, size: 22),
+                  label: 'Inbox',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.user, size: 22),
+                  activeIcon: Icon(LucideIcons.user, size: 22),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

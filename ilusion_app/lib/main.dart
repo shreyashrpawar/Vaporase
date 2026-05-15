@@ -17,9 +17,9 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
       systemNavigationBarColor: AppTheme.bgPrimary,
-      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -104,7 +104,7 @@ class _IlusionAppState extends State<IlusionApp> {
             child: MaterialApp(
               title: 'Ilusion',
               debugShowCheckedModeBanner: false,
-              theme: AppTheme.darkTheme,
+              theme: AppTheme.lightTheme,
               navigatorKey: _navigatorKey,
               home: const HomeScreen(),
             ),

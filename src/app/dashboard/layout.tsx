@@ -112,15 +112,11 @@ export default function DashboardLayout({
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-white/[0.05] space-y-4">
-          <a
-            href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk"
-            download="Ilusion.apk"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.03] transition-all group"
-          >
-            <Smartphone className="w-4 h-4 group-hover:text-accent" />
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground/50 transition-all group">
+            <Smartphone className="w-4 h-4" />
             Android App
-            <div className="ml-auto badge badge-accent !py-0.5 !px-1.5 !text-[8px]">New</div>
-          </a>
+            <div className="ml-auto badge badge-secondary !py-0.5 !px-1.5 !text-[8px] opacity-70">Soon</div>
+          </div>
           <div className="flex items-center justify-between px-3 pt-2">
             <ThemeToggle />
             <UserButton />
