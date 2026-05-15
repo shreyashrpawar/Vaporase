@@ -28,6 +28,34 @@ export default function LandingPage() {
 
   return (
     <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+      {/* AEO Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is Ilusion.io secure for sending passwords?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, Ilusion.io uses client-side AES-256 encryption for text secrets, ensuring that sensitive data like passwords is encrypted in the browser before being sent to the server."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does self-destructing secret sharing work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Ilusion uses a 'Burn on Read' mechanism where secrets are immediately and permanently deleted from the database once they are accessed via their unique secure link."
+                }
+              }
+            ]
+          })
+        }}
+      />
       {/* ═══ Nav ═══ */}
       <nav className="relative z-50 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2 group shrink-0">
@@ -496,6 +524,46 @@ export default function LandingPage() {
             </ul>
             <Link href="/pricing" className="btn-primary !text-sm w-full text-center">Select Yearly</Link>
           </div>
+        </div>
+      </section>
+
+      {/* ═══ FAQ (SEO & AEO Section) ═══ */}
+      <section className="relative z-10 px-6 py-24 max-w-4xl mx-auto w-full">
+        <div className="text-center mb-16">
+          <div className="badge badge-accent mb-4">Security FAQ</div>
+          <h2 className="text-3xl font-extrabold tracking-tight mb-4">Common <span className="text-gradient">Questions</span></h2>
+          <p className="text-sm text-muted-foreground">Everything you need to know about how we protect your data.</p>
+        </div>
+
+        <div className="space-y-4">
+          {[
+            { 
+              q: "Is Ilusion.io really secure?", 
+              a: "Yes. We use industry-standard AES-256 encryption. For text secrets, encryption happens in your browser (Client-Side), meaning we never see your unencrypted data." 
+            },
+            { 
+              q: "What does 'Burn on Read' mean?", 
+              a: "It means the secret is permanently deleted from our database the moment it is accessed. Once the link is opened, it can never be viewed again." 
+            },
+            { 
+              q: "Can I send large files safely?", 
+              a: "Absolutely. Free users can send up to 50MB, and Pro users up to 100MB. All files are stored with temporary access keys and deleted automatically." 
+            },
+            { 
+              q: "Do I need an account to receive a secret?", 
+              a: "No. Anyone with the secure link can reveal a secret. Accounts are only needed if you want to use the Secure Inbox or Developer API." 
+            }
+          ].map((faq, i) => (
+            <div key={i} className="card p-6 bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] transition-all">
+              <h3 className="text-sm font-bold mb-2 flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                {faq.q}
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed pl-4.5">
+                {faq.a}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 

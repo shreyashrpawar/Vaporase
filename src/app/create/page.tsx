@@ -24,6 +24,7 @@ import {
   Clock,
   Zap,
   ArrowRight,
+  Inbox
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
@@ -211,7 +212,7 @@ export default function CreateSecretPage() {
       const isE2EE = !!secretText && !useAlias;
       let finalEncryptedContent = null;
       let decryptionKey: string | null = null;
-      
+
       if (isE2EE) {
         decryptionKey = await generateKey();
         finalEncryptedContent = await encryptText(secretText, decryptionKey);
@@ -378,6 +379,35 @@ export default function CreateSecretPage() {
 
   return (
     <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+      {/* AEO: How-To Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HowTo",
+            "name": "How to Create a Secure, Self-Destructing Link",
+            "description": "Share passwords, API keys, and sensitive files safely using client-side encryption and burn-on-read technology.",
+            "step": [
+              {
+                "@type": "HowToStep",
+                "name": "Enter your secret",
+                "text": "Paste your sensitive text or upload a file into the secure, encrypted text area."
+              },
+              {
+                "@type": "HowToStep",
+                "name": "Set expiration",
+                "text": "Choose how long the link should remain active before it self-destructs."
+              },
+              {
+                "@type": "HowToStep",
+                "name": "Generate and share",
+                "text": "Click 'Generate Secret Link' and share the secure URL with your recipient. The link will burn after the first read."
+              }
+            ]
+          })
+        }}
+      />
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -411,19 +441,41 @@ export default function CreateSecretPage() {
             </h1>
             <p className="text-muted-foreground">
               Your message will self-destruct after being viewed.
-              {userPlan !== 'pro' && (
-                <span className="block text-sm mt-1">
-                  <Link href="/pricing" className="text-accent-light font-medium hover:underline">Upgrade to Pro</Link> to unlock 100MB uploads and custom expiry.
-                </span>
-              )}
             </p>
           </div>
+
+          {/* Guest Welcome Banner */}
+          {!isSignedIn && (
+            <div className="card bg-accent/5 border-accent/20 p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0 border border-accent/20">
+                  <Inbox className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Want a permanent Secure Inbox?</h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Claim your <code className="text-accent">ilusion.io/username</code> link and let others send you secrets safely.
+                  </p>
+                </div>
+              </div>
+              <Link href="/sign-up" className="btn-primary !py-2.5 !px-5 !text-xs whitespace-nowrap group">
+                Claim My Link
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          )}
 
           <div className="card gradient-border p-8 space-y-6">
             {/* Secret Text Area */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-foreground">Secret Message</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-semibold text-foreground">Secret Message</label>
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10 border border-success/20 text-[9px] font-bold text-success uppercase tracking-wider">
+                    <Shield className="w-2.5 h-2.5" />
+                    Client-Side Encrypted
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowSecret(!showSecret)}
@@ -458,9 +510,8 @@ export default function CreateSecretPage() {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                    isDragging ? 'drop-active' : ''
-                  }`}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDragging ? 'drop-active' : ''
+                    }`}
                   style={{ borderColor: isDragging ? undefined : 'var(--border-default)' }}
                 >
                   <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center mx-auto mb-3">
@@ -513,11 +564,10 @@ export default function CreateSecretPage() {
                       key={option.value}
                       type="button"
                       onClick={() => setExpiryHours(option.value)}
-                      className={`px-3 py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold transition-all ${
-                        expiryHours === option.value
-                          ? 'btn-primary !py-2.5 !px-3 !text-xs'
-                          : ''
-                      }`}
+                      className={`px-3 py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold transition-all ${expiryHours === option.value
+                        ? 'btn-primary !py-2.5 !px-3 !text-xs'
+                        : ''
+                        }`}
                       style={expiryHours !== option.value ? { background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' } : {}}
                     >
                       {option.label}
@@ -642,10 +692,10 @@ export default function CreateSecretPage() {
                   {uploadProgress < 30
                     ? 'Preparing upload...'
                     : uploadProgress < 70
-                    ? `Uploading file... ${Math.round(((uploadProgress - 30) / 40) * 100)}%`
-                    : uploadProgress < 100
-                    ? 'Creating secret...'
-                    : 'Done!'}
+                      ? `Uploading file... ${Math.round(((uploadProgress - 30) / 40) * 100)}%`
+                      : uploadProgress < 100
+                        ? 'Creating secret...'
+                        : 'Done!'}
                 </p>
               </div>
             )}

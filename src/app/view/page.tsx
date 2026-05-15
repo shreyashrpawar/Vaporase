@@ -32,6 +32,25 @@ export default function ViewSecretPage() {
 
   return (
     <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+      {/* AEO: SoftwareApplication Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Ilusion Secret Viewer",
+            "operatingSystem": "Web",
+            "applicationCategory": "SecurityApplication",
+            "description": "Secure utility to decrypt and reveal ephemeral secrets sent via ilusion.io. Data is destroyed immediately after viewing.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          })
+        }}
+      />
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
@@ -132,6 +151,22 @@ export default function ViewSecretPage() {
                 Reveal Secret
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
+            </div>
+          </div>
+
+          {/* Recipient Trust FAQ (AEO & SEO) */}
+          <div className="mt-12 grid sm:grid-cols-2 gap-6 text-left animate-fade-in-up">
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-accent">Safe to click?</h3>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Yes. Ilusion uses end-to-end encryption. The sender never sees your IP, and we never see the unencrypted content.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-accent">One-time view</h3>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Once revealed, the secret is purged from our systems forever. It cannot be recovered or viewed a second time.
+              </p>
             </div>
           </div>
         </div>
