@@ -12,25 +12,31 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch all secrets created by this user, ordered by creation date descending
-    const userSecrets = await db.query.secrets.findMany({
-      where: eq(secrets.userId, userId),
-      orderBy: [desc(secrets.createdAt)],
-    });
+    // Fetch all secrets created by this user using explicit selection to avoid 
+    // crashing if filesJson column hasn't been migrated yet.
+    const userSecrets = await db.select({
+      id: secrets.id,
+      status: secrets.status,
+      fileName: secrets.fileName,
+      fileSize: secrets.fileSize,
+      fileType: secrets.fileType,
+      createdAt: secrets.createdAt,
+      expiresAt: secrets.expiresAt,
+      isE2EE: secrets.isE2EE,
+      readAt: secrets.readAt,
+      readByIp: secrets.readByIp,
+      readLocation: secrets.readLocation,
+      passwordHash: secrets.passwordHash,
+      allowedIp: secrets.allowedIp,
+      alias: secrets.alias,
+    })
+    .from(secrets)
+    .where(eq(secrets.userId, userId))
+    .orderBy(desc(secrets.createdAt));
 
-    // We don't want to send actual encryptedContent back to the dashboard, just metadata
+    // Map to safe metadata
     const safeSecrets = userSecrets.map((s) => ({
-      id: s.id,
-      status: s.status,
-      fileName: s.fileName,
-      fileSize: s.fileSize,
-      fileType: s.fileType,
-      createdAt: s.createdAt,
-      expiresAt: s.expiresAt,
-      isE2EE: s.isE2EE,
-      readAt: s.readAt,
-      readByIp: s.readByIp,
-      readLocation: s.readLocation,
+      ...s,
       hasPassword: !!s.passwordHash,
       hasIpWhitelist: !!s.allowedIp,
     }));

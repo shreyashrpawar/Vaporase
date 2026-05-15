@@ -148,7 +148,7 @@ export async function POST(req: Request) {
       ? `${protocol}://${host}/secret/${finalAlias}` 
       : `${protocol}://${host}/secret/${id}`;
 
-    return NextResponse.json({ id, alias, expiresAt, link });
+    return NextResponse.json({ id, alias: finalAlias, expiresAt, link });
   } catch (error) {
     console.error('Create Secret Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

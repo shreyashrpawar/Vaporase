@@ -15,11 +15,17 @@ export async function GET(req: Request) {
     // Fetch secrets dropped into this user's inbox with sender profile info
     const inboxSecrets = await db
       .select({
-        secret: secrets,
-        sender: {
-          subdomain: userProfiles.subdomain,
-          displayName: userProfiles.displayName,
-        },
+        id: secrets.id,
+        status: secrets.status,
+        createdAt: secrets.createdAt,
+        expiresAt: secrets.expiresAt,
+        isE2EE: secrets.isE2EE,
+        readAt: secrets.readAt,
+        passwordHash: secrets.passwordHash,
+        fileName: secrets.fileName,
+        fileSize: secrets.fileSize,
+        senderSubdomain: userProfiles.subdomain,
+        senderDisplayName: userProfiles.displayName,
       })
       .from(secrets)
       .leftJoin(userProfiles, eq(secrets.userId, userProfiles.userId))
@@ -27,16 +33,19 @@ export async function GET(req: Request) {
       .orderBy(desc(secrets.createdAt));
 
     const safeSecrets = inboxSecrets.map((row) => ({
-      id: row.secret.id,
-      status: row.secret.status,
-      createdAt: row.secret.createdAt,
-      expiresAt: row.secret.expiresAt,
-      isE2EE: row.secret.isE2EE,
-      readAt: row.secret.readAt,
-      hasPassword: !!row.secret.passwordHash,
-      fileName: row.secret.fileName,
-      fileSize: row.secret.fileSize,
-      sender: row.sender,
+      id: row.id,
+      status: row.status,
+      createdAt: row.createdAt,
+      expiresAt: row.expiresAt,
+      isE2EE: row.isE2EE,
+      readAt: row.readAt,
+      hasPassword: !!row.passwordHash,
+      fileName: row.fileName,
+      fileSize: row.fileSize,
+      sender: {
+        subdomain: row.senderSubdomain,
+        displayName: row.senderDisplayName,
+      },
     }));
 
     return NextResponse.json(safeSecrets);

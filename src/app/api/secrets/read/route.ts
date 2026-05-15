@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { secrets, userProfiles } from '@/db/schema';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, or, and, desc } from 'drizzle-orm';
 import { s3, BUCKET_NAME } from '@/lib/s3';
 import { GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -17,28 +17,49 @@ export async function POST(req: Request) {
 
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'Unknown';
 
-    // 1. Fetch the secret and sender profile
+    // 1. Fetch the secret
     // We prioritize 'active' secrets to allow alias reuse.
-    let secretRecord = await db.query.secrets.findFirst({
-      where: and(
+    const columns = {
+      id: secrets.id,
+      userId: secrets.userId,
+      encryptedContent: secrets.encryptedContent,
+      fileKey: secrets.fileKey,
+      fileName: secrets.fileName,
+      fileSize: secrets.fileSize,
+      fileType: secrets.fileType,
+      expiresAt: secrets.expiresAt,
+      burnOnRead: secrets.burnOnRead,
+      status: secrets.status,
+      passwordHash: secrets.passwordHash,
+      allowedIp: secrets.allowedIp,
+      isE2EE: secrets.isE2EE,
+      recipientId: secrets.recipientId,
+      dropKey: secrets.dropKey,
+      filesJson: secrets.filesJson,
+    };
+
+    let secretsFound = await db.select(columns).from(secrets).where(
+      and(
         or(eq(secrets.id, id), eq(secrets.alias, id)),
         eq(secrets.status, 'active')
       )
-    });
+    ).limit(1);
 
     // If no active secret found, look for the most recent one (could be burned/expired)
-    if (!secretRecord) {
-      secretRecord = await db.query.secrets.findFirst({
-        where: or(eq(secrets.id, id), eq(secrets.alias, id)),
-        orderBy: (secrets, { desc }) => [desc(secrets.createdAt)]
-      });
+    if (secretsFound.length === 0) {
+      secretsFound = await db.select(columns).from(secrets).where(
+        or(eq(secrets.id, id), eq(secrets.alias, id))
+      ).orderBy(desc(secrets.createdAt)).limit(1);
     }
+
+    const secretRecord: any = secretsFound[0];
 
     let senderProfile = null;
     if (secretRecord && secretRecord.userId) {
-      senderProfile = await db.query.userProfiles.findFirst({
-        where: eq(userProfiles.userId, secretRecord.userId),
-      });
+      senderProfile = (await db.select({
+        subdomain: userProfiles.subdomain,
+        displayName: userProfiles.displayName,
+      }).from(userProfiles).where(eq(userProfiles.userId, secretRecord.userId)).limit(1))[0];
     }
 
     // 2. Check if exists and not expired/burned
@@ -94,15 +115,40 @@ export async function POST(req: Request) {
       recipientId: secretRecord.recipientId,
     };
 
-    // 6. Generate download URL if there is a file
-    if (secretRecord.fileKey) {
+    // 6. Generate download URLs for all files
+    const attachedFiles = [];
+    
+    // Parse files from JSON if available, otherwise fallback to single file columns
+    let sourceFiles = [];
+    if (secretRecord.filesJson) {
+      try {
+        sourceFiles = JSON.parse(secretRecord.filesJson);
+      } catch (e) {
+        console.error('Error parsing filesJson:', e);
+      }
+    }
+    
+    if (sourceFiles.length === 0 && secretRecord.fileKey) {
+      sourceFiles.push({
+        fileKey: secretRecord.fileKey,
+        fileName: secretRecord.fileName,
+        fileSize: secretRecord.fileSize,
+        fileType: secretRecord.fileType,
+      });
+    }
+
+    for (const f of sourceFiles) {
       const command = new GetObjectCommand({
         Bucket: BUCKET_NAME,
-        Key: secretRecord.fileKey,
+        Key: f.fileKey,
       });
-      // URL expires in 15 minutes, enough time to download
-      payload.fileUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
+      const fileUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
+      attachedFiles.push({
+        ...f,
+        fileUrl
+      });
     }
+    payload.files = attachedFiles;
 
     // 7. BURN ON READ: Nullify content but keep metadata
     if (secretRecord.burnOnRead) {
