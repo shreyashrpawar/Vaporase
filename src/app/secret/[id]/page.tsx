@@ -298,19 +298,27 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                 </div>
               )}
 
-              {/* Reply Button (for dropped secrets) */}
-              {secretData.sender && (
+              {/* Sender Info (for dropped secrets) */}
+              {secretData.recipientId && (
                 <div className="mt-8 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
-                    Sent by <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{secretData.sender.displayName}</span>
-                  </p>
-                  <Link
-                    href={`/${secretData.sender.subdomain}`}
-                    className="btn-primary w-full !py-4 mb-6"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    REPLY SECURELY
-                  </Link>
+                  {secretData.sender ? (
+                    <>
+                      <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
+                        Sent by <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{secretData.sender.displayName}</span>
+                      </p>
+                      <Link
+                        href={`/${secretData.sender.subdomain}`}
+                        className="btn-primary w-full !py-4 mb-6"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        REPLY SECURELY
+                      </Link>
+                    </>
+                  ) : (
+                    <p className="text-sm text-center italic mb-4" style={{ color: 'var(--text-tertiary)' }}>
+                      Sent by <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Anonymous</span>
+                    </p>
+                  )}
                 </div>
               )}
 

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ClerkProvider } from '@clerk/nextjs';
-import { dark } from '@clerk/themes';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { ClerkThemeWrapper } from '@/components/ClerkThemeWrapper';
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -54,55 +54,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-        variables: {
-          colorPrimary: '#6366f1',
-          colorBackground: 'var(--bg-elevated)',
-          colorInputBackground: 'var(--bg-inset)',
-          colorInputText: 'var(--text-primary)',
-          colorText: 'var(--text-primary)',
-          colorTextSecondary: 'var(--text-secondary)',
-          borderRadius: '0.75rem',
-        },
-        elements: {
-          userButtonPopoverCard: {
-            border: '1px solid var(--border-default)',
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 99999,
-            backgroundColor: 'var(--bg-elevated)',
-          },
-          userButtonPopoverActionButton: {
-            '&:hover': {
-              backgroundColor: 'var(--surface-overlay)',
-            }
-          },
-          userButtonPopoverActionButtonText: {
-            color: 'var(--text-primary)',
-          },
-          userButtonPopoverFooter: {
-            display: 'none', // Optional: cleans up the footer if desired
-          },
-          userButtonPopoverMain: {
-            color: 'var(--text-primary)',
-          },
-          userPreviewMainIdentifier: {
-            color: 'var(--text-primary)',
-          },
-          userPreviewSecondaryIdentifier: {
-            color: 'var(--text-secondary)',
-          },
-        }
-      }}
-    >
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className} min-h-screen antialiased`}>
-          <ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen antialiased`}>
+        <ThemeProvider>
+          <ClerkThemeWrapper>
             {children}
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+            <Analytics />
+          </ClerkThemeWrapper>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

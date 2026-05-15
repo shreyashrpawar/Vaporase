@@ -73,6 +73,26 @@ export async function POST(req: Request) {
       }
     }
 
+    const senderIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+
+    // Rate limit for Inbox/DropBox (One active drop per IP)
+    if (recipientId) {
+      const activeDropFromThisIp = await db.query.secrets.findFirst({
+        where: and(
+          eq(secrets.recipientId, recipientId),
+          eq(secrets.senderIp, senderIp),
+          eq(secrets.status, 'active'),
+          gt(secrets.expiresAt, now)
+        )
+      });
+
+      if (activeDropFromThisIp) {
+        return NextResponse.json({ 
+          error: "You already have an active secret in this user's inbox. Please wait for them to read it before sending another." 
+        }, { status: 429 });
+      }
+    }
+
     await db.insert(secrets).values({
       id,
       userId: userId || null,
@@ -91,6 +111,7 @@ export async function POST(req: Request) {
       recipientId: recipientId || null,
       dropKey: dropKey || null,
       alias: alias || null,
+      senderIp: senderIp,
     });
 
     const protocol = req.headers.get('x-forwarded-proto') || 'https';

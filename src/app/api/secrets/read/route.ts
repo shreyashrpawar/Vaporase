@@ -91,6 +91,7 @@ export async function POST(req: Request) {
         subdomain: senderProfile.subdomain,
         displayName: senderProfile.displayName,
       } : null,
+      recipientId: secretRecord.recipientId,
     };
 
     // 6. Generate download URL if there is a file
