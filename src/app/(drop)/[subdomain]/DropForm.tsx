@@ -50,7 +50,7 @@ function getFileIcon(type: string) {
   return FileText;
 }
 
-export default function DropForm({ profile }: { profile: any }) {
+export default function DropForm({ profile, isEmbedded = false }: { profile: any, isEmbedded?: boolean }) {
   const { isSignedIn } = useAuth();
   const [secretText, setSecretText] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -249,6 +249,24 @@ export default function DropForm({ profile }: { profile: any }) {
   const FileIcon = file ? getFileIcon(file.type) : FileText;
 
   if (generatedLink) {
+    if (isEmbedded) {
+      return (
+        <div className="bg-elevated border border-white/[0.05] rounded-[2rem] p-8 shadow-xl text-center space-y-6 animate-fade-in">
+          <div className="w-16 h-16 bg-success/10 rounded-2xl flex items-center justify-center mx-auto">
+            <Check className="w-8 h-8 text-success" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Secret Dropped</h3>
+            <p className="text-sm text-muted-foreground">Successfully sent to <span className="text-foreground">{profile.displayName}</span></p>
+          </div>
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 font-mono text-xs break-all">
+            {generatedLink}
+          </div>
+          <button onClick={resetForm} className="btn-primary w-full">Drop Another</button>
+        </div>
+      );
+    }
+
     return (
       <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
         <nav className="relative z-50 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
@@ -314,6 +332,77 @@ export default function DropForm({ profile }: { profile: any }) {
             </div>
           </div>
         </main>
+      </div>
+    );
+  }
+
+  if (isEmbedded) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="bg-elevated border border-white/[0.05] rounded-[2rem] p-6 sm:p-10 shadow-xl space-y-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Message Content</label>
+              <button onClick={() => setShowSecret(!showSecret)} className="text-muted-foreground hover:text-foreground">
+                {showSecret ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              </button>
+            </div>
+            <textarea
+              value={secretText}
+              onChange={(e) => setSecretText(e.target.value)}
+              placeholder="Paste sensitive data..."
+              className={`input min-h-[160px] !py-6 !px-6 !bg-white/[0.02] border-white/[0.1] resize-none ${!showSecret && secretText ? 'text-security-disc' : ''}`}
+              style={!showSecret && secretText ? { WebkitTextSecurity: 'disc' } as any : undefined}
+            />
+          </div>
+
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-3xl p-8 transition-all flex flex-col items-center gap-3 ${
+              isDragging ? 'border-accent bg-accent/5' : 'border-white/[0.1] bg-white/[0.01]'
+            }`}
+          >
+            <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" />
+            {file ? (
+              <div className="flex items-center gap-4 w-full">
+                <FileIcon className="w-6 h-6 text-accent" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate">{file.name}</p>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); setFile(null); }}><X className="w-4 h-4" /></button>
+              </div>
+            ) : (
+              <><Upload className="w-6 h-6 text-accent/50" /><p className="text-xs font-bold text-muted-foreground">Attach file</p></>
+            )}
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">Self-Destruct</label>
+              <select value={expiryHours} onChange={(e) => setExpiryHours(Number(e.target.value))} className="input !py-3 !text-xs !bg-white/[0.02]">
+                {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">Password (Pro)</label>
+              <input disabled placeholder="Unlock with Pro" className="input !py-3 !text-xs !bg-white/[0.02] opacity-50 cursor-not-allowed" />
+            </div>
+          </div>
+
+          {error && <div className="text-xs text-destructive font-bold px-2">{error}</div>}
+
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || (!secretText && !file)}
+            className="btn-primary w-full !py-4"
+          >
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
+            {isLoading ? 'Sending...' : 'Securely Drop'}
+          </button>
+        </div>
       </div>
     );
   }

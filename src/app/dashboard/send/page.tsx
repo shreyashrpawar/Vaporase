@@ -68,7 +68,7 @@ export default function DirectSendPage() {
             <button onClick={() => setProfile(null)} className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>Change</button>
           </div>
           <div className="animate-fade-in-up delay-100">
-            <DropForm profile={profile} />
+            <DropForm profile={profile} isEmbedded={true} />
           </div>
         </div>
       )}
