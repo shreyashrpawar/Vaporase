@@ -412,47 +412,48 @@ export default function CreateSecretPage() {
                   </div>
 
                   <div 
-                    className={`relative rounded-[2.5rem] overflow-hidden border-2 transition-all duration-500 ${
-                      isDragging ? 'border-accent bg-accent/5 scale-[1.01] shadow-2xl shadow-accent/20' : 'border-white/[0.05] bg-white/[0.01]'
-                    }`}
+                    className="space-y-6"
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { 
                       e.preventDefault(); 
+                      setIsDragging(false);
                       const dropped = Array.from(e.dataTransfer.files);
                       if (dropped.length) addFiles(dropped);
                     }}
                   >
-                    {files.length === 0 && contentType === 'text' ? (
-                      /* Text mode */
-                      <div className="relative group">
-                        <textarea
-                          value={secretText}
-                          onChange={(e) => setSecretText(e.target.value)}
-                          placeholder="Type or paste your secret message..."
-                          className="input min-h-[240px] !py-8 !px-8 !text-lg !font-mono !bg-transparent !border-none focus:ring-0 transition-all resize-none"
-                        />
-                        <div className="absolute bottom-6 right-6 flex items-center gap-4">
-                          <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all"
-                          >
-                            <Upload className="w-3.5 h-3.5" />
-                            Attach File
-                          </button>
-                          <div className="badge badge-accent !text-[9px] opacity-50">E2EE Active</div>
-                        </div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          multiple
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
+                    {/* Text Area - always visible */}
+                    <div className={`relative rounded-[2rem] overflow-hidden border-2 transition-all duration-500 ${
+                      isDragging ? 'border-accent bg-accent/5 scale-[1.01] shadow-2xl shadow-accent/20' : 'border-white/[0.05] bg-white/[0.01]'
+                    }`}>
+                      <textarea
+                        value={secretText}
+                        onChange={(e) => setSecretText(e.target.value)}
+                        placeholder="Type or paste your secret message..."
+                        className="input min-h-[180px] !py-8 !px-8 !text-lg !font-mono !bg-transparent !border-none focus:ring-0 transition-all resize-none"
+                      />
+                      <div className="absolute bottom-6 right-6 flex items-center gap-4">
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          Attach File
+                        </button>
+                        <div className="badge badge-accent !text-[9px] opacity-50">E2EE Active</div>
                       </div>
-                    ) : (
-                      /* File mode — multi-file list */
-                      <div className="p-6 space-y-4 animate-fade-in">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {/* Files List - visible if files > 0 */}
+                    {files.length > 0 && (
+                      <div className="p-6 rounded-[2rem] border-2 border-white/[0.05] bg-white/[0.01] space-y-4 animate-fade-in">
                         <div className="flex items-center justify-between px-2">
                           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                             {files.length} file{files.length !== 1 ? 's' : ''} attached
@@ -484,20 +485,6 @@ export default function CreateSecretPage() {
                             );
                           })}
                         </div>
-
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-full py-3 border-2 border-dashed border-white/[0.1] hover:border-accent/50 rounded-2xl text-xs font-bold text-muted-foreground hover:text-accent transition-all flex items-center justify-center gap-2"
-                        >
-                          <Upload className="w-3.5 h-3.5" /> Add More Files
-                        </button>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          multiple
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
                       </div>
                     )}
                   </div>

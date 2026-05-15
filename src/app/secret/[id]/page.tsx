@@ -255,46 +255,57 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                 </div>
               )}
 
-              {/* File Download */}
-              {secretData.fileUrl && (
-                <div>
-                  <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-primary)' }}>Attached File</label>
-                  <div className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent-subtle)' }}>
-                      <FileIcon className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                        {secretData.fileName || 'File'}
-                      </p>
-                      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                        {formatBytes(secretData.fileSize)}
-                      </p>
-                    </div>
-                    <a
-                      href={secretData.fileUrl}
-                      download={secretData.fileName}
-                      className="btn-primary !px-4 !py-2 !text-xs !gap-1.5"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Download
-                    </a>
+              {/* File Downloads */}
+              {secretData.files && secretData.files.length > 0 && (
+                <div className="space-y-4">
+                  <label className="text-sm font-semibold block" style={{ color: 'var(--text-primary)' }}>
+                    Attached Files ({secretData.files.length})
+                  </label>
+                  <div className="space-y-3">
+                    {secretData.files.map((file: any, idx: number) => {
+                      const Icon = getFileIcon(file.fileType);
+                      return (
+                        <div key={idx} className="space-y-3">
+                          <div className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent-subtle)' }}>
+                              <Icon className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                                {file.fileName || 'File'}
+                              </p>
+                              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                                {formatBytes(file.fileSize)}
+                              </p>
+                            </div>
+                            <a
+                              href={file.fileUrl}
+                              download={file.fileName}
+                              className="btn-primary !px-4 !py-2 !text-xs !gap-1.5"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Download
+                            </a>
+                          </div>
+                          
+                          {/* Preview for images */}
+                          {file.fileType?.startsWith('image/') && (
+                            <div className="rounded-xl overflow-hidden mt-2" style={{ border: '1px solid var(--border-default)' }}>
+                              <img
+                                src={file.fileUrl}
+                                alt={`Preview of ${file.fileName}`}
+                                className="w-full h-auto max-h-96 object-contain"
+                                style={{ background: 'var(--bg-inset)' }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-                    ⏳ Download link expires in 15 minutes
+                    ⏳ Download links expire in 15 minutes
                   </p>
-                </div>
-              )}
-
-              {/* Preview for images */}
-              {secretData.fileUrl && secretData.fileType?.startsWith('image/') && (
-                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)' }}>
-                  <img
-                    src={secretData.fileUrl}
-                    alt="Secret image"
-                    className="w-full h-auto max-h-96 object-contain"
-                    style={{ background: 'var(--bg-inset)' }}
-                  />
                 </div>
               )}
 

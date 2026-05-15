@@ -116,20 +116,21 @@ export async function POST(req: Request) {
     };
 
     // 6. Generate download URLs for all files
-    const attachedFiles = [];
+    const attachedFiles: any[] = [];
+    let sourceFiles: any[] = [];
     
-    // Parse files from JSON if available, otherwise fallback to single file columns
-    let sourceFiles = [];
     if (secretRecord.filesJson) {
       try {
-        sourceFiles = JSON.parse(secretRecord.filesJson);
+        const parsed = JSON.parse(secretRecord.filesJson);
+        if (Array.isArray(parsed)) sourceFiles = parsed;
       } catch (e) {
         console.error('Error parsing filesJson:', e);
       }
     }
     
-    if (sourceFiles.length === 0 && secretRecord.fileKey) {
-      sourceFiles.push({
+    // Fallback for single file if not already in sourceFiles
+    if (secretRecord.fileKey && !sourceFiles.some(f => f.fileKey === secretRecord.fileKey)) {
+      sourceFiles.unshift({
         fileKey: secretRecord.fileKey,
         fileName: secretRecord.fileName,
         fileSize: secretRecord.fileSize,
@@ -138,17 +139,27 @@ export async function POST(req: Request) {
     }
 
     for (const f of sourceFiles) {
-      const command = new GetObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: f.fileKey,
-      });
-      const fileUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
-      attachedFiles.push({
-        ...f,
-        fileUrl
-      });
+      if (!f.fileKey) continue;
+      try {
+        const command = new GetObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: f.fileKey,
+        });
+        const fileUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
+        attachedFiles.push({ ...f, fileUrl });
+      } catch (err) {
+        console.error('S3 sign error:', err);
+      }
     }
     payload.files = attachedFiles;
+    
+    // Backward compatibility
+    if (attachedFiles.length > 0) {
+      payload.fileUrl = attachedFiles[0].fileUrl;
+      payload.fileName = attachedFiles[0].fileName;
+      payload.fileSize = attachedFiles[0].fileSize;
+      payload.fileType = attachedFiles[0].fileType;
+    }
 
     // 7. BURN ON READ: Nullify content but keep metadata
     if (secretRecord.burnOnRead) {

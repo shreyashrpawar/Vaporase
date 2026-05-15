@@ -29,6 +29,7 @@ export async function GET(req: Request) {
       passwordHash: secrets.passwordHash,
       allowedIp: secrets.allowedIp,
       alias: secrets.alias,
+      filesJson: secrets.filesJson,
     })
     .from(secrets)
     .where(eq(secrets.userId, userId))

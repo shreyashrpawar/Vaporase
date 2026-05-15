@@ -132,12 +132,30 @@ export default function SecretsDashboardPage() {
                               <Clock className="w-3.5 h-3.5 opacity-50" />
                               <span>Expires {new Date(secret.expiresAt).toLocaleString()}</span>
                             </div>
-                            {secret.fileName && (
-                              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.03] rounded-md border border-white/[0.05]">
-                                <FileText className="w-3.5 h-3.5" />
-                                <span className="max-w-[150px] truncate">{secret.fileName}</span>
-                              </div>
-                            )}
+                            {/* File Indicator */}
+                            {(() => {
+                              let filesCount = 0;
+                              let displayLabel = '';
+                              if (secret.filesJson) {
+                                try {
+                                  const files = JSON.parse(secret.filesJson);
+                                  filesCount = files.length;
+                                  displayLabel = filesCount > 1 ? `${filesCount} Files` : files[0]?.fileName;
+                                } catch (e) {}
+                              } else if (secret.fileName) {
+                                filesCount = 1;
+                                displayLabel = secret.fileName;
+                              }
+
+                              if (filesCount === 0) return null;
+
+                              return (
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.03] rounded-md border border-white/[0.05]">
+                                  <FileText className="w-3.5 h-3.5" />
+                                  <span className="max-w-[150px] truncate">{displayLabel || 'Attached File'}</span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
