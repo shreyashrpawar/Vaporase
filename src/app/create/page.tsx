@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import {
   Lock,
   Upload,
@@ -79,6 +80,13 @@ export default function CreateSecretPage() {
   const [contentType, setContentType] = useState<'text' | 'file'>('text');
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace('/dashboard/send');
+    }
+  }, [isSignedIn, router]);
 
   // Derived: total size of all attached files
   const totalFilesSize = files.reduce((acc, f) => acc + f.size, 0);

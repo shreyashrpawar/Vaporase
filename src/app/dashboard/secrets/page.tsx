@@ -109,7 +109,7 @@ export default function SecretsDashboardPage() {
                     <Shield className="w-8 h-8 text-muted-foreground opacity-20" />
                   </div>
                   <p className="text-sm text-muted-foreground font-medium">No active secrets found</p>
-                  <Link href="/create" className="text-xs text-accent hover:underline mt-2 inline-block">Create your first secret</Link>
+                  <Link href="/dashboard/send" className="text-xs text-accent hover:underline mt-2 inline-block">Create your first secret</Link>
                 </div>
               ) : (
                 <div className="divide-y divide-white/[0.05]">

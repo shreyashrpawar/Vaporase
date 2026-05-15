@@ -34,8 +34,8 @@ export default function DashboardLayout({
     {
       group: 'Security',
       items: [
+        { name: 'Create Secret', href: '/dashboard/send', icon: Plus },
         { name: 'My Secrets', href: '/dashboard/secrets', icon: Shield },
-        { name: 'Send Secret', href: '/dashboard/send', icon: Send },
         { name: 'Reveal', href: '/dashboard/reveal', icon: Eye },
       ]
     },
