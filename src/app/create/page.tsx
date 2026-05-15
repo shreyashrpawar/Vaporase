@@ -506,14 +506,14 @@ export default function CreateSecretPage() {
                 <Timer className="w-4 h-4 inline mr-1.5 -mt-0.5 text-accent" />
                 Expires After
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {EXPIRY_OPTIONS.map((option) => {
                   return (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => setExpiryHours(option.value)}
-                      className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      className={`px-3 py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold transition-all ${
                         expiryHours === option.value
                           ? 'btn-primary !py-2.5 !px-3 !text-xs'
                           : ''

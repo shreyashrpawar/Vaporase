@@ -5,13 +5,14 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone, Clock, Check } from 'lucide-react';
+import { Shield, Eye, Timer, FileText, ArrowRight, Lock, Zap, Sparkles, ChevronRight, Inbox, Smartphone, Clock, Check, Key, Code } from 'lucide-react';
 import { getLocalSecrets, LocalSecret } from '@/lib/local-history';
 import { useState } from 'react';
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [quickAlias, setQuickAlias] = useState('');
 
@@ -28,8 +29,8 @@ export default function LandingPage() {
   return (
     <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
       {/* ═══ Nav ═══ */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2 group">
+      <nav className="relative z-50 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
             <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </div>
@@ -38,7 +39,8 @@ export default function LandingPage() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-2">
           <ThemeToggle />
           {!isSignedIn ? (
             <>
@@ -54,10 +56,36 @@ export default function LandingPage() {
             </>
           )}
         </div>
+
+        {/* Mobile Nav Toggle */}
+        <div className="flex md:hidden items-center gap-4">
+          <ThemeToggle />
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {isMobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 glass mt-2 mx-4 rounded-2xl p-4 flex flex-col gap-2 md:hidden animate-fade-in-up z-50">
+            <Link href="/pricing" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Pricing</Link>
+            <Link href="/view" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Reveal Secret</Link>
+            <Link href="/sign-in" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Sign In</Link>
+            <Link href="/sign-up" className="btn-primary !py-3 w-full text-center mt-2">Get Started</Link>
+          </div>
+        )}
       </nav>
 
       {/* ═══ Hero ═══ */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center max-w-4xl mx-auto mesh-gradient">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12 sm:py-24 text-center max-w-4xl mx-auto mesh-gradient">
         <div className="relative z-10 w-full">
           <div className="animate-fade-in-up opacity-0">
             <div className="badge badge-accent !py-1.5 !px-3 !text-[11px] mx-auto mb-6 inline-flex">
@@ -216,6 +244,54 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ Use Cases (SEO Section) ═══ */}
+      <section className="relative z-10 px-6 py-20 bg-white/[0.01] border-y border-white/[0.05]">
+        <div className="max-w-5xl mx-auto w-full">
+          <div className="text-center mb-16">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-4">Built for every <span className="text-gradient">Secure Workflow</span></h2>
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto">Stop sending sensitive data over unencrypted chats. Use Ilusion for high-stakes communication.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                  <Key className="w-4 h-4 text-accent" />
+                </div>
+                <h3 className="text-base font-bold">Passwords & Credentials</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Send database passwords, root credentials, or social media logins to teammates without leaving a trace in your Slack or Email history.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                  <Code className="w-4 h-4 text-accent" />
+                </div>
+                <h3 className="text-base font-bold">API Keys & Tokens</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Share AWS keys, Stripe tokens, or private .env variables during onboarding or debugging sessions with zero exposure risk.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-accent" />
+                </div>
+                <h3 className="text-base font-bold">Client Onboarding</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Ask clients to drop their sensitive account details into your **Secure Inbox** so you don't have to worry about them sending it via plain email.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ Mobile App Section ═══ */}
       <section className="relative z-10 px-6 py-24 max-w-5xl mx-auto w-full">
         <div className="card gradient-border overflow-hidden p-0" style={{ background: 'var(--bg-elevated)' }}>
@@ -224,13 +300,13 @@ export default function LandingPage() {
               <div className="badge badge-accent mb-4">Native Experience</div>
               <h2 className="text-3xl font-bold mb-4">Ilusion on your <span className="text-gradient">Android</span></h2>
               <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-                Take security with you. Our mobile app features biometric unlock, 
-                instant push notifications for your Inbox, and deep-link support 
+                Take security with you. Our mobile app features biometric unlock,
+                instant push notifications for your Inbox, and deep-link support
                 to reveal secrets directly from your messaging apps.
               </p>
               <div className="flex flex-wrap gap-4">
-                <a 
-                  href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk" 
+                <a
+                  href="https://github.com/shreyashrpawar/ilusion_android/releases/download/v1/Ilusion.apk"
                   download="Ilusion.apk"
                   className="btn-primary !py-3 !px-6 !text-xs flex items-center gap-2"
                 >
@@ -275,7 +351,7 @@ export default function LandingPage() {
             <div className="badge badge-accent mb-4">For Developers</div>
             <h2 className="text-3xl font-bold mb-4">Programmatic <span className="text-gradient">Secret Generation</span></h2>
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-              Integrate ilusion.io directly into your CI/CD pipelines, support tools, or custom applications. 
+              Integrate ilusion.io directly into your CI/CD pipelines, support tools, or custom applications.
               Our simple REST API allows you to automate the creation of secure, temporary links for credentials and logs.
             </p>
             <Link href="/docs/api" className="text-sm font-bold text-accent hover:underline flex items-center gap-2">
@@ -358,20 +434,20 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
           {/* Free Plan */}
-          <div className="card gradient-border p-8 flex flex-col group transition-transform hover:scale-[1.02]">
+          <div className="card gradient-border p-6 sm:p-8 flex flex-col group transition-transform hover:scale-[1.02]">
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-2">Free</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Free</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold">$0</span>
+                <span className="text-2xl sm:text-3xl font-bold">$0</span>
               </div>
-              <p className="text-xs text-muted-foreground">Perfect for one-off secure sharing.</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Perfect for one-off secure sharing.</p>
             </div>
-            <ul className="space-y-4 mb-8 flex-1">
+            <ul className="space-y-3 sm:space-y-4 mb-8 flex-1">
               {['Up to 50MB uploads', 'E2E Encryption', 'Burn on Read', 'Standard Support'].map(f => (
-                <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  <Check className="w-4 h-4 text-accent" /> {f}
+                <li key={f} className="flex items-center gap-3 text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" /> {f}
                 </li>
               ))}
             </ul>
@@ -379,19 +455,19 @@ export default function LandingPage() {
           </div>
 
           {/* Pro Monthly */}
-          <div className="card gradient-border p-8 flex flex-col relative group transition-transform hover:scale-[1.02]" style={{ background: 'var(--surface-overlay)' }}>
+          <div className="card gradient-border p-6 sm:p-8 flex flex-col relative group transition-transform hover:scale-[1.02]" style={{ background: 'var(--surface-overlay)' }}>
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-2">Pro Monthly</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Pro Monthly</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold">$2</span>
+                <span className="text-2xl sm:text-3xl font-bold">$2</span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
-              <p className="text-xs text-muted-foreground">Advanced security for power users.</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Advanced security for power users.</p>
             </div>
-            <ul className="space-y-4 mb-8 flex-1">
+            <ul className="space-y-3 sm:space-y-4 mb-8 flex-1">
               {['100MB uploads', 'Password Protection', 'IP Restrictions', '30-day Expiry'].map(f => (
-                <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  <Check className="w-4 h-4 text-accent" /> {f}
+                <li key={f} className="flex items-center gap-3 text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" /> {f}
                 </li>
               ))}
             </ul>
@@ -399,22 +475,22 @@ export default function LandingPage() {
           </div>
 
           {/* Pro Yearly */}
-          <div className="card gradient-border p-8 flex flex-col relative group transition-transform hover:scale-[1.05]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+          <div className="card gradient-border p-6 sm:p-8 flex flex-col relative group transition-transform hover:scale-[1.05]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap z-10">
               Best Value — Save 25%
             </div>
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-2">Pro Yearly</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Pro Yearly</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold">$18</span>
+                <span className="text-2xl sm:text-3xl font-bold">$18</span>
                 <span className="text-xs text-muted-foreground">/year</span>
               </div>
-              <p className="text-xs text-muted-foreground">Professional security at $1.50/mo.</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Professional security at $1.50/mo.</p>
             </div>
-            <ul className="space-y-4 mb-8 flex-1">
+            <ul className="space-y-3 sm:space-y-4 mb-8 flex-1">
               {['All Pro Features', 'Priority Support', 'API Access Key', 'Unlimited Secrets'].map(f => (
-                <li key={f} className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  <Check className="w-4 h-4 text-accent" /> {f}
+                <li key={f} className="flex items-center gap-3 text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" /> {f}
                 </li>
               ))}
             </ul>
@@ -435,17 +511,52 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ Footer ═══ */}
-      <footer className="relative z-10 px-6 py-6 max-w-6xl mx-auto w-full" style={{ borderTop: '1px solid var(--border-default)' }}>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5">
-            <Lock className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
-            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>ilusion.io — Secure Ephemeral Sharing</span>
+      <footer className="relative z-10 px-6 py-16 max-w-7xl mx-auto w-full border-t border-white/[0.05]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12">
+          <div className="col-span-2 md:col-span-1 space-y-4">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
+                <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+              </div>
+              <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+                ilusion<span style={{ color: 'var(--accent-primary)' }}>.io</span>
+              </span>
+            </Link>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Secure, ephemeral, and decentralized secret sharing for everyone.
+            </p>
           </div>
-          <div className="flex items-center gap-6 text-xs text-muted-foreground">
-            <Link href="/contact" className="hover:underline">Contact</Link>
-            <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/terms" className="hover:underline">Terms</Link>
-            <Link href="/docs/api" className="hover:underline">API Docs</Link>
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Product</h4>
+            <ul className="space-y-2.5">
+              <li><Link href="/create" className="text-xs text-muted-foreground hover:text-accent transition-colors">Create Secret</Link></li>
+              <li><Link href="/view" className="text-xs text-muted-foreground hover:text-accent transition-colors">Reveal Secret</Link></li>
+              <li><Link href="/pricing" className="text-xs text-muted-foreground hover:text-accent transition-colors">Pricing</Link></li>
+              <li><Link href="/docs/api" className="text-xs text-muted-foreground hover:text-accent transition-colors">API Docs</Link></li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Alternatives</h4>
+            <ul className="space-y-2.5">
+              <li><Link href="/vs/1password-send" className="text-xs text-muted-foreground hover:text-accent transition-colors">vs 1Password Send</Link></li>
+              <li><Link href="/vs/firefox-send" className="text-xs text-muted-foreground hover:text-accent transition-colors">vs Firefox Send</Link></li>
+              <li><Link href="/vs/bitwarden-send" className="text-xs text-muted-foreground hover:text-accent transition-colors">vs Bitwarden Send</Link></li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Legal</h4>
+            <ul className="space-y-2.5">
+              <li><Link href="/privacy" className="text-xs text-muted-foreground hover:text-accent transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-xs text-muted-foreground hover:text-accent transition-colors">Terms of Service</Link></li>
+              <li><Link href="/contact" className="text-xs text-muted-foreground hover:text-accent transition-colors">Contact Support</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[10px] text-muted-foreground">© 2024 Ilusion.io. All rights reserved.</p>
+          <div className="flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-success opacity-50" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Encrypted at rest & in transit</span>
           </div>
         </div>
       </footer>

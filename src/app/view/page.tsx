@@ -102,7 +102,7 @@ export default function ViewSecretPage() {
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block text-left">Custom Alias</label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-sm font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[11px] sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
                       ilusion.io/s/
                     </div>
                     <input
@@ -110,7 +110,7 @@ export default function ViewSecretPage() {
                       value={alias}
                       onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       placeholder="alias-name"
-                      className="input !pl-[140px] !py-3.5 font-bold"
+                      className="input !pl-[100px] sm:!pl-[140px] !py-3.5 font-bold text-sm sm:text-base"
                       onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
                     />
                   </div>
