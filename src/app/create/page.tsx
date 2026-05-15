@@ -77,6 +77,8 @@ export default function CreateSecretPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [contentType, setContentType] = useState<'text' | 'file'>('text');
+  const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -303,464 +305,352 @@ export default function CreateSecretPage() {
 
   const FileIcon = file ? getFileIcon(file.type) : FileText;
 
-  // Success state
-  if (generatedLink) {
-    return (
-      <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-        <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto w-full">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
-              <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-foreground">
-              ilusion<span className="text-accent">.io</span>
-            </span>
-          </Link>
-        </nav>
 
-        <main className="relative z-10 flex-1 flex items-center justify-center px-6">
-          <div className="w-full max-w-lg animate-fade-in-up">
-            <div className="card gradient-border p-8 text-center" style={{ boxShadow: 'var(--shadow-glow)' }}>
-              <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-6">
-                <Check className="w-8 h-8 text-success" />
-              </div>
-
-              <h2 className="text-2xl font-bold mb-2 text-foreground">Secret Created!</h2>
-              <p className="text-muted-foreground mb-6">
-                Share this link. It can only be viewed <strong className="text-foreground">once</strong>.
-              </p>
-
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex-1 rounded-xl px-4 py-3 font-mono text-sm truncate" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--accent-primary)' }}>
-                  {generatedLink}
-                </div>
-                <button
-                  onClick={copyToClipboard}
-                  className="btn-primary !w-11 !h-11 !p-0 !rounded-xl"
-                >
-                  {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4 text-white" />}
-                </button>
-              </div>
-
-              {copied && (
-                <p className="text-sm text-success font-medium mb-4 animate-fade-in-up">
-                  ✓ Link copied to clipboard
-                </p>
-              )}
-
-              <div className="flex justify-center mb-6 p-4 rounded-xl inline-block mx-auto" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
-                <QRCodeSVG value={generatedLink} size={150} level="M" includeMargin={true} bgColor="transparent" fgColor="var(--text-secondary)" />
-              </div>
-
-              <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mb-6">
-                <span className="flex items-center gap-1">
-                  <Timer className="w-3 h-3" />
-                  Expires in {EXPIRY_OPTIONS.find((o) => o.value === expiryHours)?.label || `${expiryHours}h`}
-                </span>
-                <span>·</span>
-                <span className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  Burns on read
-                </span>
-              </div>
-
-              <button
-                onClick={resetForm}
-                className="text-sm font-medium text-accent hover:text-accent-light transition-colors"
-              >
-                Create another secret →
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
-    <div className="dot-grid min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-      {/* AEO: How-To Schema */}
+    <div className="dot-grid min-h-screen flex flex-col lg:flex-row overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+      {/* AEO: HowTo Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "HowTo",
-            "name": "How to Create a Secure, Self-Destructing Link",
-            "description": "Share passwords, API keys, and sensitive files safely using client-side encryption and burn-on-read technology.",
+            "name": "How to Send a Secure Secret with Ilusion",
+            "description": "Step-by-step guide to encrypting and sharing ephemeral secrets safely.",
             "step": [
-              {
-                "@type": "HowToStep",
-                "name": "Enter your secret",
-                "text": "Paste your sensitive text or upload a file into the secure, encrypted text area."
-              },
-              {
-                "@type": "HowToStep",
-                "name": "Set expiration",
-                "text": "Choose how long the link should remain active before it self-destructs."
-              },
-              {
-                "@type": "HowToStep",
-                "name": "Generate and share",
-                "text": "Click 'Generate Secret Link' and share the secure URL with your recipient. The link will burn after the first read."
-              }
+              { "@type": "HowToStep", "text": "Enter your secret text or upload a file." },
+              { "@type": "HowToStep", "text": "Set security options like password protection and expiry." },
+              { "@type": "HowToStep", "text": "Generate a unique, encrypted link to share." }
             ]
           })
         }}
       />
-      {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
+
+      {/* ═══ Left Sidebar: Guidance & Trust ═══ */}
+      <aside className="hidden lg:flex w-80 xl:w-96 flex-col border-r border-white/[0.05] p-8 space-y-12" style={{ background: 'var(--bg-elevated)' }}>
+        <Link href="/" className="flex items-center gap-3 group mb-8">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-all group-hover:scale-105" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
             <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">
-            ilusion<span className="text-accent">.io</span>
-          </span>
+          <span className="text-lg font-bold tracking-tight">ilusion<span className="text-accent">.io</span></span>
         </Link>
 
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-      </nav>
-
-      {/* Main Form */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-2xl animate-fade-in-up">
-          <div className="text-center mb-8">
-            <div className="badge badge-accent !py-1.5 !px-3 !text-[11px] mb-4 inline-flex">
-              <Sparkles className="w-3.5 h-3.5" />
-              Encrypted & Ephemeral
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-accent mb-4">Security Guide</h2>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <Shield className="w-5 h-5 text-accent shrink-0" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong>Zero-Knowledge:</strong> We never see your unencrypted data. Encryption happens entirely in your browser.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Zap className="w-5 h-5 text-accent shrink-0" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong>Burn-on-Read:</strong> Secrets are automatically purged from our database the moment they are revealed.
+                </p>
+              </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 text-foreground">
-              Create a Secret
-            </h1>
-            <p className="text-muted-foreground">
-              Your message will self-destruct after being viewed.
-            </p>
           </div>
 
-          {/* Guest Welcome Banner */}
-          {!isSignedIn && (
-            <div className="card bg-accent/5 border-accent/20 p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
-              <div className="flex items-center gap-4 text-left">
-                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0 border border-accent/20">
-                  <Inbox className="w-6 h-6 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">Want a permanent Secure Inbox?</h3>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Claim your <code className="text-accent">ilusion.io/username</code> link and let others send you secrets safely.
-                  </p>
-                </div>
-              </div>
-              <Link href="/sign-up" className="btn-primary !py-2.5 !px-5 !text-xs whitespace-nowrap group">
-                Claim My Link
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+          <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold">Pro Tip</h3>
             </div>
-          )}
-
-          <div className="card gradient-border p-8 space-y-6">
-            {/* Secret Text Area */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-foreground">Secret Message</label>
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10 border border-success/20 text-[9px] font-bold text-success uppercase tracking-wider">
-                    <Shield className="w-2.5 h-2.5" />
-                    Client-Side Encrypted
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSecret(!showSecret)}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-white/[0.05]"
-                >
-                  {showSecret ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-              </div>
-              <textarea
-                value={secretText}
-                onChange={(e) => setSecretText(e.target.value)}
-                placeholder="Paste your password, API key, or sensitive message here..."
-                rows={5}
-                className={`input textarea ${!showSecret && secretText ? 'text-security-disc' : ''}`}
-                style={
-                  !showSecret && secretText
-                    ? ({ WebkitTextSecurity: 'disc' } as React.CSSProperties)
-                    : undefined
-                }
-              />
-            </div>
-
-            {/* File Upload Zone */}
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-2 block">
-                Attach File <span className="text-muted-foreground font-normal">(optional)</span>
-              </label>
-
-              {!file ? (
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDragging ? 'drop-active' : ''
-                    }`}
-                  style={{ borderColor: isDragging ? undefined : 'var(--border-default)' }}
-                >
-                  <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center mx-auto mb-3">
-                    <Upload className="w-5 h-5 text-accent-light" />
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <span className="text-foreground font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Images, videos, documents up to {formatBytes(maxFileSize)}
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    accept="image/*,video/*,.pdf,.txt,.doc,.docx,.zip,.rar,.json,.csv,.xml"
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <FileIcon className="w-5 h-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFile(null)}
-                    className="shrink-0 w-8 h-8 rounded-lg hover:bg-white/[0.08] flex items-center justify-center transition-colors"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Expiration Selector */}
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-3 block">
-                <Timer className="w-4 h-4 inline mr-1.5 -mt-0.5 text-accent" />
-                Expires After
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {EXPIRY_OPTIONS.map((option) => {
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setExpiryHours(option.value)}
-                      className={`px-3 py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold transition-all ${expiryHours === option.value
-                        ? 'btn-primary !py-2.5 !px-3 !text-xs'
-                        : ''
-                        }`}
-                      style={expiryHours !== option.value ? { background: 'var(--bg-inset)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' } : {}}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {userPlan !== 'pro' && (
-                <p className="text-[10px] text-muted-foreground mt-3 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-accent" />
-                  <Link href="/pricing" className="text-accent hover:underline">Upgrade to Pro</Link> to unlock extended expiration times.
-                </p>
-              )}
-            </div>
-
-            {/* Custom Alias (Free & Always Visible) */}
-            <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] overflow-hidden">
-              <div className="flex items-center justify-between p-4">
-                <div>
-                  <label className="text-sm font-semibold text-foreground">Use Custom Alias</label>
-                  <p className="text-[11px] text-muted-foreground">Creates a clean link without a key fragment.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setUseAlias(!useAlias)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ${useAlias ? 'bg-accent' : 'bg-muted border border-border'}`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${useAlias ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-              </div>
-
-              {useAlias && (
-                <div className="p-4 pt-0 border-t border-white/[0.05] bg-white/[0.02]">
-                  <div className="mt-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">Custom URL Alias</label>
-                    <input
-                      type="text"
-                      value={alias}
-                      onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                      placeholder="e.g. secret-meeting"
-                      className="input"
-                    />
-                    <p className="text-[10px] text-muted-foreground mt-2">
-                      Link: {window.location.origin}/s/<span className="text-accent font-medium">{alias || 'your-alias'}</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Advanced Options Toggle */}
-            <div className="border-t border-white/[0.06] pt-4">
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                {showAdvanced ? 'Hide Security Options' : 'More Security Options'}
-              </button>
-
-              {showAdvanced && (
-                <div className="mt-4 space-y-4 animate-fade-in-up">
-
-
-                  <div>
-                    <label className="text-sm font-semibold text-foreground mb-1 block">
-                      Optional Password {userPlan !== 'pro' && <span className="text-[10px] text-accent-light ml-1">PRO</span>}
-                    </label>
-                    <p className="text-xs text-muted-foreground mb-2">Require a password to unlock the secret.</p>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        value={password}
-                        disabled={userPlan !== 'pro'}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder={userPlan === 'pro' ? "Enter a secure password..." : "Requires Pro membership"}
-                        className="input disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                      {userPlan !== 'pro' && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-foreground mb-1 block">
-                      Restrict by IP Address {userPlan !== 'pro' && <span className="text-[10px] text-accent-light ml-1">PRO</span>}
-                    </label>
-                    <p className="text-xs text-muted-foreground mb-2">Only allow this exact IP address to view the secret.</p>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={allowedIp}
-                        disabled={userPlan !== 'pro'}
-                        onChange={(e) => setAllowedIp(e.target.value)}
-                        placeholder={userPlan === 'pro' ? "e.g., 192.168.1.1" : "Requires Pro membership"}
-                        className="input !font-mono disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                      {userPlan !== 'pro' && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 animate-fade-in-up">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {error}
-              </div>
-            )}
-
-            {/* Upload Progress */}
-            {isLoading && uploadProgress > 0 && (
-              <div className="space-y-2">
-                <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  {uploadProgress < 30
-                    ? 'Preparing upload...'
-                    : uploadProgress < 70
-                      ? `Uploading file... ${Math.round(((uploadProgress - 30) / 40) * 100)}%`
-                      : uploadProgress < 100
-                        ? 'Creating secret...'
-                        : 'Done!'}
-                </p>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
-              disabled={isLoading || (!secretText && !file)}
-              className="btn-primary w-full !py-4"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-4 h-4" />
-                  Generate Secret Link
-                </>
-              )}
-            </button>
-
-            {/* Info */}
-            <p className="text-xs text-muted-foreground text-center leading-relaxed">
-              🔒 Your secret is encrypted and stored securely. It will be permanently destroyed after being read once.
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Use a <strong>Custom Alias</strong> to create branded links like <code className="text-accent">ilusion.io/s/finance-report</code>.
             </p>
-
-            {/* Local History for Guests */}
-            {localHistory.length > 0 && !isSignedIn && (
-              <div className="mt-8 pt-6 border-t border-white/[0.06] animate-fade-in">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recent Local Secrets</h3>
-                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                </div>
-                <div className="space-y-2">
-                  {localHistory.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={item.link}
-                      className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] transition-all group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                          <Zap className="w-4 h-4 text-accent" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium text-foreground truncate">{item.label}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            Created {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:translate-x-0.5 group-hover:text-accent transition-all" />
-                    </Link>
-                  ))}
-                </div>
-                <p className="text-[10px] text-center text-muted-foreground mt-4">
-                  These links are only stored in your browser and will disappear when they expire.
-                </p>
-              </div>
-            )}
           </div>
         </div>
+
+        <div className="mt-auto pt-8 border-t border-white/[0.05]">
+          <Link href="/dashboard" className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Workspace
+          </Link>
+        </div>
+      </aside>
+
+      {/* ═══ Main Creation Area ═══ */}
+      <main className="flex-1 flex flex-col min-w-0 bg-background overflow-y-auto custom-scrollbar">
+        {/* Mobile Header */}
+        <div className="lg:hidden p-4 border-b border-white/[0.05] flex items-center justify-between">
+          <Link href="/" className="font-bold">ilusion.io</Link>
+          <Link href="/dashboard" className="text-xs font-bold text-accent">Dashboard</Link>
+        </div>
+
+        <div className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 lg:py-24">
+          {!generatedLink ? (
+            <div className="space-y-12 animate-fade-in-up">
+              <header className="space-y-3">
+                <h1 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">
+                  Create a <span className="text-accent">Secret</span>
+                </h1>
+                <p className="text-lg text-muted-foreground font-medium">
+                  Securely share encrypted text or files with anyone.
+                </p>
+              </header>
+
+              <div className="space-y-10">
+                {/* 1. Content Type */}
+                <section className="space-y-4">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-[10px] font-bold">1</div>
+                    <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Define Content</h2>
+                  </div>
+
+                  <div className="flex p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl mb-6">
+                    <button
+                      onClick={() => setContentType('text')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all ${
+                        contentType === 'text' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" /> Text Message
+                    </button>
+                    <button
+                      onClick={() => setContentType('file')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all ${
+                        contentType === 'file' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Upload className="w-4 h-4" /> Secure File
+                    </button>
+                  </div>
+
+                  {contentType === 'text' ? (
+                    <div className="relative group">
+                      <div className="absolute top-4 right-4 flex items-center gap-2">
+                        <div className="badge badge-accent !text-[9px]">E2EE Active</div>
+                      </div>
+                      <textarea
+                        value={secretText}
+                        onChange={(e) => setSecretText(e.target.value)}
+                        placeholder="Paste your sensitive data here..."
+                        className="input min-h-[200px] !py-6 !px-6 !text-lg !font-mono !bg-white/[0.02] border-white/[0.1] focus:border-accent/50 transition-all resize-none"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) setFile(f); }}
+                      className={`relative overflow-hidden group cursor-pointer border-2 border-dashed rounded-3xl p-12 transition-all flex flex-col items-center gap-4 ${
+                        isDragging ? 'border-accent bg-accent/5' : 'border-white/[0.1] hover:border-white/[0.2] bg-white/[0.01]'
+                      }`}
+                    >
+                      <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Upload className="w-8 h-8 text-accent" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-bold text-foreground">
+                          {file ? file.name : 'Drop your file here'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : 'Max size: 100MB'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                {/* 2. Security Options */}
+                <section className="space-y-6 pt-6 border-t border-white/[0.05]">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-[10px] font-bold">2</div>
+                    <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Security Settings</h2>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Expires After</label>
+                      <select
+                        value={expiryHours}
+                        onChange={(e) => setExpiryHours(Number(e.target.value))}
+                        className="input !bg-white/[0.02] border-white/[0.1]"
+                      >
+                        {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Password (Optional)</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Add extra layer..."
+                          className="input !bg-white/[0.02] border-white/[0.1] !pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pro Features */}
+                  <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-accent" />
+                        <h3 className="text-xs font-bold">Advanced Controls</h3>
+                      </div>
+                      {userPlan === 'free' && <Link href="/pricing" className="badge badge-accent">Unlock Pro</Link>}
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Custom Alias</label>
+                        <input
+                          value={alias}
+                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="ilusion.io/s/..."
+                          className="input !py-2 !text-xs !bg-white/[0.02]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">IP Whitelist</label>
+                        <input
+                          value={allowedIp}
+                          onChange={(e) => setAllowedIp(e.target.value)}
+                          placeholder="Allow specific IP..."
+                          className="input !py-2 !text-xs !bg-white/[0.02]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Error */}
+                {error && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-fade-in-up">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {error}
+                  </div>
+                )}
+
+                {/* Upload Progress */}
+                {isLoading && uploadProgress > 0 && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      {uploadProgress < 100 ? 'Encrypting & Uploading...' : 'Finalizing...'}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={isLoading || (contentType === 'text' ? !secretText : !file)}
+                  className="w-full !py-5 bg-accent text-white rounded-2xl font-bold text-lg shadow-2xl shadow-accent/40 hover:bg-accent/90 transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-3"
+                >
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Shield className="w-6 h-6" />}
+                  {isLoading ? 'Encrypting & Uploading...' : 'Generate Secure Link'}
+                </button>
+
+              </div>
+            </div>
+          ) : (
+            /* Result Screen */
+            <div className="max-w-xl mx-auto space-y-10 animate-fade-in">
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Check className="w-10 h-10 text-success" />
+                </div>
+                <h2 className="text-4xl font-black">Secret <span className="text-success">Live</span></h2>
+                <p className="text-muted-foreground font-medium">Your ephemeral link is ready to be shared.</p>
+              </div>
+
+              <div className="card gradient-border p-8 space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Encrypted Link</label>
+                  <div className="relative group">
+                    <input
+                      readOnly
+                      value={generatedLink}
+                      className="input !py-4 !pr-32 !text-sm font-mono !bg-white/[0.03] border-white/[0.1] truncate"
+                    />
+                    <button
+                      onClick={copyToClipboard}
+                      className="absolute right-2 top-2 bottom-2 px-6 bg-accent text-white rounded-xl text-xs font-bold hover:bg-accent/90 transition-all flex items-center gap-2"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-6 p-6 bg-white/[0.02] rounded-2xl border border-white/[0.05]">
+                  <QRCodeSVG value={generatedLink} size={160} bgColor="transparent" fgColor="var(--text-primary)" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Scan to view on mobile</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={resetForm} className="btn-secondary !py-4 font-bold rounded-2xl">
+                  Create Another
+                </button>
+                <Link href="/dashboard/secrets" className="btn-primary !py-4 font-bold rounded-2xl">
+                  Manage Secrets
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* ═══ Right Sidebar: Secure Inbox Upsell (Guest Focused) ═══ */}
+      {!isSignedIn && (
+        <aside className="hidden xl:flex w-80 flex-col border-l border-white/[0.05] p-8" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="mt-24 space-y-8">
+            <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-6">
+              <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
+                <Inbox className="w-6 h-6 text-accent" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold">Want a Permanent Inbox?</h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Create a free account to get your own <strong>Secure Drop Link</strong>. People can send you secrets directly without you asking.
+                </p>
+              </div>
+              <Link href="/sign-up" className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black rounded-xl text-xs font-bold hover:bg-white/90 transition-all">
+                Get Your Inbox
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-50 px-2">Recent Innovations</h4>
+              <div className="space-y-3">
+                {[
+                  { title: 'AES-256 GCM', desc: 'Military-grade encryption standard.' },
+                  { title: 'Zero-Trace', desc: 'No logs, no cookies, no tracking.' }
+                ].map(item => (
+                  <div key={item.title} className="p-4 rounded-2xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.05]">
+                    <h5 className="text-[11px] font-bold mb-1">{item.title}</h5>
+                    <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

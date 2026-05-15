@@ -51,9 +51,10 @@ export default function ViewSecretPage() {
           })
         }}
       />
-      <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
+      
+      <nav className="relative z-50 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto w-full">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-all group-hover:scale-105" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
             <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground">
@@ -63,65 +64,70 @@ export default function ViewSecretPage() {
 
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-all hover:-translate-x-1"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
       </nav>
 
-      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-xl animate-fade-in-up">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold tracking-tight mb-3 text-foreground">
-              Reveal a Secret
+      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12 mesh-gradient">
+        <div className="w-full max-w-xl space-y-12 animate-fade-in-up">
+          <div className="text-center space-y-4">
+            <div className="badge badge-accent mx-auto !py-1.5 !px-3 !text-[10px] uppercase tracking-widest font-bold">
+              Recipient Portal
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
+              Reveal a <span className="text-gradient">Secret</span>
             </h1>
-            <p className="text-muted-foreground">
-              Enter a secure link or a custom alias to view the contents.
+            <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Decryption is happening on your device. Enter the secure link or alias below to reveal the contents.
             </p>
           </div>
 
-          <div className="card gradient-border p-8">
+          <div className="bg-elevated border border-white/[0.05] rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-accent/10" />
+            
             {/* Mode Switcher */}
-            <div className="flex p-1 rounded-xl mb-8" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
+            <div className="relative z-10 flex p-1.5 rounded-2xl bg-white/[0.03] border border-white/[0.05]">
               <button
                 onClick={() => setMode('link')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                  mode === 'link' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${
+                  mode === 'link' ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
                 }`}
               >
-                <LinkIcon className="w-4 h-4" />
-                By Link
+                <LinkIcon className="w-3.5 h-3.5" />
+                Secure Link
               </button>
               <button
                 onClick={() => setMode('alias')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                  mode === 'alias' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${
+                  mode === 'alias' ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
                 }`}
               >
-                <Shield className="w-4 h-4" />
-                By Alias
+                <Shield className="w-3.5 h-3.5" />
+                Custom Alias
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="relative z-10 space-y-8">
               {mode === 'link' ? (
-                <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block text-left">Secure Link</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Input Link</label>
                   <input
                     type="text"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://ilusion.io/secret/..."
-                    className="input !py-3.5"
+                    className="input !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 !py-4 !text-sm font-mono"
                     onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
                   />
                 </div>
               ) : (
-                <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block text-left">Custom Alias</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Alias Name</label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[11px] sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
+                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-xs font-mono font-bold text-accent">
                       ilusion.io/s/
                     </div>
                     <input
@@ -129,45 +135,49 @@ export default function ViewSecretPage() {
                       value={alias}
                       onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       placeholder="alias-name"
-                      className="input !pl-[100px] sm:!pl-[140px] !py-3.5 font-bold text-sm sm:text-base"
+                      className="input !pl-28 !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 !py-4 !text-sm font-bold"
                       onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
                     />
                   </div>
                 </div>
               )}
 
-              <div className="rounded-xl p-4 text-left space-y-2.5" style={{ background: 'color-mix(in srgb, var(--warning) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--warning) 20%, transparent)' }}>
-                <div className="flex items-center gap-2 text-[11px]" style={{ color: 'var(--warning)' }}>
+              <div className="p-5 rounded-2xl bg-warning/5 border border-warning/10 space-y-2">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-warning uppercase tracking-widest">
                   <Eye className="w-3.5 h-3.5 shrink-0" />
-                  <span>Secrets are <strong>permanently destroyed</strong> immediately after being viewed.</span>
+                  <span>Single-View Enforcement</span>
                 </div>
+                <p className="text-[10px] text-muted-foreground leading-relaxed ml-5.5">
+                  The secret will be <strong>permanently destroyed</strong> immediately after being revealed. This action cannot be reversed.
+                </p>
               </div>
 
               <button
                 onClick={handleReveal}
                 disabled={mode === 'link' ? !url : !alias}
-                className="btn-primary w-full !py-4 group"
+                className="btn-primary w-full !py-4.5 !rounded-2xl group text-xs font-bold uppercase tracking-widest shadow-2xl shadow-accent/20"
               >
-                Reveal Secret
+                Reveal Secret Now
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
 
-          {/* Recipient Trust FAQ (AEO & SEO) */}
-          <div className="mt-12 grid sm:grid-cols-2 gap-6 text-left animate-fade-in-up">
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-accent">Safe to click?</h3>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Yes. Ilusion uses end-to-end encryption. The sender never sees your IP, and we never see the unencrypted content.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-accent">One-time view</h3>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Once revealed, the secret is purged from our systems forever. It cannot be recovered or viewed a second time.
-              </p>
-            </div>
+          {/* Trust Indicators */}
+          <div className="grid sm:grid-cols-3 gap-8 px-4">
+            {[
+              { icon: Shield, title: 'Zero-Trace', desc: 'Encrypted on device.' },
+              { icon: Eye, title: 'Ephemeral', desc: 'Self-destructs instantly.' },
+              { icon: Lock, title: 'Anonymous', desc: 'No recipient tracking.' }
+            ].map((t) => (
+              <div key={t.title} className="text-center space-y-2 group">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center mx-auto transition-all group-hover:bg-accent/10 group-hover:border-accent/20">
+                  <t.icon className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
+                </div>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">{t.title}</h3>
+                <p className="text-[9px] text-muted-foreground leading-relaxed">{t.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </main>

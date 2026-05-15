@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useUser, SignInButton } from '@clerk/nextjs';
 import { useSearchParams } from 'next/navigation';
 import { DodoEmbeddedCheckout } from '@/components/DodoEmbeddedCheckout';
-import { Check, Zap, Shield, Rocket, Loader2 } from 'lucide-react';
+import { Check, Zap, Shield, Rocket, Loader2, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const PRICING_PLANS = [
@@ -126,112 +126,133 @@ function PricingContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-20 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Simple, Transparent Pricing
+    <div className="dot-grid min-h-screen bg-background text-foreground py-24 px-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto space-y-24">
+        <div className="text-center space-y-6 relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-accent/5 rounded-full blur-[120px] -z-10" />
+          <div className="badge badge-accent mx-auto !py-1.5 !px-4 !text-[11px] uppercase tracking-widest font-bold">
+            Predictable Pricing
+          </div>
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
+            Simple, Transparent <span className="text-gradient">Plans</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-10">
-            Secure your digital life with Ilusion. Choose the plan that fits your needs.
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+            Choose the level of security and scale your workflow needs. No hidden fees, just pure ephemeral privacy.
           </p>
         </div>
  
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-8 relative z-10">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative p-8 rounded-3xl border transition-all duration-300 ${
+              className={`group relative p-10 rounded-[3rem] border transition-all duration-500 overflow-hidden ${
                 plan.highlight
-                  ? 'bg-white/[0.03] border-accent/50 shadow-[0_0_40px_-15px_rgba(99,102,241,0.3)] scale-105 z-10'
-                  : 'bg-white/[0.01] border-white/10 hover:border-white/20'
+                  ? 'bg-elevated border-accent/40 shadow-2xl shadow-accent/20 scale-[1.02] z-20'
+                  : 'bg-white/[0.01] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
               }`}
             >
               {plan.highlight && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                  {plan.badge || 'Recommended'}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16" />
+              )}
+
+              {plan.badge && (
+                <div className="absolute top-6 right-6 bg-accent px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-accent/20">
+                  {plan.badge}
                 </div>
               )}
 
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+              <div className="mb-10 space-y-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-2xl font-bold tracking-tight">{plan.name}</h3>
+                  {plan.name.includes('Pro') && <Rocket className="w-5 h-5 text-accent" />}
                 </div>
-                <p className="text-muted-foreground text-sm">{plan.description}</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-extrabold tracking-tighter">{plan.price}</span>
+                  {plan.period && <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{plan.period}</span>}
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">{plan.description}</p>
               </div>
 
-              <ul className="space-y-4 mb-10">
+              <ul className="space-y-5 mb-12">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-accent" />
+                  <li key={feature} className="flex items-start gap-4 text-sm group/feat">
+                    <div className="w-6 h-6 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center shrink-0 group-hover/feat:bg-accent/10 group-hover/feat:border-accent/30 transition-all">
+                      <Check className="w-3.5 h-3.5 text-accent" />
                     </div>
-                    {feature}
+                    <span className="text-foreground/80 font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {plan.productId ? (
-                isSignedIn ? (
-                  loadingProfile ? (
-                    <button className="w-full py-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2" disabled>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Checking status...
-                    </button>
-                  ) : isUserPro ? (
-                    <Link
-                      href="/dashboard"
-                      className="w-full block text-center py-4 rounded-xl bg-accent/20 border border-accent/30 text-accent font-bold hover:bg-accent/30 transition-all"
-                    >
-                      Active Plan — Go to Dashboard
-                    </Link>
+              <div className="mt-auto">
+                {plan.productId ? (
+                  isSignedIn ? (
+                    loadingProfile ? (
+                      <button className="w-full py-4.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-sm font-bold" disabled>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Authenticating...
+                      </button>
+                    ) : isUserPro ? (
+                      <Link
+                        href="/dashboard"
+                        className="w-full block text-center py-4.5 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-bold hover:bg-accent/20 transition-all text-sm uppercase tracking-widest"
+                      >
+                        Active Plan — Open Dashboard
+                      </Link>
+                    ) : (
+                      <div className="hover:scale-[1.01] transition-transform">
+                        <DodoEmbeddedCheckout productId={plan.productId} source={source} />
+                      </div>
+                    )
                   ) : (
-                    <DodoEmbeddedCheckout productId={plan.productId} source={source} />
+                    <SignInButton mode="modal">
+                      <button className="w-full btn-primary !py-4.5 !rounded-2xl !text-sm font-bold uppercase tracking-widest shadow-xl shadow-accent/20">
+                        Sign in to Upgrade
+                      </button>
+                    </SignInButton>
                   )
                 ) : (
-                  <SignInButton mode="modal">
-                    <button className="w-full btn-primary !py-4">Sign in to Upgrade</button>
-                  </SignInButton>
-                )
-              ) : (
-                <Link
-                  href={plan.buttonLink || '#'}
-                  className={`w-full block text-center py-4 rounded-xl border transition-all font-medium ${
-                    !isUserPro && plan.name === 'Free'
-                      ? 'bg-white/10 border-white/20 cursor-default' 
-                      : 'bg-white/5 border-white/10 hover:bg-white/10'
-                  }`}
-                >
-                  {plan.buttonText}
-                </Link>
-              )}
+                  <Link
+                    href={plan.buttonLink || '#'}
+                    className={`w-full block text-center py-4.5 rounded-2xl border transition-all text-sm font-bold uppercase tracking-widest ${
+                      !isUserPro && plan.name === 'Free'
+                        ? 'bg-white/[0.03] border-white/10 text-muted-foreground cursor-default' 
+                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-foreground'
+                    }`}
+                  >
+                    {plan.buttonText}
+                  </Link>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-20 grid md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
-          <div className="p-6">
-            <Shield className="w-10 h-10 text-accent mx-auto mb-4" />
-            <h4 className="font-bold mb-2">Zero-Knowledge</h4>
-            <p className="text-sm text-muted-foreground">
-              We never see your decryption keys. Everything is encrypted on your device.
-            </p>
-          </div>
-          <div className="p-6">
-            <Rocket className="w-10 h-10 text-accent mx-auto mb-4" />
-            <h4 className="font-bold mb-2">Lightning Fast</h4>
-            <p className="text-sm text-muted-foreground">
-              Optimized uploads and global CDN ensure your links load instantly anywhere.
-            </p>
-          </div>
-          <div className="p-6">
-            <Check className="w-10 h-10 text-accent mx-auto mb-4" />
-            <h4 className="font-bold mb-2">Self-Destruct</h4>
-            <p className="text-sm text-muted-foreground">
-              Links burn automatically after reading or expiration. No traces left behind.
-            </p>
-          </div>
+        <div className="mt-12 pt-24 border-t border-white/[0.05] grid md:grid-cols-3 gap-12">
+          {[
+            { icon: Shield, title: 'Zero-Knowledge', desc: 'Client-side encryption ensures we never see your data.' },
+            { icon: Rocket, title: 'Edge Optimized', desc: 'Global CDN ensures instant link generation and reveals.' },
+            { icon: Lock, title: 'Auto-Destruction', desc: 'Every secret burns immediately upon reveal or expiry.' }
+          ].map((feature) => (
+            <div key={feature.title} className="space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group-hover:bg-accent/10 group-hover:border-accent/20 transition-all">
+                <feature.icon className="w-6 h-6 text-muted-foreground group-hover:text-accent transition-colors" />
+              </div>
+              <h4 className="text-lg font-bold tracking-tight">{feature.title}</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {feature.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-12 bg-accent/5 border border-accent/10 rounded-[3rem] text-center space-y-6">
+          <h2 className="text-3xl font-bold tracking-tight">Large Team or Enterprise?</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
+            Need custom data retention policies, SAML SSO, or volume discounts? We offer bespoke solutions for high-stakes security environments.
+          </p>
+          <Link href="/contact" className="inline-flex items-center gap-2 text-accent font-bold hover:underline">
+            Contact Enterprise Sales <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
     </div>

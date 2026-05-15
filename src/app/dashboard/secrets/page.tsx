@@ -66,15 +66,11 @@ export default function SecretsDashboardPage() {
   const pastSecrets = secrets.filter(s => s.status !== 'active');
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Secrets</h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Manage and audit your shared secrets.</p>
-      </div>
-
+    <div className="space-y-8 animate-fade-in">
+      {/* Success Notification */}
       {showSuccess && (
         <div className="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl bg-accent/10 border border-accent/20 animate-fade-in">
-          <div className="flex items-center gap-3 text-sm text-accent-light font-medium">
+          <div className="flex items-center gap-3 text-sm text-accent font-medium">
             <Zap className="w-5 h-5" />
             <span>Welcome to Ilusion Pro! Your account has been upgraded successfully.</span>
           </div>
@@ -85,153 +81,194 @@ export default function SecretsDashboardPage() {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', color: 'var(--destructive)' }}>
-          <AlertCircle className="w-4 h-4 shrink-0" />{error}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm bg-destructive/10 text-destructive border border-destructive/20">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Active */}
-          <div className="card overflow-hidden">
-            <div className="px-5 py-3.5 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-              <Shield className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Active ({activeSecrets.length})</h2>
+      <div className="grid lg:grid-cols-4 gap-8">
+        {/* Main Activity Feed */}
+        <div className="lg:col-span-3 space-y-8">
+          {/* Active Secrets Section */}
+          <section>
+            <div className="flex items-center justify-between mb-4 px-2">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-accent" />
+                <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Active Secrets</h2>
+                <span className="bg-accent/10 text-accent text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  {activeSecrets.length}
+                </span>
+              </div>
             </div>
-            {activeSecrets.length === 0 ? (
-              <div className="p-12 text-center">
-                <Shield className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No active secrets</p>
-              </div>
-            ) : (
-              <div>
-                {activeSecrets.map((secret, i) => (
-                  <div
-                    key={secret.id}
-                    className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
-                    style={{ borderBottom: i < activeSecrets.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-overlay)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <code className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{secret.id}</code>
-                        {secret.isE2EE && <span className="badge badge-accent">E2EE</span>}
-                        {secret.hasPassword && <span className="badge badge-warning">Locked</span>}
-                        {secret.hasIpWhitelist && <span className="badge" style={{ background: 'color-mix(in srgb, #3b82f6 10%, transparent)', color: '#60a5fa', border: '1px solid color-mix(in srgb, #3b82f6 20%, transparent)' }}>IP</span>}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(secret.expiresAt).toLocaleString()}</span>
-                        {secret.fileName && <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> {secret.fileName}</span>}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleRevoke(secret.id)}
-                      className="btn-secondary !py-1.5 !px-3 !text-xs !rounded-lg !gap-1.5"
-                      style={{ color: 'var(--destructive)' }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Revoke
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* History */}
-          <div className="card overflow-hidden">
-            <div className="px-5 py-3.5 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-              <Clock className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>Audit Log</h2>
-            </div>
-            {pastSecrets.length === 0 ? (
-              <div className="p-12 text-center">
-                <Clock className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No history yet</p>
-              </div>
-            ) : (
-              <div>
-                {pastSecrets.map((secret, i) => (
-                  <div
-                    key={secret.id}
-                    className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    style={{ borderBottom: i < pastSecrets.length - 1 ? '1px solid var(--border-subtle)' : 'none', opacity: 0.6 }}
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono line-through" style={{ color: 'var(--text-tertiary)' }}>{secret.id}</code>
-                        {secret.status === 'burned' ? (
-                          <span className="badge badge-warning"><CheckCircle2 className="w-3 h-3" /> Burned</span>
-                        ) : (
-                          <span className="badge badge-destructive"><XCircle className="w-3 h-3" /> Revoked</span>
-                        )}
-                      </div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
-                        {new Date(secret.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    {secret.status === 'burned' && secret.readAt && (
-                      <div className="text-right text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                        <p>Read: {new Date(secret.readAt).toLocaleString()}</p>
-                        <div className="flex items-center gap-1 justify-end mt-0.5"><Globe className="w-3 h-3" />{secret.readByIp || 'Unknown'}</div>
-                      </div>
-                    )}
+            <div className="bg-elevated border border-white/[0.05] rounded-3xl overflow-hidden shadow-2xl">
+              {activeSecrets.length === 0 ? (
+                <div className="p-16 text-center">
+                  <div className="w-16 h-16 bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/[0.05]">
+                    <Shield className="w-8 h-8 text-muted-foreground opacity-20" />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <p className="text-sm text-muted-foreground font-medium">No active secrets found</p>
+                  <Link href="/create" className="text-xs text-accent hover:underline mt-2 inline-block">Create your first secret</Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/[0.05]">
+                  {activeSecrets.map((secret) => (
+                    <div
+                      key={secret.id}
+                      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 transition-all hover:bg-white/[0.02]"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="mt-1 w-2 h-2 rounded-full bg-success glow-dot" />
+                        <div className="space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <code className="text-sm font-mono font-bold tracking-tight text-foreground">{secret.id}</code>
+                            {secret.isE2EE && <span className="badge badge-accent !text-[9px]">E2EE</span>}
+                            {secret.hasPassword && <span className="badge badge-warning !text-[9px]">Encrypted</span>}
+                            {secret.hasIpWhitelist && <span className="badge !bg-blue-500/10 !text-blue-400 !border-blue-500/20 !text-[9px]">Restricted</span>}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 opacity-50" />
+                              <span>Expires {new Date(secret.expiresAt).toLocaleString()}</span>
+                            </div>
+                            {secret.fileName && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.03] rounded-md border border-white/[0.05]">
+                                <FileText className="w-3.5 h-3.5" />
+                                <span className="max-w-[150px] truncate">{secret.fileName}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRevoke(secret.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Revoke
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Audit Log Section */}
+          <section>
+            <div className="flex items-center gap-2 mb-4 px-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <h2 className="text-sm font-bold uppercase tracking-widest opacity-40">Security Audit Log</h2>
+            </div>
+
+            <div className="bg-elevated/50 border border-white/[0.03] rounded-3xl overflow-hidden">
+              {pastSecrets.length === 0 ? (
+                <div className="p-12 text-center text-xs text-muted-foreground opacity-50">
+                  No historical data available
+                </div>
+              ) : (
+                <div className="divide-y divide-white/[0.02]">
+                  {pastSecrets.map((secret) => (
+                    <div
+                      key={secret.id}
+                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-50 hover:opacity-80 transition-opacity"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-1.5 h-1.5 rounded-full ${secret.status === 'burned' ? 'bg-warning' : 'bg-destructive'}`} />
+                        <div className="space-y-1">
+                          <code className="text-xs font-mono line-through">{secret.id}</code>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                              {new Date(secret.createdAt).toLocaleDateString()}
+                            </span>
+                            <span className={`text-[9px] px-1.5 rounded-md border ${
+                              secret.status === 'burned' ? 'bg-warning/10 text-warning border-warning/20' : 'bg-destructive/10 text-destructive border-destructive/20'
+                            }`}>
+                              {secret.status.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {secret.status === 'burned' && secret.readAt && (
+                        <div className="flex items-center gap-4 text-[10px] text-muted-foreground text-right">
+                          <div className="space-y-0.5">
+                            <p>Read by {secret.readByIp || 'Unknown'}</p>
+                            <p className="opacity-50">{new Date(secret.readAt).toLocaleString()}</p>
+                          </div>
+                          <Globe className="w-4 h-4 opacity-30" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
-        {/* Pro Section Sidebar */}
+        {/* Workspace Sidebar */}
         <div className="space-y-6">
-          <div className="card gradient-border p-6 flex flex-col gap-4" style={{ background: 'var(--surface-overlay)' }}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Plan Status</h3>
-              <span className={`badge ${userPlan === 'pro' ? 'badge-accent' : ''}`} style={{ background: userPlan === 'pro' ? undefined : 'var(--bg-inset)' }}>
-                {userPlan.toUpperCase()}
-              </span>
-            </div>
+          <div className="bg-elevated border border-white/[0.05] rounded-3xl p-6 shadow-2xl relative overflow-hidden group">
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-accent/10" />
             
-            {userPlan === 'free' ? (
-              <>
-                <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                  You are currently on the Free plan. Upgrade to unlock the full potential of Ilusion.
-                </p>
-                <div className="space-y-2">
-                  {['100MB Uploads', 'Password Protection', 'IP Restrictions'].map(f => (
-                    <div key={f} className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-                      <Check className="w-3 h-3 text-accent" /> {f}
-                    </div>
-                  ))}
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground">Workspace Plan</h3>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${
+                  userPlan === 'pro' ? 'bg-accent text-white' : 'bg-white/5 text-muted-foreground'
+                }`}>
+                  {userPlan.toUpperCase()}
+                </span>
+              </div>
+              
+              {userPlan === 'free' ? (
+                <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Unlock higher limits and advanced security features.
+                  </p>
+                  <div className="space-y-2">
+                    {['100MB Uploads', 'Password Protection', 'IP Restrictions'].map(f => (
+                      <div key={f} className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <Check className="w-3.5 h-3.5 text-accent" />
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+                  <Link href="/pricing" className="flex items-center justify-center gap-2 w-full py-2.5 bg-accent text-white rounded-xl text-xs font-bold hover:bg-accent/90 transition-all hover:scale-[1.02] shadow-lg shadow-accent/20">
+                    <Zap className="w-3.5 h-3.5" />
+                    Upgrade to Pro
+                  </Link>
                 </div>
-                <Link href="/pricing" className="btn-primary !py-2.5 !text-[11px] text-center flex items-center justify-center gap-2">
-                  <Zap className="w-3 h-3" /> Upgrade to Pro
-                </Link>
-              </>
-            ) : (
-              <>
-                <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                  Thank you for being a Pro member! You have unlimited access to all advanced features.
-                </p>
-                <div className="space-y-2">
-                  {['High Capacity Uploads', 'Advanced Security', 'Priority Support'].map(f => (
-                    <div key={f} className="flex items-center gap-2 text-[10px] text-accent-light font-medium">
-                      <Check className="w-3 h-3" /> {f}
-                    </div>
-                  ))}
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-xs text-accent font-medium leading-relaxed">
+                    You have full access to all Pro features.
+                  </p>
+                  <div className="space-y-2">
+                    {['Unlimited High-Speed', 'Priority Audit Log', 'Developer API'].map(f => (
+                      <div key={f} className="flex items-center gap-2 text-[10px] text-accent/80">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 rounded-xl bg-accent/5 border border-accent/10 text-[10px] text-center font-bold text-accent">
+                    Subscription Active
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl bg-accent/5 border border-accent/10 text-[10px] text-center" style={{ color: 'var(--accent-light)' }}>
-                  Subscription Active via Dodo
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
 
-          <div className="card p-5" style={{ background: 'var(--bg-inset)', border: '1px solid var(--border-default)' }}>
-            <h4 className="text-xs font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Need Help?</h4>
-            <p className="text-[10px] mb-3" style={{ color: 'var(--text-tertiary)' }}>Contact our support team for any issues regarding your account or payments.</p>
-            <a href="mailto:support@ilusion.io" className="text-[10px] font-semibold text-accent hover:underline">Contact Support</a>
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 space-y-3">
+            <h4 className="text-xs font-bold text-foreground">Support & Resources</h4>
+            <div className="space-y-2">
+              <Link href="/docs" className="block text-[11px] text-muted-foreground hover:text-accent transition-colors">API Documentation</Link>
+              <Link href="/contact" className="block text-[11px] text-muted-foreground hover:text-accent transition-colors">Privacy Guide</Link>
+              <a href="mailto:support@ilusion.io" className="block text-[11px] font-bold text-accent hover:underline pt-2">Contact Support</a>
+            </div>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Key, Plus, Trash2, Copy, Check, Loader2, AlertCircle, Terminal, Lock } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Check, Loader2, AlertCircle, Terminal, Lock, Shield } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ApiKeysPage() {
@@ -103,130 +103,190 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="animate-fade-in space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>API Keys</h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Manage authentication keys for programmatic access.</p>
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Programmatic Access</h2>
+          <p className="text-xs text-muted-foreground mt-1">Manage authentication keys for your integrations.</p>
+        </div>
+        {userPlan === 'pro' ? (
+          <form onSubmit={handleCreateKey} className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Key Name..."
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              className="input !py-2 !text-xs !bg-white/[0.02] !w-40 sm:!w-48"
+              maxLength={50}
+              required
+            />
+            <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !py-2 !px-4 !text-xs">
+              {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              Create Key
+            </button>
+          </form>
+        ) : (
+          <Link href="/pricing" className="btn-primary !py-2 !px-4 !text-xs flex items-center gap-2">
+            <Lock className="w-3.5 h-3.5" />
+            Unlock API <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded ml-1">PRO</span>
+          </Link>
+        )}
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', color: 'var(--destructive)' }}>
-          <AlertCircle className="w-4 h-4 shrink-0" />{error}
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm bg-destructive/10 text-destructive border border-destructive/20">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
         </div>
       )}
 
-      <div className="card p-6 space-y-6">
-        <form onSubmit={handleCreateKey} className="flex gap-3">
-          <input type="text" placeholder="Key name (e.g., Production)" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} className="input flex-1" maxLength={50} required />
-          {userPlan === 'pro' ? (
-            <button type="submit" disabled={isCreating || !newKeyName.trim()} className="btn-primary !whitespace-nowrap">
-              {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              New Key
-            </button>
-          ) : (
-            <Link href="/pricing" className="btn-primary !whitespace-nowrap flex items-center gap-2">
-              <Lock className="w-4 h-4" />
-              New Key <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded ml-1">PRO</span>
-            </Link>
-          )}
-        </form>
-
-        <div style={{ height: 1, background: 'var(--border-subtle)' }} />
-
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Active Keys</h2>
-          
-          {keys.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed rounded-2xl" style={{ borderColor: 'var(--border-default)' }}>
-              <Key className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
-              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No API keys yet.</p>
+      <div className="grid lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 space-y-10">
+          {/* Active Keys */}
+          <section>
+            <div className="flex items-center gap-2 mb-4 px-2">
+              <Key className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">Active Credentials</h3>
             </div>
-          ) : (
-            <div className="grid gap-4">
-              {keys.map((key) => (
-                <div key={key.key} className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{key.name}</p>
-                    <div className="flex items-center gap-2">
-                      <code className="text-[11px] font-mono font-bold px-2 py-1 rounded-md" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)' }}>{key.key}</code>
-                      <button onClick={() => copyToClipboard(key.key)} className="p-1 rounded" title="Copy">
-                        {copiedKey === key.key ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} /> : <Copy className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
-                      </button>
-                    </div>
+
+            <div className="bg-elevated border border-white/[0.05] rounded-3xl overflow-hidden shadow-2xl">
+              {keys.length === 0 ? (
+                <div className="p-20 text-center">
+                  <div className="w-16 h-16 bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/[0.05]">
+                    <Terminal className="w-8 h-8 text-muted-foreground opacity-20" />
                   </div>
-                  <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-[10px] font-semibold uppercase" style={{ color: 'var(--text-tertiary)' }}>{new Date(key.createdAt).toLocaleDateString()}</span>
-                    <button onClick={() => handleDeleteKey(key.key)} className="btn-secondary !p-2 !rounded-lg" title="Delete">
-                      <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--destructive)' }} />
-                    </button>
-                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">No active API keys</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-2">Create a key to start integrating Ilusion.</p>
                 </div>
-              ))}
+              ) : (
+                <div className="divide-y divide-white/[0.05]">
+                  {keys.map((key) => (
+                    <div
+                      key={key.key}
+                      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 transition-all hover:bg-white/[0.02]"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-accent/10 group-hover:border-accent/20 transition-all">
+                          <Key className="w-5 h-5 text-muted-foreground group-hover:text-accent" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-foreground">{key.name}</p>
+                          <div className="flex items-center gap-2">
+                            <code className="text-[11px] font-mono bg-accent/5 text-accent px-2 py-0.5 rounded border border-accent/10">
+                              {key.key}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(key.key)}
+                              className="p-1.5 rounded-lg hover:bg-white/[0.05] text-muted-foreground hover:text-foreground transition-all"
+                            >
+                              {copiedKey === key.key ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-tighter opacity-50">Created On</p>
+                          <p className="text-xs font-medium text-foreground/80">{new Date(key.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteKey(key.key)}
+                          className="p-2.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        
-        {/* API Documentation */}
-        <div className="mt-8 bg-slate-900 rounded-3xl p-8 space-y-6 text-slate-300">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-accent" />
-            <h3 className="text-lg font-bold text-white">Integration Guide</h3>
-          </div>
+          </section>
 
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-xs font-bold text-white mb-3 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-accent" />
-                Text Secret
-              </h4>
-              <pre className="text-[11px] bg-black/40 border border-white/5 p-4 rounded-xl overflow-x-auto font-mono leading-relaxed">
-{`curl -X POST https://ilusion.io/api/secrets/create \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
+          {/* Integration Guide */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 px-2">
+              <Terminal className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">Integration Guide</h3>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-slate-900 rounded-3xl p-6 border border-white/[0.05] space-y-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Create Secret</h4>
+                  <span className="badge badge-accent !text-[8px]">REST API</span>
+                </div>
+                <pre className="text-[11px] font-mono text-slate-300 leading-relaxed overflow-x-auto p-4 bg-black/40 rounded-2xl border border-white/5">
+                  {`curl -X POST https://ilusion.io/api/v1/secrets \\
+  -H "Authorization: Bearer YOUR_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "encryptedContent": "Sensitive data...",
-    "expiresInHours": 24
+    "content": "Secret data...",
+    "expiry": 24
   }'`}
-              </pre>
-            </div>
+                </pre>
+              </div>
 
-            <div>
-              <h4 className="text-xs font-bold text-white mb-3 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-accent" />
-                File Secret Flow
-              </h4>
-              <div className="space-y-4">
-                <div className="relative pl-6 border-l border-white/10">
-                  <span className="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-white/20 border-2 border-slate-900" />
-                  <p className="text-[10px] font-bold text-white mb-1 uppercase">1. Get Upload Token</p>
-                  <pre className="text-[10px] bg-black/40 p-3 rounded-xl overflow-x-auto font-mono text-slate-400">
-{`POST /api/secrets/presign -> { url, fileKey }`}
-                  </pre>
-                </div>
-                <div className="relative pl-6 border-l border-white/10">
-                  <span className="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-white/20 border-2 border-slate-900" />
-                  <p className="text-[10px] font-bold text-white mb-1 uppercase">2. PUT to Storage URL</p>
-                  <pre className="text-[10px] bg-black/40 p-3 rounded-xl overflow-x-auto font-mono text-slate-400">
-{`PUT [url] --data-binary [file]`}
-                  </pre>
-                </div>
-                <div className="relative pl-6 border-l border-white/10">
-                  <span className="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-accent border-2 border-slate-900" />
-                  <p className="text-[10px] font-bold text-white mb-1 uppercase">3. Create Link</p>
-                  <pre className="text-[10px] bg-black/40 p-3 rounded-xl overflow-x-auto font-mono text-slate-400">
-{`POST /api/secrets/create { fileKey, fileName, ... }`}
-                  </pre>
+              <div className="bg-elevated border border-white/[0.05] rounded-3xl p-6 space-y-6">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Multi-Step Flow</h4>
+                <div className="space-y-4">
+                  {[
+                    { step: '1', title: 'Auth Token', desc: 'Exchange key for session.' },
+                    { step: '2', title: 'File Sign', desc: 'Get S3 presigned URL.' },
+                    { step: '3', title: 'Finalize', desc: 'Create encrypted link.' }
+                  ].map((s) => (
+                    <div key={s.step} className="flex gap-4 group">
+                      <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-[10px] font-bold group-hover:border-accent/30 transition-all shrink-0">
+                        {s.step}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-foreground">{s.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{s.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
+          </section>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="space-y-6">
+          <div className="bg-elevated border border-white/[0.05] rounded-3xl p-6 shadow-2xl space-y-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-accent/10" />
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-accent" />
+                <h3 className="text-sm font-bold">Security Checklist</h3>
+              </div>
+              <ul className="space-y-3">
+                {[
+                  'Never share your API keys.',
+                  'Rotate keys every 90 days.',
+                  'Use environmental variables.',
+                  'Restrict keys by IP (Pro).'
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
+                    <span className="text-[11px] text-muted-foreground leading-tight">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-            <p className="text-[10px] text-slate-400 leading-relaxed italic">
-              * Remember to include the <code>Authorization: Bearer [key]</code> header in all requests.
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Terminal className="w-3.5 h-3.5" />
+              <h4 className="text-xs font-bold">SDK Support</h4>
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              We provide official libraries for Node.js, Python, and Go to help you integrate faster.
             </p>
+            <Link href="/docs/sdks" className="block text-[10px] font-bold text-accent hover:underline">View SDK Docs →</Link>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

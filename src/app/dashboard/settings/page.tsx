@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Settings as SettingsIcon, Globe, Check, Loader2, AlertCircle, Save } from 'lucide-react';
+import { Settings as SettingsIcon, Globe, Check, Loader2, AlertCircle, Save, Lock, Eye } from 'lucide-react';
 
 export default function SettingsPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -48,76 +48,160 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Settings</h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Configure your Secure Drop identity.</p>
+    <div className="space-y-8 animate-fade-in">
+      <div className="px-2">
+        <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Workspace Settings</h2>
+        <p className="text-xs text-muted-foreground mt-1">Configure your identity and receiving preferences.</p>
       </div>
 
-      {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--destructive) 10%, transparent)', color: 'var(--destructive)' }}>
-          <AlertCircle className="w-4 h-4 shrink-0" />{error}
-        </div>
-      )}
-      {success && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--success) 10%, transparent)', color: 'var(--success)' }}>
-          <Check className="w-4 h-4 shrink-0" />{success}
+      {(error || success) && (
+        <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm border ${
+          error 
+            ? 'bg-destructive/10 text-destructive border-destructive/20' 
+            : 'bg-success/10 text-success border-success/20'
+        }`}>
+          {error ? <AlertCircle className="w-4 h-4 shrink-0" /> : <Check className="w-4 h-4 shrink-0" />}
+          {error || success}
         </div>
       )}
 
-      <div className="card p-6">
-        <form onSubmit={handleSave} className="space-y-5">
-          <div>
-            <label className="text-sm font-semibold block mb-1.5" style={{ color: 'var(--text-primary)' }}>Display Name</label>
-            <p className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>Visible on your drop page.</p>
-            <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="e.g., John Doe" className="input" maxLength={50} required />
-          </div>
+      <div className="grid lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 space-y-10">
+          <section>
+            <div className="flex items-center gap-2 mb-4 px-2">
+              <SettingsIcon className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">Identity</h3>
+            </div>
 
-          <div>
-            <label className="text-sm font-semibold block mb-1.5" style={{ color: 'var(--text-primary)' }}>Subdomain</label>
-            <p className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>Your unique URL for receiving secrets.</p>
-            <div className="flex">
-              <input
-                type="text"
-                value={subdomain}
-                onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                placeholder="username"
-                className="input !rounded-r-none text-right"
-                maxLength={30}
-                required
-              />
-              <div
-                className="flex items-center px-3 text-xs font-mono whitespace-nowrap rounded-r-xl"
-                style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-default)', borderLeft: 'none', color: 'var(--text-tertiary)' }}
-              >
-                .ilusion.io
+            <div className="bg-elevated border border-white/[0.05] rounded-3xl p-8 shadow-2xl">
+              <form onSubmit={handleSave} className="space-y-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</label>
+                    <input 
+                      type="text" 
+                      value={displayName} 
+                      onChange={(e) => setDisplayName(e.target.value)} 
+                      placeholder="e.g., Shreyash Pawar" 
+                      className="input !bg-white/[0.02] border-white/[0.1] focus:border-accent/30" 
+                      maxLength={50} 
+                      required 
+                    />
+                    <p className="text-[10px] text-muted-foreground ml-1 opacity-60">Visible to anyone sending you secrets.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Drop Alias</label>
+                    <div className="flex">
+                      <input
+                        type="text"
+                        value={subdomain}
+                        onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        placeholder="username"
+                        className="input !rounded-r-none !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 flex-1 text-right font-mono"
+                        maxLength={30}
+                        required
+                      />
+                      <div className="flex items-center px-4 bg-white/[0.05] border border-white/[0.1] border-l-0 rounded-r-2xl text-[11px] font-bold text-muted-foreground">
+                        .ilusion.io
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground ml-1 opacity-60">Your permanent secure drop URL.</p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/[0.05] flex justify-end">
+                  <button 
+                    type="submit" 
+                    disabled={isSaving || !subdomain.trim() || !displayName.trim()} 
+                    className="btn-primary !py-3 !px-10 !text-xs group"
+                  >
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />}
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 px-2">
+              <Globe className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">Advanced Security</h3>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="p-6 bg-white/[0.02] border border-white/[0.05] rounded-3xl space-y-4 opacity-50 relative group cursor-not-allowed">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold">Custom Branding</h4>
+                  <Lock className="w-3.5 h-3.5 text-accent" />
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Upload your company logo and customize colors for your public drop page.
+                </p>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="badge badge-accent !text-[9px]">Requires Pro</span>
+                </div>
               </div>
+
+              <div className="p-6 bg-white/[0.02] border border-white/[0.05] rounded-3xl space-y-4 opacity-50 relative group cursor-not-allowed">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold">IP Restrictions</h4>
+                  <Lock className="w-3.5 h-3.5 text-accent" />
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Restrict access to your drop link to specific IP ranges or regions.
+                </p>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="badge badge-accent !text-[9px]">Requires Pro</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="space-y-6">
+          <div className="bg-elevated border border-white/[0.05] rounded-3xl p-6 shadow-2xl space-y-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-accent/10" />
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-accent" />
+                <h3 className="text-sm font-bold">Public Preview</h3>
+              </div>
+              
+              <div className="p-5 bg-white/[0.03] border border-white/[0.05] rounded-2xl space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-lg">
+                    {displayName ? displayName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">{displayName || 'Your Name'}</p>
+                    <p className="text-[10px] text-muted-foreground">@{subdomain || 'alias'}</p>
+                  </div>
+                </div>
+                <div className="h-20 w-full bg-white/[0.05] rounded-xl border border-dashed border-white/10 flex items-center justify-center">
+                  <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Secure Drop Area</p>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                * This is how your secure profile looks to external senders.
+              </p>
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
-            <button type="submit" disabled={isSaving || !subdomain.trim() || !displayName.trim()} className="btn-primary w-full">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save Profile
+          <div className="bg-accent/5 border border-accent/20 rounded-2xl p-5 space-y-4">
+            <h4 className="text-xs font-bold text-accent">Go Anonymous?</h4>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              If you disable your public profile, users can only send secrets via direct ID.
+            </p>
+            <button className="w-full py-2 bg-accent/10 border border-accent/20 text-accent rounded-lg text-[10px] font-bold hover:bg-accent/20 transition-all">
+              Pause Public Drop
             </button>
           </div>
-        </form>
+        </aside>
       </div>
-
-      {profile && (
-        <div className="card gradient-border p-5 flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center" style={{ background: 'var(--accent-subtle)' }}>
-            <Globe className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Your Drop Link</p>
-            <p className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>Share this to receive encrypted messages.</p>
-            <code className="text-xs font-mono font-bold px-2 py-1 rounded-md" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)' }}>
-              https://{profile.subdomain}.ilusion.io
-            </code>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
