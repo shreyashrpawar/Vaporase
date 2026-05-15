@@ -14,6 +14,8 @@ const isPublicRoute = createRouteMatcher([
   '/docs(.*)',
   '/privacy(.*)',
   '/terms(.*)',
+  '/vs(.*)',
+  '/pricing(.*)',
   '/ilusion.apk'
 ]);
 
