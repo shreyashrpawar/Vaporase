@@ -55,11 +55,10 @@ export default function SettingsPage() {
       </div>
 
       {(error || success) && (
-        <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm border ${
-          error 
-            ? 'bg-destructive/10 text-destructive border-destructive/20' 
-            : 'bg-success/10 text-success border-success/20'
-        }`}>
+        <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm border ${error
+          ? 'bg-destructive/10 text-destructive border-destructive/20'
+          : 'bg-success/10 text-success border-success/20'
+          }`}>
           {error ? <AlertCircle className="w-4 h-4 shrink-0" /> : <Check className="w-4 h-4 shrink-0" />}
           {error || success}
         </div>
@@ -78,14 +77,14 @@ export default function SettingsPage() {
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</label>
-                    <input 
-                      type="text" 
-                      value={displayName} 
-                      onChange={(e) => setDisplayName(e.target.value)} 
-                      placeholder="e.g., Shreyash Pawar" 
-                      className="input !bg-white/[0.02] border-white/[0.1] focus:border-accent/30" 
-                      maxLength={50} 
-                      required 
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="e.g., Shreyash Pawar"
+                      className="input !bg-white/[0.02] border-white/[0.1] focus:border-accent/30"
+                      maxLength={50}
+                      required
                     />
                     <p className="text-[10px] text-muted-foreground ml-1 opacity-60">Visible to anyone sending you secrets.</p>
                   </div>
@@ -111,9 +110,9 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="pt-6 border-t border-white/[0.05] flex justify-end">
-                  <button 
-                    type="submit" 
-                    disabled={isSaving || !subdomain.trim() || !displayName.trim()} 
+                  <button
+                    type="submit"
+                    disabled={isSaving || !subdomain.trim() || !displayName.trim()}
                     className="btn-primary !py-3 !px-10 !text-xs group"
                   >
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />}
@@ -140,7 +139,7 @@ export default function SettingsPage() {
                   Upload your company logo and customize colors for your public drop page.
                 </p>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="badge badge-accent !text-[9px]">Requires Pro</span>
+                  <span className="badge badge-accent !text-[9px]">Coming soon</span>
                 </div>
               </div>
 
@@ -169,7 +168,7 @@ export default function SettingsPage() {
                 <Eye className="w-4 h-4 text-accent" />
                 <h3 className="text-sm font-bold">Public Preview</h3>
               </div>
-              
+
               <div className="p-5 bg-white/[0.03] border border-white/[0.05] rounded-2xl space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-lg">
@@ -197,7 +196,7 @@ export default function SettingsPage() {
               If you disable your public profile, users can only send secrets via direct ID.
             </p>
             <button className="w-full py-2 bg-accent/10 border border-accent/20 text-accent rounded-lg text-[10px] font-bold hover:bg-accent/20 transition-all">
-              Pause Public Drop
+              Pause Public Drop (Coming Soon)
             </button>
           </div>
         </aside>

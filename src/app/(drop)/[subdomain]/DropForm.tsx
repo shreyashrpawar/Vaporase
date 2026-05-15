@@ -67,6 +67,7 @@ export default function DropForm({ profile }: { profile: any }) {
   const [alias, setAlias] = useState('');
   const [useAlias, setUseAlias] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const maxFileSize = isSignedIn ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
@@ -164,7 +165,9 @@ export default function DropForm({ profile }: { profile: any }) {
       let finalEncryptedContent = secretText || null;
       let finalPasswordHash = null;
       let decryptionKey: string | null = null;
-      const isE2EE = !!secretText && !useAlias;
+      
+      // Always E2EE if there is text
+      const isE2EE = !!secretText;
       
       if (isE2EE) {
         decryptionKey = await generateKey();
@@ -411,14 +414,56 @@ export default function DropForm({ profile }: { profile: any }) {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2 flex items-center gap-2">
                     Password <span className="opacity-40">(Optional)</span>
                   </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Lock with key..."
-                    className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Lock with key..."
+                      className="input !py-3.5 !pr-12 !text-xs !bg-white/[0.02] border-white/[0.1]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/[0.05] space-y-4">
+                <button 
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors ml-2"
+                >
+                  <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+                  Advanced Controls
+                </button>
+
+                {showAdvanced && (
+                  <div className="grid sm:grid-cols-2 gap-4 animate-fade-in">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">Custom Alias</label>
+                      <input
+                        value={alias}
+                        onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        placeholder="my-secret-link"
+                        className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">IP Whitelist</label>
+                      <input
+                        value={allowedIp}
+                        onChange={(e) => setAllowedIp(e.target.value)}
+                        placeholder="Allow specific IP..."
+                        className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1]"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {error && (

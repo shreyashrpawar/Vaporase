@@ -496,39 +496,40 @@ export default function CreateSecretPage() {
                         </button>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Pro Features */}
-                  <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-accent" />
-                        <h3 className="text-xs font-bold">Advanced Controls</h3>
-                      </div>
-                      {userPlan === 'free' && <Link href="/pricing" className="badge badge-accent">Unlock Pro</Link>}
+                    {/* Advanced Controls */}
+                  <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/[0.05] space-y-8">
+                    <div className="flex items-center gap-2 px-2">
+                      <Settings className="w-4 h-4 text-accent" />
+                      <h3 className="text-xs font-bold uppercase tracking-widest opacity-70">Advanced Controls</h3>
                     </div>
-
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    
+                    <div className="grid sm:grid-cols-2 gap-8">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Custom Alias</label>
-                        <input
-                          value={alias}
-                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                          placeholder="ilusion.io/s/..."
-                          className="input !py-2 !text-xs !bg-white/[0.02]"
-                        />
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Custom Alias</label>
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[10px] font-bold text-accent/40">
+                            ilusion.io/s/
+                          </div>
+                          <input
+                            value={alias}
+                            onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                            placeholder="custom-link"
+                            className="input !pl-20 !py-3 !text-xs !bg-white/[0.01] border-white/[0.1] focus:border-accent/30"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">IP Whitelist</label>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">IP Whitelist</label>
                         <input
                           value={allowedIp}
                           onChange={(e) => setAllowedIp(e.target.value)}
-                          placeholder="Allow specific IP..."
-                          className="input !py-2 !text-xs !bg-white/[0.02]"
+                          placeholder="e.g. 192.168.1.1"
+                          className="input !py-3 !text-xs !bg-white/[0.01] border-white/[0.1] focus:border-accent/30"
                         />
                       </div>
                     </div>
                   </div>
+                 </div>
                 </section>
 
                 {/* Error */}
