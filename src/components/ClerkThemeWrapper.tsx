@@ -24,31 +24,43 @@ export function ClerkThemeWrapper({ children }: { children: React.ReactNode }) {
         },
         elements: {
           userButtonPopoverCard: {
-            border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : '#e4e4e7'}`,
+            border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.12)' : '#e4e4e7'}`,
             boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
             zIndex: 99999,
-            backgroundColor: theme === 'dark' ? '#141416' : '#ffffff',
+            backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
           },
           userButtonPopoverActionButton: {
+            color: theme === 'dark' ? '#ffffff' : '#0a0a0b',
             '&:hover': {
-              backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+              backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
             }
           },
           userButtonPopoverActionButtonText: {
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0b',
+            color: theme === 'dark' ? '#ffffff !important' : '#0a0a0b !important',
+            fontWeight: 600,
+          },
+          userButtonPopoverActionButtonIcon: {
+            color: theme === 'dark' ? '#ffffff !important' : '#0a0a0b !important',
+            opacity: 0.8,
           },
           userButtonPopoverFooter: {
             display: 'none',
           },
           userButtonPopoverMain: {
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0b',
+            backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
           },
           userPreviewMainIdentifier: {
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0b',
+            color: theme === 'dark' ? '#ffffff !important' : '#0a0a0b !important',
+            fontWeight: 700,
           },
           userPreviewSecondaryIdentifier: {
             color: theme === 'dark' ? '#a1a1aa' : '#52525b',
           },
+          userButtonTrigger: {
+            '&:focus': {
+              boxShadow: 'none',
+            }
+          }
         }
       }}
     >
