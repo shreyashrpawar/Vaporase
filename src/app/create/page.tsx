@@ -402,60 +402,91 @@ export default function CreateSecretPage() {
                     <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Define Content</h2>
                   </div>
 
-                  <div className="flex p-1 sm:p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl mb-6">
-                    <button
-                      onClick={() => setContentType('text')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl transition-all ${
-                        contentType === 'text' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Text
-                    </button>
-                    <button
-                      onClick={() => setContentType('file')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl transition-all ${
-                        contentType === 'file' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> File
-                    </button>
+                  <div 
+                    className={`relative rounded-[2.5rem] overflow-hidden border-2 transition-all duration-500 ${
+                      isDragging ? 'border-accent bg-accent/5 scale-[1.01] shadow-2xl shadow-accent/20' : 'border-white/[0.05] bg-white/[0.01]'
+                    }`}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => { 
+                      e.preventDefault(); 
+                      setIsDragging(false); 
+                      const f = e.dataTransfer.files[0]; 
+                      if (f) {
+                        setFile(f);
+                        setContentType('file');
+                      }
+                    }}
+                  >
+                    {contentType === 'text' && !file ? (
+                      <div className="relative group">
+                        <textarea
+                          value={secretText}
+                          onChange={(e) => setSecretText(e.target.value)}
+                          placeholder="Type or paste your secret message..."
+                          className="input min-h-[240px] !py-8 !px-8 !text-lg !font-mono !bg-transparent !border-none focus:ring-0 transition-all resize-none"
+                        />
+                        <div className="absolute bottom-6 right-6 flex items-center gap-4">
+                          <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            Attach File
+                          </button>
+                          <div className="badge badge-accent !text-[9px] opacity-50">E2EE Active</div>
+                        </div>
+                        <input 
+                          ref={fileInputRef}
+                          type="file" 
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) {
+                              setFile(f);
+                              setContentType('file');
+                            }
+                          }} 
+                          className="hidden" 
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-12 sm:p-16 flex flex-col items-center text-center space-y-6 animate-fade-in">
+                        <div className="w-24 h-24 rounded-3xl bg-accent/10 flex items-center justify-center relative group">
+                          <div className="absolute inset-0 bg-accent/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all opacity-50" />
+                          <FileText className="w-10 h-10 text-accent relative z-10" />
+                          <button 
+                            onClick={() => { setFile(null); setContentType('text'); }}
+                            className="absolute -top-2 -right-2 w-8 h-8 bg-destructive text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-20"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-xl font-bold text-foreground truncate max-w-xs">{file?.name}</h3>
+                          <p className="text-sm text-muted-foreground font-medium">
+                            {file ? formatBytes(file.size) : ''} • Ready for encryption
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-6 py-2.5 bg-white/[0.05] hover:bg-white/[0.1] text-foreground rounded-xl text-xs font-bold transition-all"
+                          >
+                            Change File
+                          </button>
+                        </div>
+                        <input 
+                          ref={fileInputRef}
+                          type="file" 
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) setFile(f);
+                          }} 
+                          className="hidden" 
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {contentType === 'text' ? (
-                    <div className="relative group">
-                      <div className="absolute top-4 right-4 flex items-center gap-2">
-                        <div className="badge badge-accent !text-[8px] sm:!text-[9px]">E2EE Active</div>
-                      </div>
-                      <textarea
-                        value={secretText}
-                        onChange={(e) => setSecretText(e.target.value)}
-                        placeholder="Paste your sensitive data here..."
-                        className="input min-h-[180px] sm:min-h-[200px] !py-5 sm:!py-6 !px-5 sm:!px-6 !text-base sm:!text-lg !font-mono !bg-white/[0.02] border-white/[0.1] focus:border-accent/50 transition-all resize-none"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) setFile(f); }}
-                      className={`relative overflow-hidden group cursor-pointer border-2 border-dashed rounded-3xl p-8 sm:p-12 transition-all flex flex-col items-center gap-4 ${
-                        isDragging ? 'border-accent bg-accent/5' : 'border-white/[0.1] hover:border-white/[0.2] bg-white/[0.01]'
-                      }`}
-                    >
-                      <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Upload className="w-8 h-8 text-accent" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-foreground">
-                          {file ? file.name : 'Drop your file here'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : 'Max size: 100MB'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </section>
 
                 {/* 2. Security Options */}
@@ -496,35 +527,35 @@ export default function CreateSecretPage() {
                         </button>
                       </div>
                     </div>
-                    {/* Advanced Controls */}
-                  <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/[0.05] space-y-8">
-                    <div className="flex items-center gap-2 px-2">
-                      <Settings className="w-4 h-4 text-accent" />
-                      <h3 className="text-xs font-bold uppercase tracking-widest opacity-70">Advanced Controls</h3>
+                    {/* Pro Features */}
+                  <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-accent" />
+                        <h3 className="text-xs font-bold tracking-tight text-foreground">Advanced Controls</h3>
+                      </div>
+                      {userPlan === 'free' && <Link href="/pricing" className="badge badge-accent">Unlock Pro</Link>}
                     </div>
-                    
-                    <div className="grid sm:grid-cols-2 gap-8">
+
+                    <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Custom Alias</label>
-                        <div className="relative group">
-                          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[10px] font-bold text-accent/40">
-                            ilusion.io/s/
-                          </div>
-                          <input
-                            value={alias}
-                            onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                            placeholder="custom-link"
-                            className="input !pl-20 !py-3 !text-xs !bg-white/[0.01] border-white/[0.1] focus:border-accent/30"
-                          />
-                        </div>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Custom Alias</label>
+                        <input
+                          value={alias}
+                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="custom-link"
+                          disabled={userPlan === 'free'}
+                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">IP Whitelist</label>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">IP Whitelist</label>
                         <input
                           value={allowedIp}
                           onChange={(e) => setAllowedIp(e.target.value)}
-                          placeholder="e.g. 192.168.1.1"
-                          className="input !py-3 !text-xs !bg-white/[0.01] border-white/[0.1] focus:border-accent/30"
+                          placeholder="Allow specific IP..."
+                          disabled={userPlan === 'free'}
+                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                       </div>
                     </div>

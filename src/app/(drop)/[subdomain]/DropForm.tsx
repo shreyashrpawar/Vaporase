@@ -413,57 +413,19 @@ export default function DropForm({ profile }: { profile: any }) {
                 <div className="space-y-2 relative">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2 flex items-center gap-2">
                     Password <span className="opacity-40">(Optional)</span>
+                    <Lock className="w-2.5 h-2.5 text-accent" />
                   </label>
-                  <div className="relative">
+                  <div className="relative group/disabled cursor-not-allowed">
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Lock with key..."
-                      className="input !py-3.5 !pr-12 !text-xs !bg-white/[0.02] border-white/[0.1]"
+                      disabled
+                      placeholder="Unlock with Pro"
+                      className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] opacity-50"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/disabled:opacity-100 transition-opacity">
+                      <Link href="/pricing" className="badge badge-accent !text-[8px]">Upgrade for Passwords</Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/[0.05] space-y-4">
-                <button 
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors ml-2"
-                >
-                  <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
-                  Advanced Controls
-                </button>
-
-                {showAdvanced && (
-                  <div className="grid sm:grid-cols-2 gap-4 animate-fade-in">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">Custom Alias</label>
-                      <input
-                        value={alias}
-                        onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        placeholder="my-secret-link"
-                        className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">IP Whitelist</label>
-                      <input
-                        value={allowedIp}
-                        onChange={(e) => setAllowedIp(e.target.value)}
-                        placeholder="Allow specific IP..."
-                        className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1]"
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {error && (
