@@ -18,6 +18,8 @@ import {
   Lock,
   Settings,
   ArrowRight,
+  User,
+  Search,
 } from 'lucide-react';
 import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
 import { useAuth } from '@clerk/nextjs';
@@ -51,7 +53,7 @@ function getFileIcon(type: string) {
 }
 
 interface SendSecretFormProps {
-  profile: {
+  profile?: {
     userId: string;
     displayName: string;
     subdomain?: string;
@@ -60,6 +62,11 @@ interface SendSecretFormProps {
 
 export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const { isSignedIn } = useAuth();
+
+  // Recipient state
+  const [recipient, setRecipient] = useState<any>(profile || null);
+  const [recipientQuery, setRecipientQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   // Form state
   const [secretText, setSecretText] = useState('');
@@ -97,6 +104,24 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const maxTotalSize = userPlan === 'pro' ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_FREE;
   const totalFilesSize = files.reduce((acc, f) => acc + f.size, 0);
   const isPro = userPlan === 'pro';
+
+  const handleRecipientSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipientQuery.trim()) return;
+    setIsSearching(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/profile/search?subdomain=${recipientQuery.trim().toLowerCase()}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'User not found');
+      setRecipient(data);
+      setRecipientQuery('');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // File handlers
   const addFiles = (incoming: File[]) => {
@@ -230,7 +255,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           passwordHash: finalPasswordHash,
           allowedIp: (allowedIp && isPro) ? allowedIp : null,
           isE2EE,
-          recipientId: profile.userId,
+          recipientId: recipient?.userId || null,
           dropKey: decryptionKey,
           alias: (alias && isPro) ? alias : null,
           files: uploadedFiles,
@@ -294,9 +319,13 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           <Check className="w-8 h-8" style={{ color: 'var(--success)' }} />
         </div>
         <div className="space-y-1">
-          <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Secret Delivered</h3>
+          <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{recipient ? 'Secret Delivered' : 'Secret Created'}</h3>
           <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-            Securely dropped into <span style={{ color: 'var(--text-primary)' }}>{profile.displayName}</span>&apos;s inbox.
+            {recipient ? (
+              <>Securely dropped into <span style={{ color: 'var(--text-primary)' }}>{recipient.displayName}</span>&apos;s inbox.</>
+            ) : (
+              <>Your secure self-destructing link is ready.</>
+            )}
           </p>
         </div>
         <div className="relative group">
@@ -327,6 +356,45 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="card p-6 sm:p-8 space-y-6">
+        {/* 0. Recipient (Optional) */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold uppercase tracking-widest px-1" style={{ color: 'var(--text-tertiary)' }}>
+            Recipient (Optional)
+          </label>
+          
+          {!recipient ? (
+            <form onSubmit={handleRecipientSearch} className="relative group">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors" />
+              <input
+                type="text"
+                placeholder="Search user to drop into inbox..."
+                value={recipientQuery}
+                onChange={(e) => setRecipientQuery(e.target.value)}
+                className="input !pl-9 !bg-white/[0.02] border-white/[0.1] focus:border-accent/30"
+              />
+              {isSearching && <Loader2 className="w-3.5 h-3.5 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-accent" />}
+            </form>
+          ) : (
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-accent/20 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent/10">
+                  <User className="w-4 h-4 text-accent" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">{recipient.displayName}</p>
+                  <p className="text-[10px] text-muted-foreground">@{recipient.subdomain}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setRecipient(null)}
+                className="text-[10px] font-bold text-muted-foreground hover:text-destructive transition-colors px-2 py-1"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* 1. Message Content */}
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
@@ -514,7 +582,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           className="btn-primary w-full !py-4 group"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
-          {isLoading ? 'Sending...' : 'Securely Drop'}
+          {isLoading ? 'Sending...' : (recipient ? 'Securely Drop' : 'Create Secret')}
           {!isLoading && <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />}
         </button>
       </div>
