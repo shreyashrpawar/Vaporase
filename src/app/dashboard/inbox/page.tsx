@@ -207,12 +207,12 @@ export default function InboxPage() {
               <div className="space-y-3">
                 <div className="p-3 bg-white/[0.03] border border-white/[0.05] rounded-xl flex items-center justify-between gap-3 group/link">
                   <code className="text-[10px] text-accent font-bold truncate">
-                    ilusion.io/{profile?.subdomain || '...'}
+                    {profile?.subdomain ? `${profile.subdomain}.ilusion.io` : 'ilusion.io/...'}
                   </code>
                   <button 
                     onClick={() => {
                       if (!profile?.subdomain) return;
-                      const link = `${window.location.origin}/${profile.subdomain}`;
+                      const link = `https://${profile.subdomain}.ilusion.io`;
                       navigator.clipboard.writeText(link);
                       alert('Link copied!');
                     }}
@@ -223,7 +223,8 @@ export default function InboxPage() {
                   </button>
                 </div>
                 <Link 
-                  href={profile?.subdomain ? `/${profile.subdomain}` : '#'} 
+                  href={profile?.subdomain ? `https://${profile.subdomain}.ilusion.io` : '#'} 
+                  target="_blank"
                   className={`flex items-center justify-center gap-2 w-full py-2.5 bg-white text-black rounded-xl text-xs font-bold hover:bg-white/90 transition-all ${!profile?.subdomain ? 'pointer-events-none opacity-50' : ''}`}
                 >
                   Test My Link
