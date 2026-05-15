@@ -61,7 +61,7 @@ function getFileIcon(type: string) {
 export default function CreateSecretPage() {
   const { isSignedIn } = useAuth();
   const [secretText, setSecretText] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [expiryHours, setExpiryHours] = useState(5 / 60);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -73,13 +73,15 @@ export default function CreateSecretPage() {
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
   const [alias, setAlias] = useState('');
-  const [useAlias, setUseAlias] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const [contentType, setContentType] = useState<'text' | 'file'>('text');
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Derived: total size of all attached files
+  const totalFilesSize = files.reduce((acc, f) => acc + f.size, 0);
 
   useEffect(() => {
     setLocalHistory(getLocalSecrets());
@@ -98,7 +100,27 @@ export default function CreateSecretPage() {
     }
   }, [isSignedIn]);
 
-  const maxFileSize = userPlan === 'pro' ? 100 * 1024 * 1024 : MAX_FILE_SIZE_GUEST;
+  const maxTotalSize = userPlan === 'pro' ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
+
+  const addFiles = (incoming: File[]) => {
+    const combined = [...files, ...incoming];
+    const newTotal = combined.reduce((acc, f) => acc + f.size, 0);
+    if (newTotal > maxTotalSize) {
+      setError(`Total file size exceeds the ${formatBytes(maxTotalSize)} limit.`);
+      return;
+    }
+    setFiles(combined);
+    setContentType('file');
+    setError('');
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => {
+      const next = prev.filter((_, i) => i !== index);
+      if (next.length === 0) setContentType('text');
+      return next;
+    });
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -114,34 +136,21 @@ export default function CreateSecretPage() {
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile) {
-        if (droppedFile.size > maxFileSize) {
-          setError(`File exceeds the ${formatBytes(maxFileSize)} limit.`);
-          return;
-        }
-        setFile(droppedFile);
-        setError('');
-      }
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length) addFiles(droppedFiles);
     },
-    [maxFileSize]
+    [files, maxTotalSize]
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.size > maxFileSize) {
-        setError(`File exceeds the ${formatBytes(maxFileSize)} limit.`);
-        return;
-      }
-      setFile(selectedFile);
-      setError('');
-    }
+    const selected = Array.from(e.target.files || []);
+    if (selected.length) addFiles(selected);
+    e.target.value = '';
   };
 
   const handleSubmit = async () => {
-    if (!secretText && !file) {
-      setError('Please enter a secret message or upload a file.');
+    if (!secretText && files.length === 0) {
+      setError('Please enter a secret message or attach at least one file.');
       return;
     }
 
@@ -150,13 +159,12 @@ export default function CreateSecretPage() {
     setUploadProgress(0);
 
     try {
-      let fileKey = null;
-      let fileName = null;
-      let fileSize = null;
-      let fileType = null;
+      // Upload all files and collect their keys
+      const uploadedFiles: { fileKey: string; fileName: string; fileSize: number; fileType: string }[] = [];
 
-      if (file) {
-        setUploadProgress(10);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadProgress(Math.round((i / files.length) * 60) + 5);
 
         const actualFileType = file.type || 'application/octet-stream';
 
@@ -176,42 +184,31 @@ export default function CreateSecretPage() {
         }
 
         const { url, fileKey: key } = await presignRes.json();
-        setUploadProgress(35);
 
-        // Use XMLHttpRequest to track progress
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open('PUT', url);
           xhr.setRequestHeader('Content-Type', actualFileType);
-
-          xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-              const percentComplete = (event.loaded / event.total) * 40; // 40% of the total progress bar (from 30% to 70%)
-              setUploadProgress(30 + percentComplete);
-            }
-          };
-
           xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(xhr.response);
-            } else {
-              reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
-            }
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else reject(new Error(`Upload failed with status ${xhr.status}`));
           };
-
-          xhr.onerror = () => reject(new Error('Network error during upload. This might be a CORS issue or connection drop.'));
+          xhr.onerror = () => reject(new Error('Network error during upload.'));
           xhr.send(file);
         });
 
-        fileKey = key;
-        fileName = file.name;
-        fileSize = file.size;
-        fileType = actualFileType;
-        setUploadProgress(70);
+        uploadedFiles.push({ fileKey: key, fileName: file.name, fileSize: file.size, fileType: actualFileType });
       }
+      setUploadProgress(70);
 
-      // 1. Client-Side Encryption (Skip if using Custom Alias)
-      const isE2EE = !!secretText && !useAlias;
+      // Use first file's metadata as primary (API schema compatibility)
+      const fileKey = uploadedFiles[0]?.fileKey || null;
+      const fileName = uploadedFiles[0]?.fileName || null;
+      const fileSize = uploadedFiles[0]?.fileSize || null;
+      const fileType = uploadedFiles[0]?.fileType || null;
+
+      // E2EE — always encrypt text
+      const isE2EE = !!secretText;
       let finalEncryptedContent = null;
       let decryptionKey: string | null = null;
 
@@ -219,12 +216,12 @@ export default function CreateSecretPage() {
         decryptionKey = await generateKey();
         finalEncryptedContent = await encryptText(secretText, decryptionKey);
       } else {
-        finalEncryptedContent = secretText || null;
+        finalEncryptedContent = null;
       }
 
-      // 2. Hash Password if provided
+      // Hash Password if provided (Pro only — enforced client & server)
       let finalPasswordHash = null;
-      if (password) {
+      if (password && userPlan === 'pro') {
         finalPasswordHash = await hashPassword(password);
       }
 
@@ -239,9 +236,10 @@ export default function CreateSecretPage() {
           fileType,
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
-          allowedIp: allowedIp || null,
-          alias: useAlias && alias ? alias : null,
-          isE2EE, // True if we encrypted text
+          allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
+          alias: (alias && userPlan === 'pro') ? alias : null,
+          isE2EE,
+          files: uploadedFiles,
         }),
       });
 
@@ -252,19 +250,22 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/s/${(useAlias && alias) ? alias : id}`;
+      let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
       if (decryptionKey) {
         link += `#key=${decryptionKey}`;
       }
       setGeneratedLink(link);
 
       // Save to local history
+      const label = files.length > 0
+        ? `${files.length} file(s): ${files.map(f => f.name).join(', ').slice(0, 40)}`
+        : secretText.slice(0, 30) + (secretText.length > 30 ? '...' : '');
       saveLocalSecret({
         id,
         link,
         createdAt: Date.now(),
         expiresAt: Date.now() + expiryHours * 60 * 60 * 1000,
-        label: fileName || (secretText ? secretText.slice(0, 30) + (secretText.length > 30 ? '...' : '') : 'Secret'),
+        label,
       });
       setLocalHistory(getLocalSecrets());
     } catch (err: any) {
@@ -293,17 +294,17 @@ export default function CreateSecretPage() {
 
   const resetForm = () => {
     setSecretText('');
-    setFile(null);
+    setFiles([]);
     setExpiryHours(24);
     setPassword('');
     setAllowedIp('');
     setGeneratedLink('');
+    setContentType('text');
     setError('');
     setCopied(false);
     setUploadProgress(0);
   };
 
-  const FileIcon = file ? getFileIcon(file.type) : FileText;
 
 
 
@@ -361,7 +362,7 @@ export default function CreateSecretPage() {
               <h3 className="text-xs font-bold">Pro Tip</h3>
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Use a <strong>Custom Alias</strong> to create branded links like <code className="text-accent">ilusion.io/s/finance-report</code>.
+              Use a <strong>Custom Alias</strong> to create branded links like <code className="text-accent">ilusion.io/secret/finance-report</code>.
             </p>
           </div>
         </div>
@@ -410,15 +411,12 @@ export default function CreateSecretPage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { 
                       e.preventDefault(); 
-                      setIsDragging(false); 
-                      const f = e.dataTransfer.files[0]; 
-                      if (f) {
-                        setFile(f);
-                        setContentType('file');
-                      }
+                      const dropped = Array.from(e.dataTransfer.files);
+                      if (dropped.length) addFiles(dropped);
                     }}
                   >
-                    {contentType === 'text' && !file ? (
+                    {files.length === 0 && contentType === 'text' ? (
+                      /* Text mode */
                       <div className="relative group">
                         <textarea
                           value={secretText}
@@ -427,7 +425,7 @@ export default function CreateSecretPage() {
                           className="input min-h-[240px] !py-8 !px-8 !text-lg !font-mono !bg-transparent !border-none focus:ring-0 transition-all resize-none"
                         />
                         <div className="absolute bottom-6 right-6 flex items-center gap-4">
-                          <button 
+                          <button
                             onClick={() => fileInputRef.current?.click()}
                             className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all"
                           >
@@ -436,53 +434,61 @@ export default function CreateSecretPage() {
                           </button>
                           <div className="badge badge-accent !text-[9px] opacity-50">E2EE Active</div>
                         </div>
-                        <input 
+                        <input
                           ref={fileInputRef}
-                          type="file" 
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) {
-                              setFile(f);
-                              setContentType('file');
-                            }
-                          }} 
-                          className="hidden" 
+                          type="file"
+                          multiple
+                          onChange={handleFileChange}
+                          className="hidden"
                         />
                       </div>
                     ) : (
-                      <div className="p-12 sm:p-16 flex flex-col items-center text-center space-y-6 animate-fade-in">
-                        <div className="w-24 h-24 rounded-3xl bg-accent/10 flex items-center justify-center relative group">
-                          <div className="absolute inset-0 bg-accent/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all opacity-50" />
-                          <FileText className="w-10 h-10 text-accent relative z-10" />
-                          <button 
-                            onClick={() => { setFile(null); setContentType('text'); }}
-                            className="absolute -top-2 -right-2 w-8 h-8 bg-destructive text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-20"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                      /* File mode — multi-file list */
+                      <div className="p-6 space-y-4 animate-fade-in">
+                        <div className="flex items-center justify-between px-2">
+                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                            {files.length} file{files.length !== 1 ? 's' : ''} attached
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            {formatBytes(totalFilesSize)} / {formatBytes(maxTotalSize)}
+                          </span>
                         </div>
+
                         <div className="space-y-2">
-                          <h3 className="text-xl font-bold text-foreground truncate max-w-xs">{file?.name}</h3>
-                          <p className="text-sm text-muted-foreground font-medium">
-                            {file ? formatBytes(file.size) : ''} • Ready for encryption
-                          </p>
+                          {files.map((f, i) => {
+                            const FileIcon = getFileIcon(f.type);
+                            return (
+                              <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+                                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                                  <FileIcon className="w-4 h-4 text-accent" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold truncate">{f.name}</p>
+                                  <p className="text-[10px] text-muted-foreground">{formatBytes(f.size)}</p>
+                                </div>
+                                <button
+                                  onClick={() => removeFile(i)}
+                                  className="w-7 h-7 rounded-lg bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center transition-colors"
+                                >
+                                  <X className="w-3.5 h-3.5 text-destructive" />
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <div className="flex items-center gap-3">
-                          <button 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="px-6 py-2.5 bg-white/[0.05] hover:bg-white/[0.1] text-foreground rounded-xl text-xs font-bold transition-all"
-                          >
-                            Change File
-                          </button>
-                        </div>
-                        <input 
+
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full py-3 border-2 border-dashed border-white/[0.1] hover:border-accent/50 rounded-2xl text-xs font-bold text-muted-foreground hover:text-accent transition-all flex items-center justify-center gap-2"
+                        >
+                          <Upload className="w-3.5 h-3.5" /> Add More Files
+                        </button>
+                        <input
                           ref={fileInputRef}
-                          type="file" 
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) setFile(f);
-                          }} 
-                          className="hidden" 
+                          type="file"
+                          multiple
+                          onChange={handleFileChange}
+                          className="hidden"
                         />
                       </div>
                     )}
@@ -496,71 +502,77 @@ export default function CreateSecretPage() {
                     <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Security Settings</h2>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Expires After</label>
-                      <select
-                        value={expiryHours}
-                        onChange={(e) => setExpiryHours(Number(e.target.value))}
-                        className="input !bg-white/[0.02] border-white/[0.1]"
-                      >
-                        {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                      </select>
-                    </div>
+                  {/* Expiry — free for everyone */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Expires After</label>
+                    <select
+                      value={expiryHours}
+                      onChange={(e) => setExpiryHours(Number(e.target.value))}
+                      className="input !bg-white/[0.02] border-white/[0.1]"
+                    >
+                      {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Password (Optional)</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Add extra layer..."
-                          className="input !bg-white/[0.02] border-white/[0.1] !pr-12"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    {/* Pro Features */}
-                  <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-4">
+                  {/* Pro-only controls */}
+                  <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4 text-accent" />
-                        <h3 className="text-xs font-bold tracking-tight text-foreground">Advanced Controls</h3>
+                        <h3 className="text-xs font-bold tracking-tight text-foreground">Pro Security Controls</h3>
                       </div>
-                      {userPlan === 'free' && <Link href="/pricing" className="badge badge-accent">Unlock Pro</Link>}
+                      {userPlan !== 'pro' && (
+                        <Link href="/pricing" className="badge badge-accent text-[9px] px-3 py-1">Unlock Pro</Link>
+                      )}
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      {/* Password */}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Custom Alias</label>
-                        <input
-                          value={alias}
-                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                          placeholder="custom-link"
-                          disabled={userPlan === 'free'}
-                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-50 disabled:cursor-not-allowed"
-                        />
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Password</label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder={userPlan === 'pro' ? 'Lock with key...' : 'Pro only'}
+                            disabled={userPlan !== 'pro'}
+                            className="input !py-2 !text-xs !bg-white/[0.02] !pr-10 disabled:opacity-40 disabled:cursor-not-allowed"
+                          />
+                          {userPlan === 'pro' && (
+                            <button type="button" onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                              {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* IP Whitelist */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">IP Whitelist</label>
                         <input
                           value={allowedIp}
                           onChange={(e) => setAllowedIp(e.target.value)}
-                          placeholder="Allow specific IP..."
-                          disabled={userPlan === 'free'}
-                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                          placeholder={userPlan === 'pro' ? 'e.g. 192.168.1.1' : 'Pro only'}
+                          disabled={userPlan !== 'pro'}
+                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </div>
+
+                      {/* Custom Alias */}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Custom Alias</label>
+                        <input
+                          value={alias}
+                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder={userPlan === 'pro' ? 'my-secret' : 'Pro only'}
+                          disabled={userPlan !== 'pro'}
+                          className="input !py-2 !text-xs !bg-white/[0.02] disabled:opacity-40 disabled:cursor-not-allowed"
                         />
                       </div>
                     </div>
                   </div>
-                 </div>
                 </section>
 
                 {/* Error */}
@@ -588,7 +600,7 @@ export default function CreateSecretPage() {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={isLoading || (contentType === 'text' ? !secretText : !file)}
+                  disabled={isLoading || (!secretText && files.length === 0)}
                   className="w-full !py-5 bg-accent text-white rounded-2xl font-bold text-lg shadow-2xl shadow-accent/40 hover:bg-accent/90 transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-3"
                 >
                   {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Shield className="w-6 h-6" />}

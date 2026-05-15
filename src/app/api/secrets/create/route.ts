@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/db';
-import { secrets, apiKeys } from '@/db/schema';
+import { secrets, apiKeys, userProfiles } from '@/db/schema';
 import { eq, and, gt } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -40,29 +40,53 @@ export async function POST(req: Request) {
       isE2EE = false,
       recipientId,
       dropKey,
-      alias
+      alias,
+      files // Support multiple files
     } = await req.json();
 
     if (!encryptedContent && !fileKey) {
       return NextResponse.json({ error: 'Secret must contain text or a file' }, { status: 400 });
     }
 
+    // Server-side Pro enforcement — strip Pro features for non-Pro users
+    let finalPasswordHash = passwordHash;
+    let finalAllowedIp = allowedIp;
+    let finalAlias = alias;
+
+    if (userId) {
+      const userProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, userId),
+      });
+      const isPro = userProfile?.plan === 'pro';
+
+      if (!isPro) {
+        finalPasswordHash = null;
+        finalAllowedIp = null;
+        finalAlias = null;
+      }
+    } else {
+      // Unauthenticated users (guests) can never use Pro features
+      finalPasswordHash = null;
+      finalAllowedIp = null;
+      finalAlias = null;
+    }
+
     const id = nanoid(8); // 8 char random string for the URL
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 
-    if (alias) {
-      if (!/^[a-zA-Z0-9-]+$/.test(alias)) {
+    if (finalAlias) {
+      if (!/^[a-zA-Z0-9-]+$/.test(finalAlias)) {
         return NextResponse.json({ error: 'Alias can only contain letters, numbers, and hyphens' }, { status: 400 });
       }
-      if (alias.length < 3 || alias.length > 30) {
+      if (finalAlias.length < 3 || finalAlias.length > 30) {
         return NextResponse.json({ error: 'Alias must be between 3 and 30 characters' }, { status: 400 });
       }
 
       // Check for alias uniqueness against active secrets
       const existingSecret = await db.query.secrets.findFirst({
         where: and(
-          eq(secrets.alias, alias),
+          eq(secrets.alias, finalAlias),
           eq(secrets.status, 'active'),
           gt(secrets.expiresAt, now)
         )
@@ -100,27 +124,28 @@ export async function POST(req: Request) {
       id,
       userId: userId || null,
       encryptedContent: encryptedContent || null,
-      fileKey: fileKey || null,
-      fileName: fileName || null,
-      fileSize: fileSize || null,
-      fileType: fileType || null,
+      fileKey: (files && files.length > 0) ? files[0].fileKey : (fileKey || null),
+      fileName: (files && files.length > 0) ? files[0].fileName : (fileName || null),
+      fileSize: (files && files.length > 0) ? files[0].fileSize : (fileSize || null),
+      fileType: (files && files.length > 0) ? files[0].fileType : (fileType || null),
       createdAt: now,
       expiresAt: expiresAt,
-      burnOnRead: true, // Currently hardcoded to true, can be made dynamic
+      burnOnRead: true,
       status: 'active',
-      passwordHash: passwordHash || null,
-      allowedIp: allowedIp || null,
+      passwordHash: finalPasswordHash || null,
+      allowedIp: finalAllowedIp || null,
       isE2EE,
       recipientId: recipientId || null,
       dropKey: dropKey || null,
-      alias: alias || null,
+      alias: finalAlias || null,
       senderIp: senderIp,
+      filesJson: files ? JSON.stringify(files) : null,
     });
 
     const protocol = req.headers.get('x-forwarded-proto') || 'https';
     const host = req.headers.get('host') || 'www.ilusion.io';
-    const link = alias 
-      ? `${protocol}://${host}/s/${alias}` 
+    const link = finalAlias 
+      ? `${protocol}://${host}/secret/${finalAlias}` 
       : `${protocol}://${host}/secret/${id}`;
 
     return NextResponse.json({ id, alias, expiresAt, link });

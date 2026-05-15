@@ -22,6 +22,7 @@ export const secrets = sqliteTable('secrets', {
   dropKey: text('drop_key'), // Server-stored key for drop box secrets (not E2EE)
   alias: text('alias'), // Custom human-readable alias
   senderIp: text('sender_ip'), // IP of the person who sent the secret
+  filesJson: text('files_json'), // Store multiple files as JSON array
 });
 
 export const userProfiles = sqliteTable('user_profiles', {

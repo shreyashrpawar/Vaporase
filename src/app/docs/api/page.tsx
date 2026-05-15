@@ -26,7 +26,7 @@ export default function ApiDocsPage() {
   const responseExample = `{
   "id": "Xk9mZ7pQ",
   "expiresAt": "2024-05-15T14:30:00.000Z",
-  "link": "https://www.ilusion.io/s/my-custom-link"
+  "link": "https://www.ilusion.io/secret/my-custom-link"
 }`;
 
   return (

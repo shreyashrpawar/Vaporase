@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Lock,
@@ -53,7 +53,7 @@ function getFileIcon(type: string) {
 export default function DropForm({ profile, isEmbedded = false }: { profile: any, isEmbedded?: boolean }) {
   const { isSignedIn } = useAuth();
   const [secretText, setSecretText] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [expiryHours, setExpiryHours] = useState(24);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -65,12 +65,38 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
   const [password, setPassword] = useState('');
   const [allowedIp, setAllowedIp] = useState('');
   const [alias, setAlias] = useState('');
-  const [useAlias, setUseAlias] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const maxFileSize = isSignedIn ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
+  useEffect(() => {
+    if (isSignedIn) {
+      fetch('/api/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.plan) setUserPlan(data.plan);
+        })
+        .catch(err => console.error('Error fetching profile:', err));
+    }
+  }, [isSignedIn]);
+
+  const maxTotalSize = userPlan === 'pro' ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_GUEST;
+
+  const addFiles = (incoming: File[]) => {
+    const combined = [...files, ...incoming];
+    const newTotal = combined.reduce((acc, f) => acc + f.size, 0);
+    if (newTotal > maxTotalSize) {
+      setError(`Total file size exceeds the ${formatBytes(maxTotalSize)} limit.`);
+      return;
+    }
+    setFiles(combined);
+    setError('');
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -86,34 +112,21 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile) {
-        if (droppedFile.size > maxFileSize) {
-          setError(`File exceeds the ${formatBytes(maxFileSize)} limit.`);
-          return;
-        }
-        setFile(droppedFile);
-        setError('');
-      }
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length) addFiles(droppedFiles);
     },
-    [maxFileSize]
+    [files, maxTotalSize]
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.size > maxFileSize) {
-        setError(`File exceeds the ${formatBytes(maxFileSize)} limit.`);
-        return;
-      }
-      setFile(selectedFile);
-      setError('');
-    }
+    const selected = Array.from(e.target.files || []);
+    if (selected.length) addFiles(selected);
+    e.target.value = '';
   };
 
   const handleSubmit = async () => {
-    if (!secretText && !file) {
-      setError('Please enter a secret message or upload a file.');
+    if (!secretText && files.length === 0) {
+      setError('Please enter a secret message or attach at least one file.');
       return;
     }
 
@@ -122,20 +135,19 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
     setUploadProgress(0);
 
     try {
-      let fileKey = null;
-      let fileName = null;
-      let fileSize = null;
-      let fileType = null;
+      const uploadedFiles: { fileKey: string; fileName: string; fileSize: number; fileType: string }[] = [];
 
-      if (file) {
-        setUploadProgress(10);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadProgress(Math.round((i / files.length) * 60) + 5);
+
         const presignRes = await fetch('/api/secrets/presign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             fileName: file.name,
             fileSize: file.size,
-            fileType: file.type,
+            fileType: file.type || 'application/octet-stream',
           }),
         });
 
@@ -145,22 +157,27 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
         }
 
         const { url, fileKey: key } = await presignRes.json();
-        setUploadProgress(30);
 
-        const uploadRes = await fetch(url, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', url);
+          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else reject(new Error(`Upload failed with status ${xhr.status}`));
+          };
+          xhr.onerror = () => reject(new Error('Network error during upload.'));
+          xhr.send(file);
         });
 
-        if (!uploadRes.ok) throw new Error('Failed to upload file');
-
-        fileKey = key;
-        fileName = file.name;
-        fileSize = file.size;
-        fileType = file.type;
-        setUploadProgress(70);
+        uploadedFiles.push({ fileKey: key, fileName: file.name, fileSize: file.size, fileType: file.type });
       }
+      setUploadProgress(70);
+
+      const fileKey = uploadedFiles[0]?.fileKey || null;
+      const fileName = uploadedFiles[0]?.fileName || null;
+      const fileSize = uploadedFiles[0]?.fileSize || null;
+      const fileType = uploadedFiles[0]?.fileType || null;
 
       let finalEncryptedContent = secretText || null;
       let finalPasswordHash = null;
@@ -174,7 +191,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
         finalEncryptedContent = await encryptText(secretText, decryptionKey);
       }
 
-      if (password) {
+      if (password && userPlan === 'pro') {
         finalPasswordHash = await hashPassword(password);
       }
 
@@ -189,11 +206,12 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
           fileType,
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
-          allowedIp: allowedIp || null,
+          allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
           isE2EE,
           recipientId: profile.userId,
           dropKey: decryptionKey,
-          alias: useAlias && alias ? alias : null,
+          alias: (alias && userPlan === 'pro') ? alias : null,
+          files: uploadedFiles,
         }),
       });
 
@@ -205,9 +223,9 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
       const { id } = await createRes.json();
       setUploadProgress(100);
       
-      let link = `${window.location.origin}/s/${(useAlias && alias) ? alias : id}`;
-      if (decryptionKey && !useAlias) {
-        link = `${window.location.origin}/secret/${id}#key=${decryptionKey}`;
+      let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
+      if (decryptionKey) {
+        link += `#key=${decryptionKey}`;
       }
       setGeneratedLink(link);
     } catch (err: any) {
@@ -236,7 +254,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
 
   const resetForm = () => {
     setSecretText('');
-    setFile(null);
+    setFiles([]);
     setExpiryHours(24);
     setPassword('');
     setAllowedIp('');
@@ -246,7 +264,6 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
     setUploadProgress(0);
   };
 
-  const FileIcon = file ? getFileIcon(file.type) : FileText;
 
   if (generatedLink) {
     if (isEmbedded) {
@@ -361,21 +378,44 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`relative border-2 border-dashed rounded-3xl p-8 transition-all flex flex-col items-center gap-3 ${
-              isDragging ? 'border-accent bg-accent/5' : 'border-white/[0.1] bg-white/[0.01]'
+            className={`relative border-2 border-dashed rounded-3xl p-6 sm:p-8 transition-all flex flex-col items-center gap-4 ${
+              isDragging ? 'border-accent bg-accent/5 scale-[1.01]' : 'border-white/[0.1] bg-white/[0.01]'
             }`}
           >
-            <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" />
-            {file ? (
-              <div className="flex items-center gap-4 w-full">
-                <FileIcon className="w-6 h-6 text-accent" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">{file.name}</p>
+            <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
+            
+            {files.length > 0 ? (
+              <div className="w-full space-y-2">
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">{files.length} attached</p>
+                  <p className="text-[10px] text-muted-foreground font-mono">{formatBytes(files.reduce((a, b) => a + b.size, 0))} / {formatBytes(maxTotalSize)}</p>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); setFile(null); }}><X className="w-4 h-4" /></button>
+                {files.map((f, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2 bg-white/[0.03] border border-white/[0.05] rounded-xl group/file">
+                    <FileText className="w-4 h-4 text-accent/50" />
+                    <p className="text-xs font-bold truncate flex-1">{f.name}</p>
+                    <button onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="p-1 hover:bg-white/10 rounded transition-colors">
+                      <X className="w-3.5 h-3.5 text-muted-foreground group-hover/file:text-destructive" />
+                    </button>
+                  </div>
+                ))}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                  className="w-full py-2 bg-white/[0.02] border border-dashed border-white/[0.1] rounded-xl text-[10px] font-bold text-muted-foreground hover:text-accent transition-all flex items-center justify-center gap-2"
+                >
+                  <Upload className="w-3 h-3" /> Add More
+                </button>
               </div>
             ) : (
-              <><Upload className="w-6 h-6 text-accent/50" /><p className="text-xs font-bold text-muted-foreground">Attach file</p></>
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-white/[0.03] flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-accent/50" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Attach multiple files</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Limit: {formatBytes(maxTotalSize)} total</p>
+                </div>
+              </div>
             )}
           </div>
 
@@ -396,7 +436,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
 
           <button
             onClick={handleSubmit}
-            disabled={isLoading || (!secretText && !file)}
+            disabled={isLoading || (!secretText && files.length === 0)}
             className="btn-primary w-full !py-4"
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
@@ -462,29 +502,44 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative overflow-hidden group cursor-pointer border-2 border-dashed rounded-3xl p-8 transition-all flex flex-col items-center gap-3 ${
-                  isDragging ? 'border-accent bg-accent/5' : 'border-white/[0.1] hover:border-white/[0.2] bg-white/[0.01]'
+                className={`relative overflow-hidden group cursor-pointer border-2 border-dashed rounded-3xl p-6 transition-all flex flex-col items-center gap-4 ${
+                  isDragging ? 'border-accent bg-accent/5 scale-[1.01]' : 'border-white/[0.1] hover:border-white/[0.2] bg-white/[0.01]'
                 }`}
               >
-                <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" />
-                {file ? (
-                  <div className="flex items-center gap-4 w-full">
-                    <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                      <FileIcon className="w-6 h-6 text-accent" />
+                <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
+                
+                {files.length > 0 ? (
+                  <div className="w-full space-y-2">
+                    <div className="flex items-center justify-between px-1 mb-2">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">{files.length} attached</p>
+                      <p className="text-[10px] text-muted-foreground font-mono">{formatBytes(files.reduce((a, b) => a + b.size, 0))} / {formatBytes(maxTotalSize)}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-foreground truncate">{file.name}</p>
-                      <p className="text-[10px] text-muted-foreground font-bold">{formatBytes(file.size)}</p>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); setFile(null); }} className="p-2 rounded-lg hover:bg-white/5">
-                      <X className="w-4 h-4 text-muted-foreground" />
+                    {files.map((f, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.05] rounded-xl group/file">
+                        <FileText className="w-4 h-4 text-accent/50" />
+                        <p className="text-sm font-bold truncate flex-1">{f.name}</p>
+                        <button onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="p-1 hover:bg-white/10 rounded transition-colors">
+                          <X className="w-4 h-4 text-muted-foreground group-hover/file:text-destructive" />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                      className="w-full py-2 bg-white/[0.02] border border-dashed border-white/[0.1] rounded-xl text-[10px] font-bold text-muted-foreground hover:text-accent transition-all flex items-center justify-center gap-2"
+                    >
+                      <Upload className="w-3.5 h-3.5" /> Add More Files
                     </button>
                   </div>
                 ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-accent/50" />
-                    <p className="text-xs font-bold text-muted-foreground">Drop a file or <span className="text-accent">browse</span></p>
-                  </>
+                  <div className="flex flex-col items-center gap-3 py-4 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-white/[0.03] flex items-center justify-center">
+                      <Upload className="w-8 h-8 text-accent/50" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Attach multiple files</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Limit: {formatBytes(maxTotalSize)} total</p>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -499,23 +554,71 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
                     {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2 relative">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2 flex items-center gap-2">
-                    Password <span className="opacity-40">(Optional)</span>
-                    <Lock className="w-2.5 h-2.5 text-accent" />
-                  </label>
-                  <div className="relative group/disabled cursor-not-allowed">
-                    <input
-                      disabled
-                      placeholder="Unlock with Pro"
-                      className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] opacity-50"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/disabled:opacity-100 transition-opacity">
-                      <Link href="/pricing" className="badge badge-accent !text-[8px]">Upgrade for Passwords</Link>
-                    </div>
+            <div className="space-y-2 relative">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2 flex items-center gap-2">
+                Password <span className="opacity-40">(Optional)</span>
+                {userPlan !== 'pro' && <Lock className="w-2.5 h-2.5 text-accent" />}
+              </label>
+              <div className={`relative ${userPlan !== 'pro' ? 'group/disabled cursor-not-allowed' : ''}`}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={userPlan === 'pro' ? 'Lock with key...' : 'Unlock with Pro'}
+                  disabled={userPlan !== 'pro'}
+                  className={`input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] ${userPlan !== 'pro' ? 'opacity-50' : ''}`}
+                />
+                {userPlan === 'pro' ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/disabled:opacity-100 transition-opacity">
+                    <Link href="/pricing" className="badge badge-accent !text-[8px]">Upgrade for Passwords</Link>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-white/[0.05] space-y-4">
+            <button 
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors ml-2"
+            >
+              <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+              Advanced Controls
+            </button>
+
+            {showAdvanced && (
+              <div className="grid sm:grid-cols-2 gap-4 animate-fade-in">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">Custom Alias</label>
+                  <input
+                    value={alias}
+                    onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    placeholder={userPlan === 'pro' ? 'my-secret-link' : 'Pro only'}
+                    disabled={userPlan !== 'pro'}
+                    className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] disabled:opacity-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">IP Whitelist</label>
+                  <input
+                    value={allowedIp}
+                    onChange={(e) => setAllowedIp(e.target.value)}
+                    placeholder={userPlan === 'pro' ? 'Allow specific IP...' : 'Pro only'}
+                    disabled={userPlan !== 'pro'}
+                    className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] disabled:opacity-50"
+                  />
                 </div>
               </div>
+            )}
+          </div>
 
               {error && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-[11px] text-destructive animate-fade-in-up font-bold">
@@ -534,7 +637,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
 
               <button
                 onClick={handleSubmit}
-                disabled={isLoading || (!secretText && !file)}
+                disabled={isLoading || (!secretText && files.length === 0)}
                 className="w-full !py-5 bg-accent text-white rounded-2xl font-bold text-lg shadow-2xl shadow-accent/40 hover:bg-accent/90 transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Shield className="w-6 h-6" />}

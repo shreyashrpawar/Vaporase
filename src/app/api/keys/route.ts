@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
+import { apiKeys, userProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -36,6 +36,15 @@ export async function POST(req: Request) {
     const { name } = await req.json();
     if (!name) {
       return NextResponse.json({ error: 'Key name is required' }, { status: 400 });
+    }
+
+    // Check plan — Pro only
+    const userProfile = await db.query.userProfiles.findFirst({
+      where: eq(userProfiles.userId, userId),
+    });
+
+    if (userProfile?.plan !== 'pro') {
+      return NextResponse.json({ error: 'API Keys are only available on the Pro plan' }, { status: 403 });
     }
 
     const key = `ilusion_sk_${nanoid(24)}`;

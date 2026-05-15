@@ -151,7 +151,7 @@ export default function LandingPage() {
           <div className="animate-fade-in-up opacity-0 delay-350 max-w-sm mx-auto mb-16">
             <div className="relative group">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-sm font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
-                ilusion.io/s/
+                ilusion.io/secret/
               </div>
               <input
                 type="text"
@@ -161,12 +161,12 @@ export default function LandingPage() {
                 className="input !pl-[140px] !pr-10 !py-4 !text-sm font-bold"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && quickAlias) {
-                    router.push(`/s/${quickAlias}`);
+                    router.push(`/secret/${quickAlias}`);
                   }
                 }}
               />
               <button
-                onClick={() => quickAlias && router.push(`/s/${quickAlias}`)}
+                onClick={() => quickAlias && router.push(`/secret/${quickAlias}`)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-accent/20"
                 style={{ color: 'var(--accent-primary)' }}
               >
@@ -193,7 +193,7 @@ export default function LandingPage() {
                 <div className="h-2.5 rounded-full w-[40%] shimmer" />
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                <span className="text-[10px] font-mono" style={{ color: 'var(--text-tertiary)' }}>🔗 ilusion.io/s/Xk9mZ...</span>
+                <span className="text-[10px] font-mono" style={{ color: 'var(--text-tertiary)' }}>🔗 ilusion.io/secret/Xk9mZ...</span>
                 <span className="badge badge-success !text-[9px]"><Shield className="w-2.5 h-2.5" /> Encrypted</span>
               </div>
             </div>

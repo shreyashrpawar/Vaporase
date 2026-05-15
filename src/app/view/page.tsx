@@ -26,7 +26,7 @@ export default function ViewSecretPage() {
       }
     } else {
       if (!alias) return;
-      router.push(`/s/${alias}`);
+      router.push(`/secret/${alias}`);
     }
   };
 
@@ -128,7 +128,7 @@ export default function ViewSecretPage() {
                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Alias Name</label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-xs font-mono font-bold text-accent">
-                      ilusion.io/s/
+                      ilusion.io/secret/
                     </div>
                     <input
                       type="text"

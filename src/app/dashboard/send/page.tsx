@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search, User, Send, Loader2, AlertCircle } from 'lucide-react';
-import DropForm from '@/app/(drop)/[subdomain]/DropForm';
+import SendSecretForm from '@/components/SendSecretForm';
 
 export default function DirectSendPage() {
   const [query, setQuery] = useState('');
@@ -68,7 +68,7 @@ export default function DirectSendPage() {
             <button onClick={() => setProfile(null)} className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>Change</button>
           </div>
           <div className="animate-fade-in-up delay-100">
-            <DropForm profile={profile} isEmbedded={true} />
+            <SendSecretForm profile={profile} />
           </div>
         </div>
       )}
