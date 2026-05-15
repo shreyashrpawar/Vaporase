@@ -32,14 +32,14 @@ export default function RevealPage() {
     <div className="space-y-8 animate-fade-in">
       <div className="px-2">
         <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Security Tools</h2>
-        <p className="text-xs text-muted-foreground mt-1">Reveal encrypted secrets using a link or alias.</p>
+        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Reveal encrypted secrets using a link or alias.</p>
       </div>
 
       <div className="grid lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 space-y-8">
-          <div className="bg-elevated border border-white/[0.05] rounded-[2.5rem] p-10 shadow-2xl space-y-8 relative overflow-hidden group">
+        <div className="lg:col-span-3 space-y-6 sm:space-y-8">
+          <div className="bg-elevated border border-white/[0.05] rounded-3xl lg:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-accent/10" />
-            
+
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center">
@@ -55,18 +55,16 @@ export default function RevealPage() {
               <div className="flex p-1.5 rounded-2xl bg-white/[0.03] border border-white/[0.05]">
                 <button
                   onClick={() => setMode('link')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${
-                    mode === 'link' ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${mode === 'link' ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
+                    }`}
                 >
                   <LinkIcon className="w-3.5 h-3.5" />
                   Secure Link
                 </button>
                 <button
                   onClick={() => setMode('alias')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${
-                    mode === 'alias' ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${mode === 'alias' ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
+                    }`}
                 >
                   <Shield className="w-3.5 h-3.5" />
                   Custom Alias
@@ -127,18 +125,6 @@ export default function RevealPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { title: 'End-to-End', desc: 'Keys stay in memory.' },
-              { title: 'Zero Storage', desc: 'Purged upon reveal.' },
-              { title: 'No Metadata', desc: 'No IP tracking.' }
-            ].map((f) => (
-              <div key={f.title} className="p-6 bg-white/[0.02] border border-white/[0.05] rounded-3xl space-y-2">
-                <h4 className="text-[10px] font-bold uppercase text-accent">{f.title}</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Sidebar */}

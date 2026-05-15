@@ -72,10 +72,10 @@ export default function LandingPage() {
           <ThemeToggle />
           {!isSignedIn ? (
             <>
-              <Link href="/pricing" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>Pricing</Link>
-              <Link href="/view" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>View</Link>
-              <Link href="/sign-in" className="text-sm font-medium px-3 py-2 transition-colors" style={{ color: 'var(--text-secondary)' }}>Sign In</Link>
-              <Link href="/sign-up" className="btn-primary !py-2 !px-4 !text-xs">Get Started</Link>
+              <Link href="/pricing" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Pricing</Link>
+              <Link href="/view" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Reveal</Link>
+              <Link href="/sign-in" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Sign In</Link>
+              <Link href="/sign-up" className="btn-primary !py-2.5 !px-5 !text-xs !rounded-xl ml-2">Get Started</Link>
             </>
           ) : (
             <>

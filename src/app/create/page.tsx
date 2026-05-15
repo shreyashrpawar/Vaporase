@@ -402,35 +402,35 @@ export default function CreateSecretPage() {
                     <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Define Content</h2>
                   </div>
 
-                  <div className="flex p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl mb-6">
+                  <div className="flex p-1 sm:p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl mb-6">
                     <button
                       onClick={() => setContentType('text')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl transition-all ${
                         contentType === 'text' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <FileText className="w-4 h-4" /> Text Message
+                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Text
                     </button>
                     <button
                       onClick={() => setContentType('file')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl transition-all ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl transition-all ${
                         contentType === 'file' ? 'bg-accent text-white shadow-lg' : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <Upload className="w-4 h-4" /> Secure File
+                      <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> File
                     </button>
                   </div>
 
                   {contentType === 'text' ? (
                     <div className="relative group">
                       <div className="absolute top-4 right-4 flex items-center gap-2">
-                        <div className="badge badge-accent !text-[9px]">E2EE Active</div>
+                        <div className="badge badge-accent !text-[8px] sm:!text-[9px]">E2EE Active</div>
                       </div>
                       <textarea
                         value={secretText}
                         onChange={(e) => setSecretText(e.target.value)}
                         placeholder="Paste your sensitive data here..."
-                        className="input min-h-[200px] !py-6 !px-6 !text-lg !font-mono !bg-white/[0.02] border-white/[0.1] focus:border-accent/50 transition-all resize-none"
+                        className="input min-h-[180px] sm:min-h-[200px] !py-5 sm:!py-6 !px-5 sm:!px-6 !text-base sm:!text-lg !font-mono !bg-white/[0.02] border-white/[0.1] focus:border-accent/50 transition-all resize-none"
                       />
                     </div>
                   ) : (
@@ -438,7 +438,7 @@ export default function CreateSecretPage() {
                       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                       onDragLeave={() => setIsDragging(false)}
                       onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) setFile(f); }}
-                      className={`relative overflow-hidden group cursor-pointer border-2 border-dashed rounded-3xl p-12 transition-all flex flex-col items-center gap-4 ${
+                      className={`relative overflow-hidden group cursor-pointer border-2 border-dashed rounded-3xl p-8 sm:p-12 transition-all flex flex-col items-center gap-4 ${
                         isDragging ? 'border-accent bg-accent/5' : 'border-white/[0.1] hover:border-white/[0.2] bg-white/[0.01]'
                       }`}
                     >
