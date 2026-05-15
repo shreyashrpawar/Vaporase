@@ -92,21 +92,21 @@ export default function SettingsPage() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Drop Alias</label>
-                    <div className="flex">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-xs font-bold text-accent/50">
+                        ilusion.io/
+                      </div>
                       <input
                         type="text"
                         value={subdomain}
                         onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                         placeholder="username"
-                        className="input !rounded-r-none !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 flex-1 text-right font-mono"
+                        className="input !pl-20 !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 font-bold"
                         maxLength={30}
                         required
                       />
-                      <div className="flex items-center px-4 bg-white/[0.05] border border-white/[0.1] border-l-0 rounded-r-2xl text-[11px] font-bold text-muted-foreground">
-                        .ilusion.io
-                      </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground ml-1 opacity-60">Your permanent secure drop URL.</p>
+                    <p className="text-[10px] text-muted-foreground ml-1 opacity-60">Your permanent secure drop URL: <span className="text-accent">ilusion.io/{subdomain || 'username'}</span></p>
                   </div>
                 </div>
 

@@ -7,14 +7,28 @@ import Link from 'next/link';
 
 export default function InboxPage() {
   const { isSignedIn, isLoaded } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
   const [secrets, setSecrets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) fetchInbox();
+    if (isLoaded && isSignedIn) {
+      fetchInbox();
+      fetchProfile();
+    }
   }, [isLoaded, isSignedIn]);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('/api/profile');
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+      }
+    } catch (err) { console.error('Failed to fetch profile', err); }
+  };
 
   const fetchInbox = async () => {
     try {
@@ -192,18 +206,26 @@ export default function InboxPage() {
               
               <div className="space-y-3">
                 <div className="p-3 bg-white/[0.03] border border-white/[0.05] rounded-xl flex items-center justify-between gap-3 group/link">
-                  <code className="text-[10px] text-accent font-bold truncate">ilusion.io/u/shreyash</code>
+                  <code className="text-[10px] text-accent font-bold truncate">
+                    ilusion.io/{profile?.subdomain || '...'}
+                  </code>
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://ilusion.io/u/shreyash`);
+                      if (!profile?.subdomain) return;
+                      const link = `${window.location.origin}/${profile.subdomain}`;
+                      navigator.clipboard.writeText(link);
                       alert('Link copied!');
                     }}
-                    className="p-1.5 rounded-lg hover:bg-accent/10 transition-colors"
+                    disabled={!profile?.subdomain}
+                    className="p-1.5 rounded-lg hover:bg-accent/10 transition-colors disabled:opacity-30"
                   >
                     <Copy className="w-3.5 h-3.5 text-accent" />
                   </button>
                 </div>
-                <Link href="/create" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-black rounded-xl text-xs font-bold hover:bg-white/90 transition-all">
+                <Link 
+                  href={profile?.subdomain ? `/${profile.subdomain}` : '#'} 
+                  className={`flex items-center justify-center gap-2 w-full py-2.5 bg-white text-black rounded-xl text-xs font-bold hover:bg-white/90 transition-all ${!profile?.subdomain ? 'pointer-events-none opacity-50' : ''}`}
+                >
                   Test My Link
                 </Link>
               </div>
