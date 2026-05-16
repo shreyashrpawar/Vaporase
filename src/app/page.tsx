@@ -73,6 +73,7 @@ export default function LandingPage() {
           {!isSignedIn ? (
             <>
               <Link href="/pricing" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Pricing</Link>
+              <Link href="/contact" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Contact</Link>
               <Link href="/view" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Reveal</Link>
               <Link href="/sign-in" className="text-sm font-medium px-4 py-2 hover:text-accent transition-colors" style={{ color: 'var(--text-secondary)' }}>Sign In</Link>
               <Link href="/sign-up" className="btn-primary !py-2.5 !px-5 !text-xs !rounded-xl ml-2">Get Started</Link>
@@ -105,6 +106,7 @@ export default function LandingPage() {
         {isMobileMenuOpen && (
           <div className="absolute top-full left-0 right-0 glass mt-2 mx-4 rounded-2xl p-4 flex flex-col gap-2 md:hidden animate-fade-in-up z-50">
             <Link href="/pricing" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Pricing</Link>
+            <Link href="/contact" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Contact</Link>
             <Link href="/view" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Reveal Secret</Link>
             <Link href="/sign-in" className="px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium transition-colors" style={{ color: 'var(--text-primary)' }}>Sign In</Link>
             <Link href="/sign-up" className="btn-primary !py-3 w-full text-center mt-2">Get Started</Link>
@@ -158,7 +160,7 @@ export default function LandingPage() {
                 value={quickAlias}
                 onChange={(e) => setQuickAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-9]/g, ''))}
                 placeholder="alias-name"
-                className="input !pl-[140px] !pr-10 !py-4 !text-sm font-bold"
+                className="input !pl-[175px] !pr-10 !py-4 !text-sm font-bold"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && quickAlias) {
                     router.push(`/secret/${quickAlias}`);
@@ -483,7 +485,7 @@ export default function LandingPage() {
             <div className="mb-6">
               <h3 className="text-lg sm:text-xl font-bold mb-2">Pro Monthly</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-2xl sm:text-3xl font-bold">$2</span>
+                <span className="text-2xl sm:text-3xl font-bold">$Free</span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
               <p className="text-[11px] sm:text-xs text-muted-foreground">Advanced security for power users.</p>
@@ -506,7 +508,7 @@ export default function LandingPage() {
             <div className="mb-6">
               <h3 className="text-lg sm:text-xl font-bold mb-2">Pro Yearly</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-2xl sm:text-3xl font-bold">$18</span>
+                <span className="text-2xl sm:text-3xl font-bold">$Free</span>
                 <span className="text-xs text-muted-foreground">/year</span>
               </div>
               <p className="text-[11px] sm:text-xs text-muted-foreground">Professional security at $1.50/mo.</p>
@@ -533,21 +535,21 @@ export default function LandingPage() {
 
         <div className="space-y-4">
           {[
-            { 
-              q: "Is Ilusion.io really secure?", 
-              a: "Yes. We use industry-standard AES-256 encryption. For text secrets, encryption happens in your browser (Client-Side), meaning we never see your unencrypted data." 
+            {
+              q: "Is Ilusion.io really secure?",
+              a: "Yes. We use industry-standard AES-256 encryption. For text secrets, encryption happens in your browser (Client-Side), meaning we never see your unencrypted data."
             },
-            { 
-              q: "What does 'Burn on Read' mean?", 
-              a: "It means the secret is permanently deleted from our database the moment it is accessed. Once the link is opened, it can never be viewed again." 
+            {
+              q: "What does 'Burn on Read' mean?",
+              a: "It means the secret is permanently deleted from our database the moment it is accessed. Once the link is opened, it can never be viewed again."
             },
-            { 
-              q: "Can I send large files safely?", 
-              a: "Absolutely. Free users can send up to 50MB, and Pro users up to 100MB. All files are stored with temporary access keys and deleted automatically." 
+            {
+              q: "Can I send large files safely?",
+              a: "Absolutely. Free users can send up to 50MB, and Pro users up to 100MB. All files are stored with temporary access keys and deleted automatically."
             },
-            { 
-              q: "Do I need an account to receive a secret?", 
-              a: "No. Anyone with the secure link can reveal a secret. Accounts are only needed if you want to use the Secure Inbox or Developer API." 
+            {
+              q: "Do I need an account to receive a secret?",
+              a: "No. Anyone with the secure link can reveal a secret. Accounts are only needed if you want to use the Secure Inbox or Developer API."
             }
           ].map((faq, i) => (
             <div key={i} className="card p-6 bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] transition-all">
