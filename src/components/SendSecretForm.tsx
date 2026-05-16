@@ -558,13 +558,12 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
                 const newValue = !burnOnRead;
                 setBurnOnRead(newValue);
                 if (!newValue) {
-                  // If disabling burn, enforce max 24h and notify password requirement
                   if (expiryHours > 24) setExpiryHours(24);
                 }
               }}
-              className={`w-10 h-5 rounded-full transition-all relative ${burnOnRead ? 'bg-accent' : 'bg-white/10'}`}
+              className={`w-10 h-5 rounded-full transition-all relative ${burnOnRead ? 'bg-accent' : 'bg-slate-200 dark:bg-white/10'}`}
             >
-              <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${burnOnRead ? 'right-1' : 'left-1'}`} />
+              <div className={`absolute top-1 w-3 h-3 rounded-full bg-white shadow-sm transition-all ${burnOnRead ? 'right-1' : 'left-1'}`} />
             </button>
           </div>
 
