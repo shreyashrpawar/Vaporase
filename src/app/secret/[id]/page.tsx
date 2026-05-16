@@ -170,7 +170,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-accent/10 border border-accent/20 group-hover:scale-110 transition-transform duration-500">
             <Lock className="w-5 h-5 text-accent" />
           </div>
-          <span className="text-xl font-black tracking-tight text-foreground">
+          <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
             ilusion<span className="text-accent">.io</span>
           </span>
         </Link>
@@ -188,12 +188,12 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
           {error && (
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-[2rem] blur-xl opacity-50" />
-              <div className="relative bg-white dark:bg-slate-900/80 backdrop-blur-2xl border border-red-500/20 rounded-[2rem] p-8 sm:p-12 text-center shadow-2xl">
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 bg-red-500/10 border border-red-500/20">
-                  <AlertTriangle className="w-10 h-10 text-red-500" />
-                </div>
-                <h2 className="text-3xl font-black mb-4 text-foreground tracking-tight">Secret Unavailable</h2>
-                <p className="text-muted-foreground mb-10 leading-relaxed text-lg">{error}</p>
+                <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[2rem] p-8 sm:p-12 text-center shadow-2xl">
+                  <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 bg-red-500/10 border border-red-500/20">
+                    <AlertTriangle className="w-10 h-10 text-red-500" />
+                  </div>
+                  <h2 className="text-3xl font-black mb-4 text-slate-900 dark:text-white tracking-tight">Secret Unavailable</h2>
+                  <p className="text-slate-600 dark:text-slate-400 mb-10 leading-relaxed text-lg">{error}</p>
                 <Link
                   href="/create"
                   className="w-full h-14 bg-foreground text-background rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -220,10 +220,10 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl font-black mb-4 text-foreground tracking-tight leading-tight">
+                <h2 className="text-3xl sm:text-4xl font-black mb-4 text-slate-900 dark:text-white tracking-tight leading-tight">
                   {requirePassword ? 'Protected Vault' : 'Secure Message'}
                 </h2>
-                <p className="text-muted-foreground mb-10 text-lg leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 mb-10 text-lg leading-relaxed">
                   {requirePassword
                     ? 'Enter the authorization key to access the encrypted payload.'
                     : 'A confidential secret has been shared. Once opened, it will be permanently purged from our infrastructure.'
@@ -289,9 +289,9 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
 
                 <div className="text-center pb-2">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-emerald-500/10 border border-emerald-500/20">
-                    <Check className="w-8 h-8 text-emerald-500" />
+                    <Check className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
                   </div>
-                  <h2 className="text-2xl font-black text-foreground tracking-tight mb-2">Decryption Successful</h2>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Decryption Successful</h2>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
                     <AlertTriangle className="w-3 h-3 text-red-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-400">Permanently Purged</span>
@@ -313,7 +313,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                     </div>
                     <div className="group relative">
                       <div className="absolute -inset-0.5 bg-accent/5 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="relative min-h-[120px] max-h-[400px] overflow-y-auto rounded-2xl p-6 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 font-mono text-sm sm:text-base leading-relaxed break-all whitespace-pre-wrap text-foreground selection:bg-accent/30">
+                      <div className="relative min-h-[120px] max-h-[400px] overflow-y-auto rounded-2xl p-6 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 font-mono text-sm sm:text-base leading-relaxed break-all whitespace-pre-wrap text-slate-900 dark:text-slate-100 selection:bg-accent/30">
                         {secretData.encryptedContent}
                       </div>
                     </div>
@@ -337,8 +337,8 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                                 <Icon className="w-6 h-6 text-accent" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-foreground truncate">{file.fileName || 'Encrypted File'}</p>
-                                <p className="text-[10px] font-bold text-muted-foreground/60 tracking-wider uppercase">{formatBytes(file.fileSize)}</p>
+                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{file.fileName || 'Encrypted File'}</p>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">{formatBytes(file.fileSize)}</p>
                               </div>
                               <button
                                 onClick={() => handleDownload(file.fileUrl, file.fileName)}
@@ -375,7 +375,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                   </Link>
                   <Link
                     href="/"
-                    className="h-14 px-8 bg-slate-100 dark:bg-white/5 text-foreground rounded-xl font-bold flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                    className="h-14 px-8 bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white rounded-xl font-bold flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
                   >
                     Home
                   </Link>

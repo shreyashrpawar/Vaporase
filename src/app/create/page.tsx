@@ -382,7 +382,7 @@ export default function CreateSecretPage() {
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-muted border border-border flex items-center justify-center backdrop-blur-xl transition-all group-hover:scale-110 group-hover:bg-muted/80 group-hover:border-accent/50 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]">
             <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
           </div>
-          <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground">ilusion<span className="text-accent">.io</span></span>
+          <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">ilusion<span className="text-accent">.io</span></span>
         </Link>
         <div className="flex items-center gap-3 sm:gap-6 pointer-events-auto">
           <Link href="/contact" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors hidden md:block">Contact</Link>
@@ -407,11 +407,11 @@ export default function CreateSecretPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold text-accent uppercase tracking-widest mb-2 animate-bounce-slow">
                 <Sparkles className="w-3 h-3" /> Now Unlocked: Community Pro
               </div>
-              <h1 className="text-4xl md:text-7xl font-black tracking-tight text-foreground leading-tight">
+              <h1 className="text-4xl md:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                 Securely share <br />
                 <span className="text-gradient">anything</span> to anyone.
               </h1>
-              <p className="text-muted-foreground text-sm sm:text-lg max-w-xl mx-auto font-medium px-4">
+              <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-lg max-w-xl mx-auto font-medium px-4">
                 Military-grade encryption for your most sensitive notes and files.
                 Self-destructs automatically after reading.
               </p>
@@ -649,8 +649,8 @@ export default function CreateSecretPage() {
                 <div className="absolute inset-0 bg-success/20 blur-2xl group-hover:bg-success/30 transition-all" />
                 <Check className="w-12 h-12 text-success relative z-10" />
               </div>
-              <h2 className="text-5xl font-black text-foreground tracking-tight">Your secret is <span className="text-success">Live</span>.</h2>
-              <p className="text-muted-foreground text-lg font-medium">The link below will self-destruct after the first view.</p>
+              <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">Your secret is <span className="text-success">Live</span>.</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-lg font-medium">The link below will self-destruct after the first view.</p>
             </div>
 
             <div className="relative group">
@@ -662,7 +662,7 @@ export default function CreateSecretPage() {
                     <input
                       readOnly
                       value={generatedLink}
-                      className="w-full bg-muted/20 border border-border rounded-2xl px-4 sm:px-6 py-4 sm:py-5 pr-14 sm:pr-40 text-xs sm:text-sm font-mono text-foreground focus:border-accent/50 outline-none transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl px-4 sm:px-6 py-4 sm:py-5 pr-14 sm:pr-40 text-xs sm:text-sm font-mono text-slate-900 dark:text-slate-100 focus:border-accent/50 outline-none transition-all"
                     />
                     <button
                       onClick={copyToClipboard}
@@ -679,10 +679,10 @@ export default function CreateSecretPage() {
                     <QRCodeSVG value={generatedLink} size={120} className="sm:w-[140px] sm:h-[140px]" bgColor="#fff" fgColor="#000" />
                   </div>
                   <div className="space-y-2 sm:space-y-4 text-center md:text-left">
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center justify-center md:justify-start gap-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center justify-center md:justify-start gap-2">
                       <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-accent" /> Scan to View
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto md:mx-0">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto md:mx-0">
                       Share this QR code with your recipient for instant, secure access on mobile devices.
                     </p>
                   </div>
@@ -714,7 +714,7 @@ export default function CreateSecretPage() {
       {!generatedLink && localHistory.length > 0 && (
         <div className="w-full max-w-4xl px-6 pb-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Inbox className="w-5 h-5 text-accent" /> Recent Activity
               <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20">Local Only</span>
             </h2>
@@ -736,10 +736,10 @@ export default function CreateSecretPage() {
               <div key={secret.id} className="group relative bg-white dark:bg-slate-900/50 border border-border/50 hover:border-accent/30 rounded-2xl p-5 transition-all hover:shadow-lg">
                 <div className="flex items-start justify-between mb-3">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-foreground truncate max-w-[200px]">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[200px]">
                       {secret.label || 'Secure Message'}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
                       Created {new Date(secret.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
