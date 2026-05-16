@@ -359,16 +359,16 @@ export default function CreateSecretPage() {
               {/* Glassmorphic Card Container */}
               <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
               
-              <div className="relative bg-background/80 dark:bg-slate-900/60 backdrop-blur-3xl border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+              <div className="relative bg-white/90 dark:bg-slate-900/80 backdrop-blur-3xl border border-border/50 dark:border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
                 {/* Editor Toolbar */}
-                <div className="flex items-center justify-between p-6 border-b border-border bg-muted/20">
+                <div className="flex items-center justify-between p-6 border-b border-border/50 bg-slate-50/50 dark:bg-white/5">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5 px-2">
                       <div className="w-2.5 h-2.5 rounded-full bg-red-400 dark:bg-red-500/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-400 dark:bg-amber-500/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 dark:bg-emerald-500/50" />
                     </div>
-                    <div className="h-4 w-px bg-border mx-2" />
+                    <div className="h-4 w-px bg-border/50 mx-2" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Secure Composer</span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -390,7 +390,7 @@ export default function CreateSecretPage() {
                     value={secretText}
                     onChange={(e) => setSecretText(e.target.value)}
                     placeholder="Type or paste your confidential message here..."
-                    className="w-full min-h-[300px] bg-transparent p-10 text-xl font-medium text-foreground placeholder:text-muted-foreground/30 border-none focus:ring-0 resize-none custom-scrollbar"
+                    className="w-full min-h-[300px] bg-transparent p-10 text-xl font-medium text-foreground placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
                   />
 
                   {/* Attachment Overlay if files exist */}
@@ -432,7 +432,7 @@ export default function CreateSecretPage() {
                 </div>
 
                 {/* Settings & Footer Bar */}
-                <div className="p-6 bg-muted/10 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="p-6 bg-slate-50/80 dark:bg-black/20 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex items-center gap-6">
                     {/* Expiry Selector */}
                     <div className="flex flex-col gap-1.5">
@@ -440,9 +440,9 @@ export default function CreateSecretPage() {
                       <select
                         value={expiryHours}
                         onChange={(e) => setExpiryHours(Number(e.target.value))}
-                        className="bg-background border border-border rounded-xl px-4 py-2 text-xs font-bold text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-muted"
+                        className="bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-2 text-xs font-bold text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-slate-50"
                       >
-                        {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value} className="bg-background text-foreground">{opt.label}</option>)}
+                        {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value} className="bg-white dark:bg-background text-foreground">{opt.label}</option>)}
                       </select>
                     </div>
 
@@ -452,7 +452,7 @@ export default function CreateSecretPage() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-background hover:bg-muted border border-border rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-background hover:bg-slate-50 dark:hover:bg-muted border border-border/50 rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
                       >
                         <Upload className="w-4 h-4 text-accent" />
                         Attach Files
@@ -460,7 +460,7 @@ export default function CreateSecretPage() {
                       <button
                         onClick={() => setShowAdvanced(!showAdvanced)}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                          showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-background text-muted-foreground hover:text-foreground border border-border'
+                          showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
                         }`}
                       >
                         <Settings className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
@@ -481,7 +481,7 @@ export default function CreateSecretPage() {
 
                 {/* Advanced Security Drawer */}
                 {showAdvanced && (
-                  <div className="p-8 bg-inset/40 border-t border-border animate-fade-in-up">
+                  <div className="p-8 bg-slate-50/50 dark:bg-black/20 border-t border-border/50 animate-fade-in-up">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
@@ -493,7 +493,7 @@ export default function CreateSecretPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Optional Key..."
-                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                            className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
                           />
                           <button 
                             onClick={() => setShowPassword(!showPassword)}

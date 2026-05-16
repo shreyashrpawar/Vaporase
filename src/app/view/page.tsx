@@ -135,7 +135,7 @@ export default function ViewSecretPage() {
                       value={alias}
                       onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       placeholder="alias-name"
-                      className="input !pl-28 !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 !py-4 !text-sm font-bold"
+                      className="input !pl-[175px] !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 !py-4 !text-sm font-bold"
                       onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
                     />
                   </div>
