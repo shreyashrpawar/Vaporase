@@ -290,7 +290,7 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      
+
       // Generate the shortened "Zero-Knowledge" link
       // Format: /s/ALIAS#KEY or /s/ID#KEY
       // The hash #KEY is never sent to the server
@@ -393,7 +393,7 @@ export default function CreateSecretPage() {
                 <span className="text-gradient">anything</span> to anyone.
               </h1>
               <p className="text-muted-foreground text-sm sm:text-lg max-w-xl mx-auto font-medium px-4">
-                Military-grade encryption for your most sensitive notes and files. 
+                Military-grade encryption for your most sensitive notes and files.
                 Self-destructs automatically after reading.
               </p>
             </div>
@@ -401,7 +401,7 @@ export default function CreateSecretPage() {
             <div className="relative group">
               {/* Glassmorphic Card Container */}
               <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-3xl sm:rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-              
+
               <div className="relative bg-white dark:bg-slate-900/80 border border-border/50 dark:border-white/10 rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl">
                 {/* Editor Toolbar */}
                 <div className="flex items-center justify-between p-6 border-b border-border/50 bg-slate-50 dark:bg-white/5">
@@ -423,7 +423,7 @@ export default function CreateSecretPage() {
                 </div>
 
                 {/* Main Input Area */}
-                <div 
+                <div
                   className={`relative transition-all duration-500 ${isDragging ? 'bg-accent/5' : ''}`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -433,7 +433,7 @@ export default function CreateSecretPage() {
                     value={secretText}
                     onChange={(e) => setSecretText(e.target.value)}
                     placeholder="Type or paste your confidential message here..."
-                    className="w-full min-h-[250px] sm:min-h-[300px] bg-transparent p-6 sm:p-10 text-lg sm:text-xl font-medium text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
+                    className="w-full min-h-[250px] sm:min-h-[300px] bg-transparent p-6 sm:p-10 text-lg sm:text-xl font-medium text-zinc-900 dark:text-foreground placeholder:text-gray-300 dark:placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
                   />
 
                   {/* Attachment Overlay if files exist */}
@@ -502,9 +502,8 @@ export default function CreateSecretPage() {
                       </button>
                       <button
                         onClick={() => setShowAdvanced(!showAdvanced)}
-                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                          showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
-                        }`}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
+                          }`}
                       >
                         <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
                         <span className="whitespace-nowrap">Settings</span>
@@ -522,16 +521,15 @@ export default function CreateSecretPage() {
                           setShowAdvanced(true);
                         }
                       }}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
-                        !burnOnRead 
-                          ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' 
-                          : 'bg-zinc-500/5 text-zinc-400 border-transparent hover:border-zinc-500/20'
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${!burnOnRead
+                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                        : 'bg-zinc-500/5 text-zinc-400 border-transparent hover:border-zinc-500/20'
+                        }`}
                     >
                       {burnOnRead ? <Zap className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                       {burnOnRead ? 'Burn on View' : 'Multi-View Active'}
                     </button>
-                    
+
                     <button
                       onClick={handleSubmit}
                       disabled={isLoading || (!secretText && files.length === 0) || (!burnOnRead && !password)}
@@ -560,7 +558,7 @@ export default function CreateSecretPage() {
                             placeholder="Optional Key..."
                             className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
                           />
-                          <button 
+                          <button
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-muted-foreground hover:text-zinc-900 dark:hover:text-foreground transition-colors"
                           >
@@ -674,15 +672,15 @@ export default function CreateSecretPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <button 
-                onClick={resetForm} 
+              <button
+                onClick={resetForm}
                 className="w-full py-4 sm:py-5 bg-muted border border-border rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold uppercase tracking-widest transition-all text-foreground flex items-center justify-center gap-3"
               >
                 <span className="w-3.5 h-3.5 sm:w-4 sm:h-4"><Sparkles className="w-full h-full text-accent" /></span>
                 Create New
               </button>
-              <Link 
-                href="/dashboard/secrets" 
+              <Link
+                href="/dashboard/secrets"
                 className="w-full py-4 sm:py-5 bg-accent hover:bg-accent/90 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold uppercase tracking-widest transition-all text-white flex items-center justify-center gap-3 shadow-xl shadow-accent/20"
               >
                 <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -701,7 +699,7 @@ export default function CreateSecretPage() {
               <Inbox className="w-5 h-5 text-accent" /> Recent Activity
               <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20">Local Only</span>
             </h2>
-            <button 
+            <button
               onClick={() => {
                 if (confirm('Clear local history?')) {
                   localStorage.removeItem('ilusion_recent_secrets');
@@ -726,13 +724,12 @@ export default function CreateSecretPage() {
                       Created {new Date(secret.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                    secret.status === 'burned' 
-                      ? 'bg-red-500/10 text-red-500' 
-                      : secret.status === 'expired' 
-                        ? 'bg-zinc-500/10 text-zinc-500' 
-                        : 'bg-emerald-500/10 text-emerald-500 animate-pulse'
-                  }`}>
+                  <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${secret.status === 'burned'
+                    ? 'bg-red-500/10 text-red-500'
+                    : secret.status === 'expired'
+                      ? 'bg-zinc-500/10 text-zinc-500'
+                      : 'bg-emerald-500/10 text-emerald-500 animate-pulse'
+                    }`}>
                     {secret.status}
                   </div>
                 </div>
@@ -753,7 +750,7 @@ export default function CreateSecretPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => {
                         navigator.clipboard.writeText(secret.link);
                         alert('Link copied!');
@@ -763,7 +760,7 @@ export default function CreateSecretPage() {
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         removeLocalSecret(secret.id);
                         setLocalHistory(getLocalSecrets());
@@ -778,7 +775,7 @@ export default function CreateSecretPage() {
               </div>
             ))}
           </div>
-          
+
           <p className="text-[10px] text-center mt-8 text-muted-foreground/50 font-medium">
             History is automatically purged after 24 hours for your privacy.
           </p>
