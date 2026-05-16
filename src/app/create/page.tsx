@@ -29,7 +29,8 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
+import { generateKey, encryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
+import { nanoid } from 'nanoid';
 import { saveLocalSecret, getLocalSecrets, LocalSecret, updateLocalSecret, removeLocalSecret } from '@/lib/local-history';
 
 const EXPIRY_OPTIONS = [
@@ -253,12 +254,31 @@ export default function CreateSecretPage() {
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      // True Client-Side End-to-End Encryption (E2EE)
-      const encryptionKey = await generateKey();
+      // 1. Determine the ID/Salt
+      // Use custom alias if provided, otherwise generate a random ID on client 
+      // so we have the salt before encryption.
+      const customId = (alias && userPlan === 'pro') ? alias : nanoid(8);
+      const salt = customId;
+
+      // 2. Encryption Strategy
+      let encryptionKey: string;
+      let includeKeyInHash = false;
+
+      if (password && userPlan === 'pro') {
+        // If password is provided, derive key from it (Zero-Knowledge)
+        // This makes the link speakable over a call.
+        encryptionKey = await deriveKeyFromPassword(password, salt);
+        includeKeyInHash = false;
+      } else {
+        // Default: Random key in the URL hash
+        encryptionKey = await generateKey();
+        includeKeyInHash = true;
+      }
+
       const finalEncryptedContent = await encryptText(secretText, encryptionKey);
       const isE2EE = true;
 
-      // Hash Password if provided (Pro only — enforced client & server)
+      // Hash Password for server-side authorization
       let finalPasswordHash = null;
       if (password && userPlan === 'pro') {
         finalPasswordHash = await hashPassword(password);
@@ -268,6 +288,7 @@ export default function CreateSecretPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: customId,
           encryptedContent: finalEncryptedContent,
           fileKey,
           fileName,
@@ -290,13 +311,11 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-
-      // Generate the shortened "Zero-Knowledge" link
-      // Format: /s/ALIAS#KEY or /s/ID#KEY
-      // The hash #KEY is never sent to the server
-      const linkBase = `${window.location.origin}/s/${(alias && userPlan === 'pro') ? alias : id}`;
-      const linkWithKey = `${linkBase}#${encryptionKey}`;
-      setGeneratedLink(linkWithKey);
+      
+      // Generate the link
+      const linkBase = `${window.location.origin}/s/${id}`;
+      const finalLink = includeKeyInHash ? `${linkBase}#${encryptionKey}` : linkBase;
+      setGeneratedLink(finalLink);
 
       // Save to local history
       const label = files.length > 0
@@ -304,7 +323,7 @@ export default function CreateSecretPage() {
         : secretText.slice(0, 30) + (secretText.length > 30 ? '...' : '');
       saveLocalSecret({
         id,
-        link: linkWithKey,
+        link: finalLink,
         createdAt: Date.now(),
         expiresAt: Date.now() + expiryHours * 60 * 60 * 1000,
         label,

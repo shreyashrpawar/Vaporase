@@ -29,6 +29,7 @@ export async function POST(req: Request) {
     }
 
     const { 
+      id: suggestedId,
       encryptedContent, 
       fileKey, 
       fileName, 
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
     let finalAllowedIp = allowedIp;
     let finalAlias = alias;
 
-    const id = nanoid(8); // 8 char random string for the URL
+    const id = suggestedId || nanoid(8); // Use suggested ID or generate a random one
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 

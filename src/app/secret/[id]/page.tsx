@@ -19,7 +19,7 @@ import {
   MessageSquare,
   Zap
 } from 'lucide-react';
-import { decryptText, hashPassword } from '@/lib/crypto';
+import { decryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
 
 function formatBytes(bytes: number) {
   if (!bytes) return '';
@@ -95,7 +95,13 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
             }
           }
 
-          if (!keyFragment) throw new Error('Missing decryption key in URL link.');
+          if (!keyFragment && password) {
+            // If no key in URL, try to derive it from the password (Speakable Links flow)
+            // Use the ID from the URL as the salt
+            keyFragment = await deriveKeyFromPassword(password, resolvedParams.id);
+          }
+
+          if (!keyFragment) throw new Error('Missing decryption key. If this is a password-protected speakable link, please ensure you entered the password.');
           data.encryptedContent = await decryptText(data.encryptedContent, keyFragment);
         } catch (decErr: any) {
           throw new Error(decErr.message || 'Decryption failed.');

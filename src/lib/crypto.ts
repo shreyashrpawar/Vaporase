@@ -107,6 +107,41 @@ export async function hashPassword(password: string): Promise<string> {
   const data = encoder.encode(password);
   const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Derives a 128-bit AES key from a password and salt using PBKDF2.
+ * This is used to make links speakable (no hash fragment needed if password is the key).
+ */
+export async function deriveKeyFromPassword(password: string, salt: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password);
+  const saltData = encoder.encode(salt);
+
+  // Import the password as a "raw" key for derivation
+  const baseKey = await window.crypto.subtle.importKey(
+    'raw',
+    passwordData,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  );
+
+  // Derive an AES-GCM key
+  const derivedKey = await window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: saltData,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    baseKey,
+    { name: 'AES-GCM', length: 128 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+
+  const exported = await window.crypto.subtle.exportKey('raw', derivedKey);
+  return bufferToBase64(exported).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
