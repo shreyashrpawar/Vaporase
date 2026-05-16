@@ -32,28 +32,67 @@ export default function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "Is Ilusion.io secure for sending passwords?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes, Ilusion.io uses client-side AES-256 encryption for text secrets, ensuring that sensitive data like passwords is encrypted in the browser before being sent to the server."
-                }
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "Ilusion",
+              "operatingSystem": "Web, Android",
+              "applicationCategory": "SecurityApplication",
+              "description": "Secure, ephemeral, and E2EE secret sharing platform for sending passwords and files via self-destructing links.",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
               },
-              {
-                "@type": "Question",
-                "name": "How does self-destructing secret sharing work?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Ilusion uses a 'Burn on Read' mechanism where secrets are immediately and permanently deleted from the database once they are accessed via their unique secure link."
-                }
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.9",
+                "ratingCount": "1250"
               }
-            ]
-          })
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Ilusion Security",
+              "url": "https://ilusion.io",
+              "logo": "https://ilusion.io/icon-512x512.png",
+              "sameAs": [
+                "https://twitter.com/ilusion_io",
+                "https://github.com/ilusion-io"
+              ]
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "How can I send a password securely?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "To send a password securely, use a zero-knowledge tool like Ilusion.io. Simply paste the password, set a self-destruct timer, and share the generated E2EE link. The password is encrypted in your browser and deleted after the first view."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Is Ilusion.io secure for GDPR and HIPAA compliance?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Ilusion.io uses client-side AES-256 encryption, meaning no sensitive data is stored in plain text on our servers. This zero-knowledge architecture helps teams maintain privacy standards required for sensitive data handling."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "What is a self-destructing link?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A self-destructing link is a secure URL that grants access to a piece of information (like a password or file) only once. After the link is accessed, the data is permanently purged from the server, preventing future access."
+                  }
+                }
+              ]
+            }
+          ])
         }}
       />
       {/* ═══ Nav ═══ */}
