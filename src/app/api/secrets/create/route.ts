@@ -132,6 +132,7 @@ export async function POST(req: Request) {
       dropKey: dropKey || null,
       alias: finalAlias || null,
       senderIp: senderIp,
+      viewCount: 0,
       filesJson: files ? JSON.stringify(files) : null,
     });
 
