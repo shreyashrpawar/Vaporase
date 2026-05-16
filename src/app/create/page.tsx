@@ -305,374 +305,338 @@ export default function CreateSecretPage() {
   };
 
 
-
-
   return (
-    <div className="dot-grid min-h-screen flex flex-col lg:flex-row overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-      {/* AEO: HowTo Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "HowTo",
-            "name": "How to Send a Secure Secret with Ilusion",
-            "description": "Step-by-step guide to encrypting and sharing ephemeral secrets safely.",
-            "step": [
-              { "@type": "HowToStep", "text": "Enter your secret text or upload a file." },
-              { "@type": "HowToStep", "text": "Set security options like password protection and expiry." },
-              { "@type": "HowToStep", "text": "Generate a unique, encrypted link to share." }
-            ]
-          })
-        }}
-      />
+    <div className="min-h-screen bg-[#020617] text-slate-200 selection:bg-accent/30 selection:text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Immersive Background Elements */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 pointer-events-none mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+      </div>
 
-      {/* ═══ Left Sidebar: Guidance & Trust ═══ */}
-      <aside className="hidden lg:flex w-80 xl:w-96 flex-col border-r border-white/[0.05] p-8 space-y-12" style={{ background: 'var(--bg-elevated)' }}>
-        <Link href="/" className="flex items-center gap-3 group mb-8">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-all group-hover:scale-105" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
-            <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+      {/* Header / Brand */}
+      <header className="fixed top-0 left-0 right-0 z-50 p-8 flex items-center justify-between pointer-events-none">
+        <Link href="/" className="flex items-center gap-3 group pointer-events-auto">
+          <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-xl transition-all group-hover:scale-110 group-hover:bg-white/10 group-hover:border-accent/50 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]">
+            <Lock className="w-5 h-5 text-accent" />
           </div>
-          <span className="text-lg font-bold tracking-tight">ilusion<span className="text-accent">.io</span></span>
+          <span className="text-xl font-bold tracking-tight text-white">ilusion<span className="text-accent">.io</span></span>
         </Link>
+        <div className="flex items-center gap-4 pointer-events-auto">
+          {isSignedIn ? (
+            <Link href="/dashboard" className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10">
+              Workspace <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          ) : (
+            <Link href="/sign-in" className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Sign In</Link>
+          )}
+        </div>
+      </header>
 
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-widest text-accent mb-4">Security Guide</h2>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <Shield className="w-5 h-5 text-accent shrink-0" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>Secure & Ephemeral:</strong> Your secrets are stored with advanced encryption and purged after viewing.
-                </p>
+      {/* Main Composer Area */}
+      <main className="w-full max-w-4xl relative z-10 py-20">
+        {!generatedLink ? (
+          <div className="space-y-8 animate-fade-in-up">
+            <div className="text-center space-y-4 mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold text-accent uppercase tracking-widest mb-2 animate-bounce-slow">
+                <Sparkles className="w-3 h-3" /> Now Unlocked: Community Pro
               </div>
-              <div className="flex gap-3">
-                <Zap className="w-5 h-5 text-accent shrink-0" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>Burn-on-Read:</strong> Secrets are automatically purged from our database the moment they are revealed.
-                </p>
-              </div>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white leading-tight">
+                Securely share <br />
+                <span className="text-gradient">anything</span> to anyone.
+              </h1>
+              <p className="text-slate-400 text-lg max-w-xl mx-auto font-medium">
+                Military-grade encryption for your most sensitive notes and files. 
+                Self-destructs automatically after reading.
+              </p>
             </div>
-          </div>
 
-          <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-accent" />
-              <h3 className="text-xs font-bold">Pro Tip</h3>
-            </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Use a <strong>Custom Alias</strong> to create branded links like <code className="text-accent">ilusion.io/secret/finance-report</code>.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-auto pt-8 border-t border-white/[0.05]">
-          <Link href="/dashboard" className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Workspace
-          </Link>
-        </div>
-      </aside>
-
-      {/* ═══ Main Creation Area ═══ */}
-      <main className="flex-1 flex flex-col min-w-0 bg-background overflow-y-auto custom-scrollbar">
-        {/* Mobile Header */}
-        <div className="lg:hidden p-4 border-b border-white/[0.05] flex items-center justify-between">
-          <Link href="/" className="font-bold">ilusion.io</Link>
-          <Link href="/dashboard" className="text-xs font-bold text-accent">Dashboard</Link>
-        </div>
-
-        <div className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 lg:py-24">
-          {!generatedLink ? (
-            <div className="space-y-12 animate-fade-in-up">
-              <header className="space-y-3">
-                <h1 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">
-                  Create a <span className="text-accent">Secret</span>
-                </h1>
-                <p className="text-lg text-muted-foreground font-medium">
-                  Securely share encrypted text or files with anyone.
-                </p>
-              </header>
-
-              <div className="space-y-10">
-                {/* 1. Content Type */}
-                <section className="space-y-4">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-[10px] font-bold">1</div>
-                    <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Define Content</h2>
+            <div className="relative group">
+              {/* Glassmorphic Card Container */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+              
+              <div className="relative bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                {/* Editor Toolbar */}
+                <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02]">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5 px-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
+                    </div>
+                    <div className="h-4 w-px bg-white/10 mx-2" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Secure Composer</span>
                   </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                      <Shield className="w-3.5 h-3.5 text-accent" />
+                      AES-256 GCM
+                    </div>
+                  </div>
+                </div>
 
-                  <div 
-                    className="space-y-6"
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={(e) => { 
-                      e.preventDefault(); 
-                      setIsDragging(false);
-                      const dropped = Array.from(e.dataTransfer.files);
-                      if (dropped.length) addFiles(dropped);
-                    }}
-                  >
-                    {/* Text Area - always visible */}
-                    <div className={`relative rounded-[2rem] overflow-hidden border-2 transition-all duration-500 ${
-                      isDragging ? 'border-accent bg-accent/5 scale-[1.01] shadow-2xl shadow-accent/20' : 'border-white/[0.05] bg-white/[0.01]'
-                    }`}>
-                      <textarea
-                        value={secretText}
-                        onChange={(e) => setSecretText(e.target.value)}
-                        placeholder="Type or paste your secret message..."
-                        className="input min-h-[180px] !py-8 !px-8 !text-lg !font-mono !bg-transparent !border-none focus:ring-0 transition-all resize-none"
-                      />
-                      <div className="absolute bottom-6 right-6 flex items-center gap-4">
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                          Attach File
-                        </button>
-                        <div className="badge badge-accent !text-[9px] opacity-50">Securely Managed</div>
+                {/* Main Input Area */}
+                <div 
+                  className={`relative transition-all duration-500 ${isDragging ? 'bg-accent/5' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <textarea
+                    value={secretText}
+                    onChange={(e) => setSecretText(e.target.value)}
+                    placeholder="Type or paste your confidential message here..."
+                    className="w-full min-h-[300px] bg-transparent p-10 text-xl font-medium text-white placeholder:text-slate-600 border-none focus:ring-0 resize-none custom-scrollbar"
+                  />
+
+                  {/* Attachment Overlay if files exist */}
+                  {files.length > 0 && (
+                    <div className="p-8 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                      {files.map((f, i) => {
+                        const FileIcon = getFileIcon(f.type);
+                        return (
+                          <div key={i} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl group/file hover:border-accent/30 transition-all">
+                            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                              <FileIcon className="w-5 h-5 text-accent" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-white truncate">{f.name}</p>
+                              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">{formatBytes(f.size)}</p>
+                            </div>
+                            <button
+                              onClick={() => removeFile(i)}
+                              className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-all hover:bg-red-500/20"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Drag and Drop Feedback */}
+                  {isDragging && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accent/30 rounded-[2.5rem]">
+                      <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mb-4">
+                        <Upload className="w-10 h-10 text-accent" />
                       </div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
+                      <p className="text-xl font-bold text-white">Drop to Attach Files</p>
+                      <p className="text-sm text-slate-400">Up to {formatBytes(maxTotalSize)}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Settings & Footer Bar */}
+                <div className="p-6 bg-white/[0.03] border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    {/* Expiry Selector */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Auto Destruct</label>
+                      <select
+                        value={expiryHours}
+                        onChange={(e) => setExpiryHours(Number(e.target.value))}
+                        className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-white/10"
+                      >
+                        {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
+                      </select>
                     </div>
 
-                    {/* Files List - visible if files > 0 */}
-                    {files.length > 0 && (
-                      <div className="p-6 rounded-[2rem] border-2 border-white/[0.05] bg-white/[0.01] space-y-4 animate-fade-in">
-                        <div className="flex items-center justify-between px-2">
-                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                            {files.length} file{files.length !== 1 ? 's' : ''} attached
-                          </span>
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            {formatBytes(totalFilesSize)} / {formatBytes(maxTotalSize)}
-                          </span>
-                        </div>
+                    <div className="w-px h-10 bg-white/5 hidden md:block" />
 
-                        <div className="space-y-2">
-                          {files.map((f, i) => {
-                            const FileIcon = getFileIcon(f.type);
-                            return (
-                              <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
-                                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                                  <FileIcon className="w-4 h-4 text-accent" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold truncate">{f.name}</p>
-                                  <p className="text-[10px] text-muted-foreground">{formatBytes(f.size)}</p>
-                                </div>
-                                <button
-                                  onClick={() => removeFile(i)}
-                                  className="w-7 h-7 rounded-lg bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center transition-colors"
-                                >
-                                  <X className="w-3.5 h-3.5 text-destructive" />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                {/* 2. Security Options */}
-                <section className="space-y-6 pt-6 border-t border-white/[0.05]">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-[10px] font-bold">2</div>
-                    <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Security Settings</h2>
+                    {/* Quick Access Actions */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all text-slate-300 hover:text-white"
+                      >
+                        <Upload className="w-4 h-4 text-accent" />
+                        Attach Files
+                      </button>
+                      <button
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                          showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white/5 text-slate-300 hover:text-white border border-white/10'
+                        }`}
+                      >
+                        <Settings className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+                        Security Settings
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Expiry — free for everyone */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Expires After</label>
-                    <select
-                      value={expiryHours}
-                      onChange={(e) => setExpiryHours(Number(e.target.value))}
-                      className="input !bg-white/[0.02] border-white/[0.1]"
-                    >
-                      {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                  </div>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isLoading || (!secretText && files.length === 0)}
+                    className="w-full md:w-auto px-10 py-4 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:grayscale text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                  >
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
+                    {isLoading ? 'Finalizing...' : 'Create Secure Link'}
+                  </button>
+                </div>
 
-                  {/* Pro-only controls */}
-                  <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-5">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-accent" />
-                        <h3 className="text-xs font-bold tracking-tight text-foreground">Security Controls</h3>
-                      </div>
-
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      {/* Password */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Password</label>
+                {/* Advanced Security Drawer */}
+                {showAdvanced && (
+                  <div className="p-8 bg-black/40 border-t border-white/5 animate-fade-in-up">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                          <Lock className="w-3 h-3" /> Password Access
+                        </label>
                         <div className="relative">
                           <input
                             type={showPassword ? 'text' : 'password'}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Lock with key..."
-                            className="input !py-2 !text-xs !bg-white/[0.02] !pr-10"
+                            placeholder="Optional Key..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:border-accent/50 transition-all outline-none"
                           />
-                          {userPlan === 'pro' && (
-                            <button type="button" onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                              {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            </button>
-                          )}
+                          <button 
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
                         </div>
                       </div>
-
-                      {/* IP Whitelist */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">IP Whitelist</label>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                          <Shield className="w-3 h-3" /> IP Restriction
+                        </label>
                         <input
+                          type="text"
                           value={allowedIp}
                           onChange={(e) => setAllowedIp(e.target.value)}
                           placeholder="e.g. 192.168.1.1"
-                          className="input !py-2 !text-xs !bg-white/[0.02]"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:border-accent/50 transition-all outline-none"
                         />
                       </div>
-
-                      {/* Custom Alias */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Custom Alias</label>
-                        <input
-                          value={alias}
-                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                          placeholder="my-secret"
-                          className="input !py-2 !text-xs !bg-white/[0.02]"
-                        />
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                          <Sparkles className="w-3 h-3" /> Custom Alias
+                        </label>
+                        <div className="flex items-center">
+                          <div className="px-3 py-3 bg-white/5 border border-white/10 border-r-0 rounded-l-xl text-[10px] font-bold text-slate-500">ilusion.io/s/</div>
+                          <input
+                            type="text"
+                            value={alias}
+                            onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                            placeholder="my-secret"
+                            className="w-full bg-white/5 border border-white/10 rounded-r-xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:border-accent/50 transition-all outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </section>
-
-                {/* Error */}
-                {error && (
-                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-fade-in-up">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {error}
-                  </div>
                 )}
-
-                {/* Upload Progress */}
-                {isLoading && uploadProgress > 0 && (
-                  <div className="space-y-2">
-                    <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      {uploadProgress < 100 ? 'Encrypting & Uploading...' : 'Finalizing...'}
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={isLoading || (!secretText && files.length === 0)}
-                  className="w-full !py-5 bg-accent text-white rounded-2xl font-bold text-lg shadow-2xl shadow-accent/40 hover:bg-accent/90 transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-3"
-                >
-                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Shield className="w-6 h-6" />}
-                  {isLoading ? 'Uploading...' : 'Generate Secure Link'}
-                </button>
-
               </div>
+
+              {/* Hidden Inputs */}
+              <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
             </div>
-          ) : (
-            /* Result Screen */
-            <div className="max-w-xl mx-auto space-y-10 animate-fade-in">
-              <div className="text-center space-y-4">
-                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Check className="w-10 h-10 text-success" />
-                </div>
-                <h2 className="text-4xl font-black">Secret <span className="text-success">Live</span></h2>
-                <p className="text-muted-foreground font-medium">Your ephemeral link is ready to be shared.</p>
-              </div>
 
-              <div className="card gradient-border p-8 space-y-8">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Encrypted Link</label>
-                  <div className="relative group">
+            {/* Success/Error Toast Area */}
+            <div className="flex flex-col items-center gap-4">
+              {error && (
+                <div className="flex items-center gap-3 px-6 py-4 bg-red-500/10 border border-red-500/20 rounded-[2rem] text-sm text-red-400 font-bold animate-shake">
+                  <AlertCircle className="w-5 h-5" />
+                  {error}
+                </div>
+              )}
+              {isLoading && uploadProgress > 0 && (
+                <div className="w-full max-w-md space-y-3">
+                  <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+                    <div className="h-full bg-accent transition-all duration-500" style={{ width: `${uploadProgress}%` }} />
+                  </div>
+                  <p className="text-[10px] text-center font-black uppercase tracking-widest text-slate-500">
+                    {uploadProgress < 100 ? 'Syncing with secure nodes...' : 'Finalizing ephemeral link...'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Result Screen Redesign */
+          <div className="max-w-2xl mx-auto space-y-12 animate-fade-in-up">
+            <div className="text-center space-y-6">
+              <div className="w-24 h-24 bg-emerald-500/10 rounded-[2rem] border border-emerald-500/20 flex items-center justify-center mx-auto relative group">
+                <div className="absolute inset-0 bg-emerald-500/20 blur-2xl group-hover:bg-emerald-500/30 transition-all" />
+                <Check className="w-12 h-12 text-emerald-500 relative z-10" />
+              </div>
+              <h2 className="text-5xl font-black text-white tracking-tight">Your secret is <span className="text-emerald-500">Live</span>.</h2>
+              <p className="text-slate-400 text-lg font-medium">The link below will self-destruct after the first view.</p>
+            </div>
+
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-emerald-500/20 rounded-[2.5rem] blur opacity-25" />
+              <div className="relative bg-slate-900/60 backdrop-blur-3xl border border-white/10 p-10 rounded-[2.5rem] space-y-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Secure Link</label>
+                  <div className="relative group/link">
                     <input
                       readOnly
                       value={generatedLink}
-                      className="input !py-4 !pr-32 !text-sm font-mono !bg-white/[0.03] border-white/[0.1] truncate"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 pr-40 text-sm font-mono text-white focus:border-accent/50 outline-none transition-all"
                     />
                     <button
                       onClick={copyToClipboard}
-                      className="absolute right-2 top-2 bottom-2 px-6 bg-accent text-white rounded-xl text-xs font-bold hover:bg-accent/90 transition-all flex items-center gap-2"
+                      className="absolute right-2 top-2 bottom-2 px-8 bg-accent hover:bg-accent/90 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
                     >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copied ? 'Copied' : 'Copy'}
+                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copied ? 'Copied' : 'Copy Link'}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center gap-6 p-6 bg-white/[0.02] rounded-2xl border border-white/[0.05]">
-                  <QRCodeSVG value={generatedLink} size={160} bgColor="transparent" fgColor="var(--text-primary)" />
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Scan to view on mobile</p>
+                <div className="flex flex-col md:flex-row items-center gap-10 p-8 bg-black/40 rounded-[2rem] border border-white/5">
+                  <div className="p-4 bg-white rounded-2xl">
+                    <QRCodeSVG value={generatedLink} size={140} bgColor="#fff" fgColor="#000" />
+                  </div>
+                  <div className="space-y-4 text-center md:text-left">
+                    <h3 className="text-xl font-bold text-white flex items-center justify-center md:justify-start gap-2">
+                      <Zap className="w-5 h-5 text-accent" /> Scan to View
+                    </h3>
+                    <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
+                      Share this QR code with your recipient for instant, secure access on mobile devices.
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <button onClick={resetForm} className="btn-secondary !py-4 font-bold rounded-2xl">
-                  Create Another
-                </button>
-                <Link href="/dashboard/secrets" className="btn-primary !py-4 font-bold rounded-2xl">
-                  Manage Secrets
-                </Link>
-              </div>
             </div>
-          )}
-        </div>
-      </main>
 
-      {/* ═══ Right Sidebar: Secure Inbox Upsell (Guest Focused) ═══ */}
-      {!isSignedIn && (
-        <aside className="hidden xl:flex w-80 flex-col border-l border-white/[0.05] p-8" style={{ background: 'var(--bg-elevated)' }}>
-          <div className="mt-24 space-y-8">
-            <div className="p-6 rounded-3xl bg-accent/5 border border-accent/10 space-y-6">
-              <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
-                <Inbox className="w-6 h-6 text-accent" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-sm font-bold">Want a Permanent Inbox?</h3>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Create a free account to get your own <strong>Secure Drop Link</strong>. People can send you secrets directly without you asking.
-                </p>
-              </div>
-              <Link href="/sign-up" className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black rounded-xl text-xs font-bold hover:bg-white/90 transition-all">
-                Get Your Inbox
-                <ArrowRight className="w-3.5 h-3.5" />
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={resetForm} 
+                className="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all text-white flex items-center justify-center gap-3"
+              >
+                <Sparkles className="w-4 h-4 text-accent" />
+                Create Another
+              </button>
+              <Link 
+                href="/dashboard/secrets" 
+                className="w-full py-5 bg-accent hover:bg-accent/90 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all text-white flex items-center justify-center gap-3 shadow-xl shadow-accent/20"
+              >
+                <Inbox className="w-4 h-4" />
+                My Secrets
               </Link>
             </div>
-
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-50 px-2">Recent Innovations</h4>
-              <div className="space-y-3">
-                {[
-                  { title: 'AES-256 GCM', desc: 'Military-grade encryption standard.' },
-                  { title: 'Zero-Trace', desc: 'No logs, no cookies, no tracking.' }
-                ].map(item => (
-                  <div key={item.title} className="p-4 rounded-2xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.05]">
-                    <h5 className="text-[11px] font-bold mb-1">{item.title}</h5>
-                    <p className="text-[10px] text-muted-foreground">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-        </aside>
-      )}
+        )}
+      </main>
+
+      {/* Trust Badges / Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 p-8 flex items-center justify-center gap-12 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700 pointer-events-none">
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <Shield className="w-3.5 h-3.5" /> Zero-Logs
+        </div>
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <Lock className="w-3.5 h-3.5" /> AES-256
+        </div>
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <Timer className="w-3.5 h-3.5" /> Auto-Burn
+        </div>
+      </footer>
     </div>
   );
 }
