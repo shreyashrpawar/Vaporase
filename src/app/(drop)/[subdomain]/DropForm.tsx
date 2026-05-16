@@ -22,8 +22,9 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
+import { generateKey, encryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
 import { useAuth } from '@clerk/nextjs';
+import { nanoid } from 'nanoid';
 
 const EXPIRY_OPTIONS = [
   { label: '5m', value: 5 / 60 },
@@ -67,7 +68,8 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
   const [alias, setAlias] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('pro'); // Default to pro for feature parity
+  const [burnOnRead, setBurnOnRead] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -179,26 +181,40 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      let finalEncryptedContent = secretText || null;
-      let finalPasswordHash = null;
-      let decryptionKey: string | null = null;
-      
-      // Always E2EE if there is text
-      const isE2EE = !!secretText;
-      
-      if (isE2EE) {
-        decryptionKey = await generateKey();
-        finalEncryptedContent = await encryptText(secretText, decryptionKey);
+      // 1. Determine the ID/Salt
+      const customId = (alias && userPlan === 'pro') ? alias : nanoid(8);
+      const salt = customId;
+
+      // 2. Encryption Strategy
+      let encryptionKey: string;
+      let includeKeyInHash = false;
+
+      if (password && userPlan === 'pro') {
+        // Password-based key derivation for speakable links
+        encryptionKey = await deriveKeyFromPassword(password, salt);
+        includeKeyInHash = false;
+      } else {
+        // Standard random key in URL fragment
+        encryptionKey = await generateKey();
+        includeKeyInHash = true;
       }
 
+      const finalEncryptedContent = await encryptText(secretText || 'Encrypted Payload', encryptionKey);
+      const isE2EE = true;
+
+      // Hash password for server-side auth
+      let finalPasswordHash = null;
       if (password && userPlan === 'pro') {
         finalPasswordHash = await hashPassword(password);
       }
+
+      setUploadProgress(85);
 
       const createRes = await fetch('/api/secrets/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: customId,
           encryptedContent: finalEncryptedContent,
           fileKey,
           fileName,
@@ -209,8 +225,9 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
           allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
           isE2EE,
           recipientId: profile.userId,
-          dropKey: decryptionKey,
+          dropKey: includeKeyInHash ? encryptionKey : null,
           alias: (alias && userPlan === 'pro') ? alias : null,
+          burnOnRead,
           files: uploadedFiles,
         }),
       });
@@ -224,8 +241,8 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
       setUploadProgress(100);
       
       let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
-      if (decryptionKey) {
-        link += `#key=${decryptionKey}`;
+      if (includeKeyInHash) {
+        link += `#${encryptionKey}`;
       }
       setGeneratedLink(link);
     } catch (err: any) {
@@ -308,9 +325,9 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
                 </div>
 
                 <div className="space-y-3">
-                  <h2 className="text-4xl font-black">Secret <span className="text-success">Dropped</span></h2>
-                  <p className="text-muted-foreground font-medium">
-                    Securely deposited in <strong className="text-foreground">{profile.displayName}</strong>'s workspace.
+                  <h2 className="text-4xl font-black text-slate-900 dark:text-white">Secret <span className="text-success">Dropped</span></h2>
+                  <p className="text-slate-600 dark:text-slate-400 font-medium">
+                    Securely deposited in <strong className="text-slate-900 dark:text-white">{profile.displayName}</strong>'s workspace.
                   </p>
                 </div>
 
@@ -320,7 +337,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
                     <input
                       readOnly
                       value={generatedLink}
-                      className="input !py-4.5 !pr-32 !text-sm font-mono !bg-white/[0.03] border-white/[0.1] truncate"
+                      className="input !py-4.5 !pr-32 !text-sm font-mono !bg-white/[0.03] border-white/[0.1] truncate text-slate-900 dark:text-white"
                     />
                     <button
                       onClick={copyToClipboard}
@@ -469,10 +486,10 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-black text-accent uppercase tracking-widest">
               <Shield className="w-3 h-3" /> Secure Drop Portal
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
               Dropping for <span className="text-accent">{profile.displayName}</span>
             </h1>
-            <p className="text-lg text-muted-foreground font-medium max-w-lg">
+            <p className="text-lg text-slate-600 dark:text-slate-400 font-medium max-w-lg">
               Messages are E2E encrypted in your browser and instantly purged upon being revealed.
             </p>
           </header>
@@ -543,47 +560,73 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
                 )}
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2">Self-Destruct In</label>
-                  <select
-                    value={expiryHours}
-                    onChange={(e) => setExpiryHours(Number(e.target.value))}
-                    className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1]"
-                  >
-                    {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                </div>
-            <div className="space-y-2 relative">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-2 flex items-center gap-2">
-                Password <span className="opacity-40">(Optional)</span>
-                {userPlan !== 'pro' && <Lock className="w-2.5 h-2.5 text-accent" />}
-              </label>
-              <div className={`relative ${userPlan !== 'pro' ? 'group/disabled cursor-not-allowed' : ''}`}>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={userPlan === 'pro' ? 'Lock with key...' : 'Unlock with Pro'}
-                  disabled={userPlan !== 'pro'}
-                  className={`input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] ${userPlan !== 'pro' ? 'opacity-50' : ''}`}
-                />
-                {userPlan === 'pro' ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/disabled:opacity-100 transition-opacity">
-                    <Link href="/pricing" className="badge badge-accent !text-[8px]">Upgrade for Passwords</Link>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase ml-2">Self-Destruct In</label>
+                    <select
+                      value={expiryHours}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (!burnOnRead && val > 24) return;
+                        setExpiryHours(val);
+                      }}
+                      className="input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] text-slate-900 dark:text-white"
+                    >
+                      {EXPIRY_OPTIONS.filter(o => burnOnRead || o.value <= 24).map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
+                  <div className="space-y-2 relative">
+                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase ml-2 flex items-center justify-between">
+                      <span>Password</span>
+                      {!burnOnRead && <span className="text-[8px] text-accent">Required</span>}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder={!burnOnRead ? "Required password..." : "Lock with key..."}
+                        className={`input !py-3.5 !text-xs !bg-white/[0.02] border-white/[0.1] text-slate-900 dark:text-white ${!burnOnRead && !password ? 'border-accent/50' : ''}`}
+                      />
+                      {userPlan === 'pro' && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Burn on View Toggle */}
+                <div className="flex items-center justify-between p-5 rounded-3xl bg-white/[0.02] border border-white/[0.05]">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">Burn on View</p>
+                      {!burnOnRead && <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20 font-bold">Multiple Views Enabled</span>}
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      {burnOnRead 
+                        ? 'The secret will be deleted immediately after it is viewed once.' 
+                        : 'Allows multiple views. Maximum 24-hour expiry and password required.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newValue = !burnOnRead;
+                      setBurnOnRead(newValue);
+                      if (!newValue) {
+                        if (expiryHours > 24) setExpiryHours(24);
+                      }
+                    }}
+                    className={`w-12 h-6 rounded-full transition-all relative ${burnOnRead ? 'bg-accent' : 'bg-white/10'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${burnOnRead ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
 
           <div className="pt-4 border-t border-white/[0.05] space-y-4">
             <button 
