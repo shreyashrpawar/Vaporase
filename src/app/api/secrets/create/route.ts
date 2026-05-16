@@ -41,11 +41,22 @@ export async function POST(req: Request) {
       recipientId,
       dropKey,
       alias,
-      files // Support multiple files
+      burnOnRead = true,
+      files
     } = await req.json();
 
     if (!encryptedContent && !fileKey) {
       return NextResponse.json({ error: 'Secret must contain text or a file' }, { status: 400 });
+    }
+
+    // Constraints for non-burning secrets
+    if (burnOnRead === false) {
+      if (!passwordHash) {
+        return NextResponse.json({ error: 'Password protection is required for multi-view secrets' }, { status: 400 });
+      }
+      if (expiresInHours > 24) {
+        return NextResponse.json({ error: 'Multi-view secrets cannot exceed a 24-hour expiration' }, { status: 400 });
+      }
     }
 
     // Server-side Pro enforcement — disabled for now (Community Pro mode)
@@ -112,7 +123,7 @@ export async function POST(req: Request) {
       fileType: (files && files.length > 0) ? files[0].fileType : (fileType || null),
       createdAt: now,
       expiresAt: expiresAt,
-      burnOnRead: true,
+      burnOnRead,
       status: 'active',
       passwordHash: finalPasswordHash || null,
       allowedIp: finalAllowedIp || null,

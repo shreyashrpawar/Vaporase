@@ -76,6 +76,7 @@ export default function CreateSecretPage() {
   const [allowedIp, setAllowedIp] = useState('');
   const [alias, setAlias] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [burnOnRead, setBurnOnRead] = useState(true);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('pro');
   const [contentType, setContentType] = useState<'text' | 'file'>('text');
@@ -217,10 +218,10 @@ export default function CreateSecretPage() {
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      // Server-side storage (Non-E2EE for simpler links)
-      const isE2EE = false;
-      const finalEncryptedContent = secretText;
-      const decryptionKey = null;
+      // True Client-Side End-to-End Encryption (E2EE)
+      const encryptionKey = await generateKey();
+      const finalEncryptedContent = await encryptText(secretText, encryptionKey);
+      const isE2EE = true;
 
       // Hash Password if provided (Pro only — enforced client & server)
       let finalPasswordHash = null;
@@ -241,6 +242,7 @@ export default function CreateSecretPage() {
           passwordHash: finalPasswordHash,
           allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
           alias: (alias && userPlan === 'pro') ? alias : null,
+          burnOnRead,
           isE2EE,
           files: uploadedFiles,
         }),
@@ -253,8 +255,13 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
-      setGeneratedLink(link);
+      
+      // Generate the shortened "Zero-Knowledge" link
+      // Format: /s/ALIAS#KEY or /s/ID#KEY
+      // The hash #KEY is never sent to the server
+      const linkBase = `${window.location.origin}/s/${(alias && userPlan === 'pro') ? alias : id}`;
+      const linkWithKey = `${linkBase}#${encryptionKey}`;
+      setGeneratedLink(linkWithKey);
 
       // Save to local history
       const label = files.length > 0
@@ -262,7 +269,7 @@ export default function CreateSecretPage() {
         : secretText.slice(0, 30) + (secretText.length > 30 ? '...' : '');
       saveLocalSecret({
         id,
-        link,
+        link: linkWithKey,
         createdAt: Date.now(),
         expiresAt: Date.now() + expiryHours * 60 * 60 * 1000,
         label,
@@ -296,6 +303,7 @@ export default function CreateSecretPage() {
     setSecretText('');
     setFiles([]);
     setExpiryHours(5 / 60);
+    setBurnOnRead(true);
     setPassword('');
     setAllowedIp('');
     setGeneratedLink('');
@@ -315,20 +323,20 @@ export default function CreateSecretPage() {
       </div>
 
       {/* Header / Brand */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-8 flex items-center justify-between pointer-events-none">
-        <Link href="/" className="flex items-center gap-3 group pointer-events-auto">
-          <div className="w-10 h-10 rounded-2xl bg-muted border border-border flex items-center justify-center backdrop-blur-xl transition-all group-hover:scale-110 group-hover:bg-muted/80 group-hover:border-accent/50 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]">
-            <Lock className="w-5 h-5 text-accent" />
+      <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-8 flex items-center justify-between pointer-events-none">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group pointer-events-auto">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-muted border border-border flex items-center justify-center backdrop-blur-xl transition-all group-hover:scale-110 group-hover:bg-muted/80 group-hover:border-accent/50 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]">
+            <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-foreground">ilusion<span className="text-accent">.io</span></span>
+          <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground">ilusion<span className="text-accent">.io</span></span>
         </Link>
-        <div className="flex items-center gap-6 pointer-events-auto">
-          <Link href="/contact" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Contact</Link>
+        <div className="flex items-center gap-3 sm:gap-6 pointer-events-auto">
+          <Link href="/contact" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors hidden md:block">Contact</Link>
           <ThemeToggle />
           <div className="flex items-center gap-4">
             {isSignedIn ? (
-              <Link href="/dashboard" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 px-4 py-2 rounded-full bg-muted border border-border hover:bg-muted/80">
-                Workspace <ArrowRight className="w-3.5 h-3.5" />
+              <Link href="/dashboard" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-muted border border-border hover:bg-muted/80">
+                <span className="hidden sm:inline">Workspace</span> <ArrowRight className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
               </Link>
             ) : (
               <Link href="/sign-in" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
@@ -345,11 +353,11 @@ export default function CreateSecretPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold text-accent uppercase tracking-widest mb-2 animate-bounce-slow">
                 <Sparkles className="w-3 h-3" /> Now Unlocked: Community Pro
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-foreground leading-tight">
+              <h1 className="text-4xl md:text-7xl font-black tracking-tight text-foreground leading-tight">
                 Securely share <br />
                 <span className="text-gradient">anything</span> to anyone.
               </h1>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto font-medium">
+              <p className="text-muted-foreground text-sm sm:text-lg max-w-xl mx-auto font-medium px-4">
                 Military-grade encryption for your most sensitive notes and files. 
                 Self-destructs automatically after reading.
               </p>
@@ -357,11 +365,11 @@ export default function CreateSecretPage() {
 
             <div className="relative group">
               {/* Glassmorphic Card Container */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-3xl sm:rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
               
-              <div className="relative bg-white/90 dark:bg-slate-900/80 backdrop-blur-3xl border border-border/50 dark:border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
+              <div className="relative bg-white dark:bg-slate-900/80 border border-border/50 dark:border-white/10 rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl">
                 {/* Editor Toolbar */}
-                <div className="flex items-center justify-between p-6 border-b border-border/50 bg-slate-50/50 dark:bg-white/5">
+                <div className="flex items-center justify-between p-6 border-b border-border/50 bg-slate-50 dark:bg-white/5">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5 px-2">
                       <div className="w-2.5 h-2.5 rounded-full bg-red-400 dark:bg-red-500/50" />
@@ -369,10 +377,10 @@ export default function CreateSecretPage() {
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 dark:bg-emerald-500/50" />
                     </div>
                     <div className="h-4 w-px bg-border/50 mx-2" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Secure Composer</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-muted-foreground">Secure Composer</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 dark:text-muted-foreground">
                       <Shield className="w-3.5 h-3.5 text-accent" />
                       AES-256 GCM
                     </div>
@@ -390,7 +398,7 @@ export default function CreateSecretPage() {
                     value={secretText}
                     onChange={(e) => setSecretText(e.target.value)}
                     placeholder="Type or paste your confidential message here..."
-                    className="w-full min-h-[300px] bg-transparent p-10 text-xl font-medium text-foreground placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
+                    className="w-full min-h-[250px] sm:min-h-[300px] bg-transparent p-6 sm:p-10 text-lg sm:text-xl font-medium text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
                   />
 
                   {/* Attachment Overlay if files exist */}
@@ -421,62 +429,83 @@ export default function CreateSecretPage() {
 
                   {/* Drag and Drop Feedback */}
                   {isDragging && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/5 dark:bg-accent/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accent/30 rounded-[2.5rem]">
-                      <div className="w-20 h-20 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                        <Upload className="w-10 h-10 text-accent" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/5 dark:bg-accent/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accent/30 rounded-3xl sm:rounded-[2.5rem]">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center mb-4">
+                        <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-accent" />
                       </div>
-                      <p className="text-xl font-bold text-foreground">Drop to Attach Files</p>
-                      <p className="text-sm text-muted-foreground">Up to {formatBytes(maxTotalSize)}</p>
+                      <p className="text-lg sm:text-xl font-bold text-foreground">Drop to Attach Files</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Up to {formatBytes(maxTotalSize)}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Settings & Footer Bar */}
                 <div className="p-6 bg-slate-50/80 dark:bg-black/20 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
                     {/* Expiry Selector */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Auto Destruct</label>
+                    <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-muted-foreground ml-1">Auto Destruct</label>
                       <select
                         value={expiryHours}
                         onChange={(e) => setExpiryHours(Number(e.target.value))}
-                        className="bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-2 text-xs font-bold text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-slate-50"
+                        className="w-full sm:w-auto bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-2 text-xs font-bold text-zinc-900 dark:text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-slate-50"
                       >
-                        {EXPIRY_OPTIONS.map(opt => <option key={opt.value} value={opt.value} className="bg-white dark:bg-background text-foreground">{opt.label}</option>)}
+                        {EXPIRY_OPTIONS.filter(opt => !(!burnOnRead && opt.value > 24)).map(opt => (
+                          <option key={opt.value} value={opt.value} className="bg-white dark:bg-background text-zinc-900 dark:text-foreground">{opt.label}</option>
+                        ))}
                       </select>
                     </div>
-
-                    <div className="w-px h-10 bg-border hidden md:block" />
-
+                    <div className="w-px h-10 bg-border/50 hidden md:block" />
                     {/* Quick Access Actions */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-background hover:bg-slate-50 dark:hover:bg-muted border border-border/50 rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-white dark:bg-background hover:bg-slate-50 dark:hover:bg-muted border border-border/50 rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
                       >
-                        <Upload className="w-4 h-4 text-accent" />
-                        Attach Files
+                        <Upload className="w-3.5 h-3.5 text-accent" />
+                        <span className="whitespace-nowrap">Attach</span>
                       </button>
                       <button
                         onClick={() => setShowAdvanced(!showAdvanced)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                           showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
                         }`}
                       >
-                        <Settings className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
-                        Security Settings
+                        <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+                        <span className="whitespace-nowrap">Settings</span>
                       </button>
                     </div>
                   </div>
 
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isLoading || (!secretText && files.length === 0)}
-                    className="w-full md:w-auto px-10 py-4 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:grayscale text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
-                  >
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
-                    {isLoading ? 'Finalizing...' : 'Create Secure Link'}
-                  </button>
+                  <div className="flex items-center gap-6">
+                    <button
+                      onClick={() => {
+                        setBurnOnRead(!burnOnRead);
+                        if (burnOnRead) {
+                          // Switching to multi-view: ensure expiry is valid and show advanced for password
+                          if (expiryHours > 24) setExpiryHours(24);
+                          setShowAdvanced(true);
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
+                        !burnOnRead 
+                          ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' 
+                          : 'bg-zinc-500/5 text-zinc-400 border-transparent hover:border-zinc-500/20'
+                      }`}
+                    >
+                      {burnOnRead ? <Zap className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                      {burnOnRead ? 'Burn on View' : 'Multi-View Active'}
+                    </button>
+                    
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isLoading || (!secretText && files.length === 0) || (!burnOnRead && !password)}
+                      className="w-full md:w-auto px-6 sm:px-10 py-3.5 sm:py-4 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:grayscale text-white rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                    >
+                      {isLoading ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Shield className="w-4 h-4 sm:w-5 sm:h-5" />}
+                      {isLoading ? 'Finalizing...' : 'Create Secret'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Advanced Security Drawer */}
@@ -486,6 +515,7 @@ export default function CreateSecretPage() {
                       <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
                           <Lock className="w-3 h-3" /> Password Access
+                          {!burnOnRead && <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">Required</span>}
                         </label>
                         <div className="relative">
                           <input
@@ -493,11 +523,11 @@ export default function CreateSecretPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Optional Key..."
-                            className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
+                            className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
                           />
                           <button 
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-muted-foreground hover:text-zinc-900 dark:hover:text-foreground transition-colors"
                           >
                             {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                           </button>
@@ -512,7 +542,7 @@ export default function CreateSecretPage() {
                           value={allowedIp}
                           onChange={(e) => setAllowedIp(e.target.value)}
                           placeholder="e.g. 192.168.1.1"
-                          className="w-full bg-background border border-border rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                          className="w-full bg-white dark:bg-background border border-border rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
                         />
                       </div>
                       <div className="space-y-3">
@@ -526,7 +556,7 @@ export default function CreateSecretPage() {
                             value={alias}
                             onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                             placeholder="my-secret"
-                            className="w-full bg-background border border-border rounded-r-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                            className="w-full bg-white dark:bg-background border border-border rounded-r-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
                           />
                         </div>
                       </div>
@@ -580,27 +610,27 @@ export default function CreateSecretPage() {
                     <input
                       readOnly
                       value={generatedLink}
-                      className="w-full bg-muted/20 border border-border rounded-2xl px-6 py-5 pr-40 text-sm font-mono text-foreground focus:border-accent/50 outline-none transition-all"
+                      className="w-full bg-muted/20 border border-border rounded-2xl px-4 sm:px-6 py-4 sm:py-5 pr-14 sm:pr-40 text-xs sm:text-sm font-mono text-foreground focus:border-accent/50 outline-none transition-all"
                     />
                     <button
                       onClick={copyToClipboard}
-                      className="absolute right-2 top-2 bottom-2 px-8 bg-accent hover:bg-accent/90 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
+                      className="absolute right-2 top-2 bottom-2 px-3 sm:px-8 bg-accent hover:bg-accent/90 text-white rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
                     >
-                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      {copied ? 'Copied' : 'Copy Link'}
+                      {copied ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                      <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center gap-10 p-8 bg-inset/40 rounded-[2rem] border border-border">
-                  <div className="p-4 bg-white rounded-2xl">
-                    <QRCodeSVG value={generatedLink} size={140} bgColor="#fff" fgColor="#000" />
+                <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-10 p-6 sm:p-8 bg-inset/40 rounded-3xl sm:rounded-[2rem] border border-border">
+                  <div className="p-3 sm:p-4 bg-white rounded-xl sm:rounded-2xl shrink-0">
+                    <QRCodeSVG value={generatedLink} size={120} className="sm:w-[140px] sm:h-[140px]" bgColor="#fff" fgColor="#000" />
                   </div>
-                  <div className="space-y-4 text-center md:text-left">
-                    <h3 className="text-xl font-bold text-foreground flex items-center justify-center md:justify-start gap-2">
-                      <Zap className="w-5 h-5 text-accent" /> Scan to View
+                  <div className="space-y-2 sm:space-y-4 text-center md:text-left">
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground flex items-center justify-center md:justify-start gap-2">
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-accent" /> Scan to View
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto md:mx-0">
                       Share this QR code with your recipient for instant, secure access on mobile devices.
                     </p>
                   </div>
@@ -608,19 +638,19 @@ export default function CreateSecretPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <button 
                 onClick={resetForm} 
-                className="w-full py-5 bg-muted border border-border rounded-2xl text-sm font-bold uppercase tracking-widest transition-all text-foreground flex items-center justify-center gap-3"
+                className="w-full py-4 sm:py-5 bg-muted border border-border rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold uppercase tracking-widest transition-all text-foreground flex items-center justify-center gap-3"
               >
-                <Sparkles className="w-4 h-4 text-accent" />
-                Create Another
+                <span className="w-3.5 h-3.5 sm:w-4 sm:h-4"><Sparkles className="w-full h-full text-accent" /></span>
+                Create New
               </button>
               <Link 
                 href="/dashboard/secrets" 
-                className="w-full py-5 bg-accent hover:bg-accent/90 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all text-white flex items-center justify-center gap-3 shadow-xl shadow-accent/20"
+                className="w-full py-4 sm:py-5 bg-accent hover:bg-accent/90 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold uppercase tracking-widest transition-all text-white flex items-center justify-center gap-3 shadow-xl shadow-accent/20"
               >
-                <Inbox className="w-4 h-4" />
+                <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 My Secrets
               </Link>
             </div>
@@ -629,15 +659,15 @@ export default function CreateSecretPage() {
       </main>
 
       {/* Trust Badges / Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 p-8 flex items-center justify-center gap-12 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700 pointer-events-none">
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-          <Shield className="w-3.5 h-3.5" /> Zero-Logs
+      <footer className="fixed bottom-0 left-0 right-0 p-4 sm:p-8 flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700 pointer-events-none">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+          <Shield className="w-3 sm:w-3.5 h-3 sm:h-3.5" /> Zero-Logs
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-          <Lock className="w-3.5 h-3.5" /> AES-256
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+          <Lock className="w-3 sm:w-3.5 h-3 sm:h-3.5" /> AES-256
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-          <Timer className="w-3.5 h-3.5" /> Auto-Burn
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+          <Timer className="w-3 sm:w-3.5 h-3 sm:h-3.5" /> Auto-Burn
         </div>
       </footer>
     </div>
