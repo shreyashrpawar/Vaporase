@@ -21,8 +21,9 @@ import {
   User,
   Search,
 } from 'lucide-react';
-import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
+import { generateKey, encryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
 import { useAuth } from '@clerk/nextjs';
+import { nanoid } from 'nanoid';
 
 const EXPIRY_OPTIONS = [
   { label: '5 min', value: 5 / 60 },
@@ -86,7 +87,8 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('pro'); // Default to pro for feature access
+  const [burnOnRead, setBurnOnRead] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch the sender's plan
@@ -175,6 +177,11 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       return;
     }
 
+    if (!burnOnRead && !password) {
+      setError('Password is required when "Burn on View" is disabled.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setUploadProgress(0);
@@ -227,14 +234,30 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      // Server-side storage (Non-E2EE for simpler links)
-      const isE2EE = false;
-      const finalEncryptedContent = secretText;
-      const decryptionKey = null;
+      // 1. Determine the ID/Salt
+      const customId = (alias && userPlan === 'pro') ? alias : nanoid(8);
+      const salt = customId;
 
-      // Hash password (Pro only)
+      // 2. Encryption Strategy
+      let encryptionKey: string;
+      let includeKeyInHash = false;
+
+      if (password && userPlan === 'pro') {
+        // Password-based key derivation for speakable links
+        encryptionKey = await deriveKeyFromPassword(password, salt);
+        includeKeyInHash = false;
+      } else {
+        // Standard random key in URL fragment
+        encryptionKey = await generateKey();
+        includeKeyInHash = true;
+      }
+
+      const finalEncryptedContent = await encryptText(secretText, encryptionKey);
+      const isE2EE = true;
+
+      // Hash password for server-side auth
       let finalPasswordHash = null;
-      if (password && isPro) {
+      if (password && userPlan === 'pro') {
         finalPasswordHash = await hashPassword(password);
       }
 
@@ -244,6 +267,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: customId,
           encryptedContent: finalEncryptedContent,
           fileKey,
           fileName,
@@ -251,11 +275,12 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           fileType,
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
-          allowedIp: (allowedIp && isPro) ? allowedIp : null,
+          allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
           isE2EE,
           recipientId: recipient?.userId || null,
-          dropKey: decryptionKey,
-          alias: (alias && isPro) ? alias : null,
+          dropKey: includeKeyInHash ? encryptionKey : null,
+          alias: (alias && userPlan === 'pro') ? alias : null,
+          burnOnRead,
           files: uploadedFiles,
         }),
       });
@@ -267,7 +292,10 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/secret/${(alias && isPro) ? alias : id}`;
+      let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
+      if (includeKeyInHash) {
+        link += `#${encryptionKey}`;
+      }
       setGeneratedLink(link);
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
@@ -490,16 +518,17 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             </div>
             {/* Password (Pro) */}
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
-                Password
+              <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center justify-between" style={{ color: 'var(--text-tertiary)' }}>
+                <span>Password</span>
+                {!burnOnRead && <span className="text-[8px] text-accent">Required for persistent links</span>}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Lock with key..."
-                  className="input !py-2.5 !text-xs !bg-white/[0.02] !pr-10"
+                  placeholder={!burnOnRead ? "Required password..." : "Lock with key..."}
+                  className={`input !py-2.5 !text-xs !bg-white/[0.02] !pr-10 ${!burnOnRead && !password ? 'border-accent/50' : ''}`}
                 />
                 {isPro && (
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -509,6 +538,34 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Burn on View Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Burn on View</p>
+                {!burnOnRead && <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20 font-bold">Multiple Views Enabled</span>}
+              </div>
+              <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                {burnOnRead 
+                  ? 'The secret will be deleted immediately after it is viewed once.' 
+                  : 'Allows multiple views. Maximum 24-hour expiry and password required.'}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const newValue = !burnOnRead;
+                setBurnOnRead(newValue);
+                if (!newValue) {
+                  // If disabling burn, enforce max 24h and notify password requirement
+                  if (expiryHours > 24) setExpiryHours(24);
+                }
+              }}
+              className={`w-10 h-5 rounded-full transition-all relative ${burnOnRead ? 'bg-accent' : 'bg-white/10'}`}
+            >
+              <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${burnOnRead ? 'right-1' : 'left-1'}`} />
+            </button>
           </div>
 
           {/* Advanced Controls (Pro) */}
