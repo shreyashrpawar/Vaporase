@@ -30,7 +30,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { generateKey, encryptText, hashPassword } from '@/lib/crypto';
-import { saveLocalSecret, getLocalSecrets, LocalSecret } from '@/lib/local-history';
+import { saveLocalSecret, getLocalSecrets, LocalSecret, updateLocalSecret, removeLocalSecret } from '@/lib/local-history';
 
 const EXPIRY_OPTIONS = [
   { label: '5 min', value: 5 / 60 },
@@ -93,9 +93,44 @@ export default function CreateSecretPage() {
   // Derived: total size of all attached files
   const totalFilesSize = files.reduce((acc, f) => acc + f.size, 0);
 
+  // Sync Local History Statuses
   useEffect(() => {
-    setLocalHistory(getLocalSecrets());
-  }, []);
+    if (localHistory.length === 0) return;
+
+    const syncStatus = async () => {
+      const updatedHistory = [...localHistory];
+      let hasChanges = false;
+
+      for (let i = 0; i < updatedHistory.length; i++) {
+        const secret = updatedHistory[i];
+        // Only check if it's still 'active' and not checked recently (e.g., in the last 1 min)
+        if (secret.status === 'active' && (!secret.lastCheckedAt || Date.now() - secret.lastCheckedAt > 30000)) {
+          try {
+            const res = await fetch(`/api/secrets/status?id=${secret.id}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.status !== secret.status || data.viewCount !== secret.viewCount) {
+                updateLocalSecret(secret.id, { status: data.status, viewCount: data.viewCount });
+                hasChanges = true;
+              }
+            } else if (res.status === 404) {
+              updateLocalSecret(secret.id, { status: 'burned' });
+              hasChanges = true;
+            }
+          } catch (err) {
+            console.error('Failed to sync secret status:', err);
+          }
+        }
+      }
+
+      if (hasChanges) {
+        setLocalHistory(getLocalSecrets());
+      }
+    };
+
+    const timer = setTimeout(syncStatus, 1000);
+    return () => clearTimeout(timer);
+  }, [localHistory]);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -657,6 +692,98 @@ export default function CreateSecretPage() {
           </div>
         )}
       </main>
+
+      {/* Local History Section (Anonymous Workspace) */}
+      {!generatedLink && localHistory.length > 0 && (
+        <div className="w-full max-w-4xl px-6 pb-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Inbox className="w-5 h-5 text-accent" /> Recent Activity
+              <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20">Local Only</span>
+            </h2>
+            <button 
+              onClick={() => {
+                if (confirm('Clear local history?')) {
+                  localStorage.removeItem('ilusion_recent_secrets');
+                  setLocalHistory([]);
+                }
+              }}
+              className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-destructive transition-colors"
+            >
+              Clear History
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {localHistory.map((secret) => (
+              <div key={secret.id} className="group relative bg-white dark:bg-slate-900/50 border border-border/50 hover:border-accent/30 rounded-2xl p-5 transition-all hover:shadow-lg">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-foreground truncate max-w-[200px]">
+                      {secret.label || 'Secure Message'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Created {new Date(secret.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                    secret.status === 'burned' 
+                      ? 'bg-red-500/10 text-red-500' 
+                      : secret.status === 'expired' 
+                        ? 'bg-zinc-500/10 text-zinc-500' 
+                        : 'bg-emerald-500/10 text-emerald-500 animate-pulse'
+                  }`}>
+                    {secret.status}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-border/10">
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Views</span>
+                      <span className="text-xs font-bold text-foreground">{secret.viewCount}</span>
+                    </div>
+                    <div className="w-px h-6 bg-border/20" />
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Expires</span>
+                      <span className="text-xs font-bold text-foreground">
+                        {Math.max(0, Math.ceil((secret.expiresAt - Date.now()) / (1000 * 60)))}m
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(secret.link);
+                        alert('Link copied!');
+                      }}
+                      className="p-2 bg-muted hover:bg-accent/10 hover:text-accent rounded-lg transition-colors"
+                      title="Copy Link"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        removeLocalSecret(secret.id);
+                        setLocalHistory(getLocalSecrets());
+                      }}
+                      className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors text-muted-foreground"
+                      title="Remove from history"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <p className="text-[10px] text-center mt-8 text-muted-foreground/50 font-medium">
+            History is automatically purged after 24 hours for your privacy.
+          </p>
+        </div>
+      )}
 
       {/* Trust Badges / Footer */}
       <footer className="fixed bottom-0 left-0 right-0 p-4 sm:p-8 flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700 pointer-events-none">

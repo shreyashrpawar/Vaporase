@@ -128,6 +128,24 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
     }
   };
 
+  const handleDownload = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(url, '_blank');
+    }
+  };
+
   const FileIcon = secretData?.fileType ? getFileIcon(secretData.fileType) : FileText;
 
   return (
@@ -288,14 +306,13 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                                 {formatBytes(file.fileSize)}
                               </p>
                             </div>
-                            <a
-                              href={file.fileUrl}
-                              download={file.fileName}
+                            <button
+                              onClick={() => handleDownload(file.fileUrl, file.fileName)}
                               className="btn-primary !px-4 !py-2 !text-xs !gap-1.5"
                             >
                               <Download className="w-3.5 h-3.5" />
                               Download
-                            </a>
+                            </button>
                           </div>
                           
                           {/* Preview for images */}

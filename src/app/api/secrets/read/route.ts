@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       recipientId: secrets.recipientId,
       dropKey: secrets.dropKey,
       filesJson: secrets.filesJson,
+      viewCount: secrets.viewCount,
     };
 
     let secretsFound = await db.select(columns).from(secrets).where(
@@ -161,21 +162,22 @@ export async function POST(req: Request) {
       payload.fileType = attachedFiles[0].fileType;
     }
 
-    // 7. BURN ON READ: Nullify content but keep metadata
-    if (secretRecord.burnOnRead) {
-      await db.update(secrets).set({
-        encryptedContent: null,
-        // Note: we keep fileKey here so the generated presigned URL remains valid 
-        // for this specific session, but we mark the status as burned.
-        status: 'burned',
-        readAt: new Date(),
-      }).where(eq(secrets.id, secretRecord.id));
+    // 7. BURN ON READ or MULTI-VIEW
+    const updateData: any = {
+      readAt: new Date(),
+      readByIp: clientIp,
+      viewCount: (secretRecord.viewCount || 0) + 1,
+    };
 
+    if (secretRecord.burnOnRead) {
+      updateData.encryptedContent = null;
+      updateData.status = 'burned';
+      
       // Send email notification
-      // Note: Using hardcoded email for Mailtrap sandbox as requested. 
-      // In production, fetch the user's email via clerkClient().users.getUser(secretRecord.userId)
       await sendSecretBurnedEmail("shreyashrpawar28@gmail.com", id, clientIp);
     }
+
+    await db.update(secrets).set(updateData).where(eq(secrets.id, secretRecord.id));
 
     return NextResponse.json(payload);
   } catch (error) {
