@@ -20,10 +20,12 @@ import {
   ArrowRight,
   User,
   Search,
+  Zap,
 } from 'lucide-react';
 import { generateKey, encryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
 import { useAuth } from '@clerk/nextjs';
 import { nanoid } from 'nanoid';
+import { QRCodeSVG } from 'qrcode.react';
 
 const EXPIRY_OPTIONS = [
   { label: '5 min', value: 5 / 60 },
@@ -368,6 +370,22 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             {copied ? <><Check className="w-3 h-3" />Done</> : <><Copy className="w-3 h-3" />Copy</>}
           </button>
         </div>
+
+        {/* QR Code Scanner Block */}
+        <div className="flex flex-col sm:flex-row items-center gap-5 p-5 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-100 dark:border-white/[0.05]">
+          <div className="p-2.5 bg-white rounded-xl shrink-0 shadow-sm border border-slate-100">
+            <QRCodeSVG value={generatedLink} size={90} className="w-[90px] h-[90px]" bgColor="#fff" fgColor="#000" />
+          </div>
+          <div className="space-y-1.5 text-center sm:text-left">
+            <h4 className="text-xs font-bold flex items-center justify-center sm:justify-start gap-1.5" style={{ color: 'var(--text-primary)' }}>
+              <Zap className="w-3.5 h-3.5 text-accent" /> Scan to View
+            </h4>
+            <p className="text-[10px] leading-relaxed max-w-xs" style={{ color: 'var(--text-tertiary)' }}>
+              Share this QR code with your recipient for instant, secure access on mobile devices.
+            </p>
+          </div>
+        </div>
+
         <button onClick={resetForm} className="btn-primary w-full">
           Send Another
         </button>
