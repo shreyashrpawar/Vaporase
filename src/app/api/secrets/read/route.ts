@@ -145,6 +145,7 @@ export async function POST(req: Request) {
         const command = new GetObjectCommand({
           Bucket: BUCKET_NAME,
           Key: f.fileKey,
+          ResponseContentDisposition: `attachment; filename="${encodeURIComponent(f.fileName).replace(/"/g, '\\"')}"`,
         });
         const fileUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
         attachedFiles.push({ ...f, fileUrl });
