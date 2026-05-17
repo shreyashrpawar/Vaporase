@@ -264,7 +264,7 @@ export default function CreateSecretPage() {
       let encryptionKey: string;
       let includeKeyInHash = false;
 
-      if (password && userPlan === 'pro') {
+      if (password) {
         // If password is provided, derive key from it (Zero-Knowledge)
         // This makes the link speakable over a call.
         encryptionKey = await deriveKeyFromPassword(password, salt);
@@ -280,7 +280,7 @@ export default function CreateSecretPage() {
 
       // Hash Password for server-side authorization
       let finalPasswordHash = null;
-      if (password && userPlan === 'pro') {
+      if (password) {
         finalPasswordHash = await hashPassword(password);
       }
 

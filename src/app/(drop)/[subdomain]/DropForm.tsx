@@ -189,7 +189,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
       let encryptionKey: string;
       let includeKeyInHash = false;
 
-      if (password && userPlan === 'pro') {
+      if (password) {
         // Password-based key derivation for speakable links
         encryptionKey = await deriveKeyFromPassword(password, salt);
         includeKeyInHash = false;
@@ -204,7 +204,7 @@ export default function DropForm({ profile, isEmbedded = false }: { profile: any
 
       // Hash password for server-side auth
       let finalPasswordHash = null;
-      if (password && userPlan === 'pro') {
+      if (password) {
         finalPasswordHash = await hashPassword(password);
       }
 
