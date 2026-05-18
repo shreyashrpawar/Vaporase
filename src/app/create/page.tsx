@@ -25,7 +25,9 @@ import {
   Clock,
   Zap,
   ArrowRight,
-  Inbox
+  Inbox,
+  Paperclip,
+  Flame
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -61,50 +63,6 @@ function getFileIcon(type: string) {
   return FileText;
 }
 
-function RevealPanel() {
-  const [revealId, setRevealId] = useState('');
-  const router = useRouter();
-
-  const handleReveal = () => {
-    const id = revealId.trim();
-    if (!id) return;
-    router.push(`/secret/${id}`);
-  };
-
-  return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/10 to-accent/10 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
-      <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 bg-white dark:bg-slate-900/60 border border-border/50 dark:border-white/[0.07] rounded-2xl">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-            <Eye className="w-4 h-4 text-purple-400" />
-          </div>
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Reveal a Secret</p>
-            <p className="text-[10px] text-muted-foreground">Enter ID or alias to decrypt</p>
-          </div>
-        </div>
-        <div className="flex flex-1 gap-2">
-          <input
-            value={revealId}
-            onChange={e => setRevealId(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleReveal()}
-            placeholder="Secret ID or custom alias..."
-            className="flex-1 bg-slate-50 dark:bg-black/20 border border-border/50 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 dark:text-foreground placeholder:text-muted-foreground/50 focus:border-accent/50 outline-none transition-all"
-          />
-          <button
-            onClick={handleReveal}
-            disabled={!revealId.trim()}
-            className="px-5 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-400 rounded-xl text-xs font-bold transition-all disabled:opacity-30 whitespace-nowrap"
-          >
-            Open →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function CreateSecretPage() {
   const { isSignedIn } = useAuth();
   const [secretText, setSecretText] = useState('');
@@ -128,6 +86,15 @@ export default function CreateSecretPage() {
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Redesign custom Reveal State
+  const [revealId, setRevealId] = useState('');
+
+  const handleReveal = () => {
+    const id = revealId.trim();
+    if (!id) return;
+    router.push(`/secret/${id}`);
+  };
 
   useEffect(() => {
     if (isSignedIn) {
@@ -185,7 +152,6 @@ export default function CreateSecretPage() {
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          // We still fetch, but we force 'pro' for the UI
           setUserPlan('pro');
         })
         .catch(err => console.error('Error fetching profile:', err));
@@ -302,8 +268,6 @@ export default function CreateSecretPage() {
       const fileType = uploadedFiles[0]?.fileType || null;
 
       // 1. Determine the ID/Salt
-      // Use custom alias if provided, otherwise generate a random ID on client 
-      // so we have the salt before encryption.
       const customId = (alias && userPlan === 'pro') ? alias : nanoid(8);
       const salt = customId;
 
@@ -312,12 +276,9 @@ export default function CreateSecretPage() {
       let includeKeyInHash = false;
 
       if (password) {
-        // If password is provided, derive key from it (Zero-Knowledge)
-        // This makes the link speakable over a call.
         encryptionKey = await deriveKeyFromPassword(password, salt);
         includeKeyInHash = false;
       } else {
-        // Default: Random key in the URL hash
         encryptionKey = await generateKey();
         includeKeyInHash = true;
       }
@@ -413,82 +374,129 @@ export default function CreateSecretPage() {
     setCopied(false);
     setUploadProgress(0);
   };
+
   return (
-    <div className="dot-grid min-h-screen flex flex-col items-center" style={{ background: 'var(--bg-primary)' }}>
+    <div className="dot-grid min-h-screen flex flex-col items-center bg-[#faf9f5] dark:bg-zinc-950 transition-colors">
       {/* Ambient glow orbs */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full blur-[140px]" style={{ background: 'var(--mesh-1)' }} />
         <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[140px]" style={{ background: 'var(--mesh-2)' }} />
       </div>
 
+      {/* Top Banner Alert */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-full shadow-sm text-[10px] font-black text-[#534d5e] dark:text-zinc-400">
+        <span>Free plan</span>
+        <span className="w-1 h-1 rounded-full bg-[#e5e3d9] dark:bg-zinc-800" />
+        <Link href="/pricing" className="text-[#6511b8] hover:underline font-extrabold">Upgrade</Link>
+        <span className="w-1 h-1 rounded-full bg-[#e5e3d9] dark:bg-zinc-800" />
+        <button onClick={() => {}} className="hover:text-[#1f152e]"><X className="w-2.5 h-2.5" /></button>
+      </div>
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50" style={{ borderBottom: '1px solid var(--border-subtle)', backdropFilter: 'blur(20px)', background: 'rgba(var(--bg-primary-rgb, 255,255,255), 0.8)' }}>
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#faf9f5]/80 dark:bg-zinc-950/80 border-b border-[#e5e3d9] dark:border-zinc-800 backdrop-blur-md transition-colors">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-all group-hover:scale-105" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
-              <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#6511b8]/10 border border-[#6511b8]/20 transition-all group-hover:scale-105">
+              <Lock className="w-4 h-4 text-[#6511b8]" />
             </div>
-            <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>ilusion<span style={{ color: 'var(--accent-primary)' }}>.io</span></span>
+            <span className="text-base font-bold text-[#1f152e] dark:text-white">ilusion<span className="text-[#6511b8]">.io</span></span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/pricing" className="text-xs font-medium hidden sm:block" style={{ color: 'var(--text-secondary)' }}>Pricing</Link>
-            <Link href="/docs/api" className="text-xs font-medium hidden sm:block" style={{ color: 'var(--text-secondary)' }}>API</Link>
+            <Link href="/pricing" className="text-xs font-semibold text-[#534d5e] dark:text-zinc-400 hover:text-[#1f152e] dark:hover:text-white hidden sm:block transition-colors">Pricing</Link>
+            <Link href="/docs/api" className="text-xs font-semibold text-[#534d5e] dark:text-zinc-400 hover:text-[#1f152e] dark:hover:text-white hidden sm:block transition-colors">API</Link>
             <ThemeToggle />
-            {isSignedIn ? (
-              <Link href="/dashboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)', border: '1px solid var(--accent-muted)' }}>
-                Dashboard <ArrowRight className="w-3 h-3" />
-              </Link>
-            ) : (
-              <Link href="/sign-up" className="px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90" style={{ background: 'var(--accent-primary)' }}>Get Free Inbox</Link>
-            )}
+            <Link href="/sign-up" className="px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all bg-[#6511b8] hover:bg-[#510d96]">Get Free Inbox</Link>
           </div>
         </div>
       </header>
 
       {/* Main */}
-      <main className="w-full max-w-5xl relative z-10 px-4 sm:px-6 pt-28 pb-10">
+      <main className="w-full max-w-2xl relative z-10 px-4 sm:px-6 pt-28 pb-10 flex-1">
         {!generatedLink ? (
-          <div className="space-y-6 animate-fade-in-up">
+          <div className="space-y-8 animate-fade-in-up">
 
-            {/* Hero */}
-            <div className="text-center space-y-3 mb-8">
-              <div className="badge badge-accent mx-auto mb-1">
-                <Sparkles className="w-3 h-3" /> Community Pro — Free Beta
+            {/* Hero Header */}
+            <div className="text-center space-y-4 mb-8">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#6511b8]/10 text-[#6511b8] dark:bg-[#D494FF]/10 dark:text-[#D494FF] rounded-full text-[10px] font-extrabold uppercase tracking-widest border border-[#6511b8]/20 shadow-sm">
+                <Sparkles className="w-3 h-3 text-[#6511b8]" /> Community Pro — Free Beta
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight" style={{ color: 'var(--text-primary)' }}>
-                Share anything. <span className="text-gradient">Secretly.</span>
+              
+              {/* Title */}
+              <h1 className="text-4xl sm:text-[44px] font-black tracking-tight leading-[1.1] text-[#1f152e] dark:text-white">
+                Share anything.<br />
+                <span className="text-[#6511b8] dark:text-[#D494FF]">Secretly.</span>
               </h1>
-              <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                AES-256 client-side encryption. Self-destructs after reading. Zero knowledge — we never see your data.
+              
+              {/* Subtitle */}
+              <p className="text-xs sm:text-sm font-semibold text-[#534d5e] dark:text-zinc-400 max-w-lg mx-auto leading-relaxed">
+                AES-256 client-side encryption. Self-destructs after reading.<br />
+                <span className="font-extrabold text-[#1f152e] dark:text-white">Zero knowledge — we never see your data. No account needed.</span>
               </p>
-              {/* Trust strip */}
-              <div className="flex items-center justify-center gap-6 pt-1">
-                {[['Shield', 'Zero-logs'], ['Lock', 'AES-256'], ['Timer', 'Auto-burn'], ['Eye', 'E2EE']].map(([, label]) => (
-                  <span key={label} className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
-                ))}
+
+              {/* Trust Badges */}
+              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2 max-w-xl mx-auto">
+                {[
+                  { label: 'ZERO-LOGS', icon: Shield },
+                  { label: 'AES-256-GCM', icon: Lock },
+                  { label: 'AUTO-BURN', icon: Flame },
+                  { label: 'E2EE', icon: Zap },
+                  { label: 'NO ACCOUNT', icon: Inbox }
+                ].map((badge) => {
+                  const IconComp = badge.icon;
+                  return (
+                    <span key={badge.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f5f5ed] dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-full text-[9px] font-black uppercase tracking-wider text-[#534d5e] dark:text-zinc-400 shadow-sm">
+                      <IconComp className="w-3 h-3 text-[#6511b8]" />
+                      {badge.label}
+                    </span>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Composer Card */}
-            <div className="card gradient-border overflow-hidden" style={{ padding: 0 }}>
-              {/* Toolbar */}
-              <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)' }}>
+            {/* Stepper Row */}
+            <div className="flex items-center justify-center gap-2 sm:gap-4 max-w-lg mx-auto py-2 mb-4">
+              {/* Step 1 */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-full shadow-sm">
+                <span className="w-5 h-5 rounded-full bg-[#6511b8] text-white flex items-center justify-center text-[10px] font-black">1</span>
+                <span className="text-[11px] font-extrabold text-[#1f152e] dark:text-white whitespace-nowrap">Write message</span>
+              </div>
+              <span className="text-[#a5a1ad] dark:text-zinc-600 font-bold">›</span>
+
+              {/* Step 2 */}
+              <div className="flex items-center gap-2 px-3 py-2 opacity-50">
+                <span className="w-5 h-5 rounded-full bg-[#a5a1ad] dark:bg-zinc-700 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                <span className="text-[11px] font-bold text-[#534d5e] dark:text-zinc-400 whitespace-nowrap">Configure</span>
+              </div>
+              <span className="text-[#a5a1ad] dark:text-zinc-600 font-bold">›</span>
+
+              {/* Step 3 */}
+              <div className="flex items-center gap-2 px-3 py-2 opacity-50">
+                <span className="w-5 h-5 rounded-full bg-[#a5a1ad] dark:bg-zinc-700 text-white flex items-center justify-center text-[10px] font-bold">3</span>
+                <span className="text-[11px] font-bold text-[#534d5e] dark:text-zinc-400 whitespace-nowrap">Share link</span>
+              </div>
+            </div>
+
+            {/* Secure Composer Card */}
+            <div className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm shadow-[#1f152e]/5 transition-all">
+              {/* Card Header macOS style */}
+              <div className="flex items-center justify-between px-6 py-4 bg-[#faf9f5]/50 dark:bg-zinc-900/50 border-b border-[#e5e3d9] dark:border-zinc-800">
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] opacity-90 shadow-sm" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] opacity-90 shadow-sm" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f] opacity-90 shadow-sm" />
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Secure Composer</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#a5a1ad] dark:text-zinc-500 ml-1">SECURE COMPOSER</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: 'var(--accent-primary)' }}>
-                  <Shield className="w-3 h-3" /> AES-256 GCM
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#6511b8]/10 text-[#6511b8] dark:text-[#D494FF] rounded-full text-[9px] font-black uppercase tracking-widest border border-[#6511b8]/20 shadow-sm">
+                  <Shield className="w-3 h-3 text-[#6511b8]" /> AES-256 GCM
                 </div>
               </div>
 
               {/* Main Input Area */}
               <div
-                className={`relative transition-all duration-500 ${isDragging ? 'bg-accent/5' : ''}`}
+                className={`relative transition-all duration-500 ${isDragging ? 'bg-[#6511b8]/5' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -497,28 +505,28 @@ export default function CreateSecretPage() {
                   value={secretText}
                   onChange={(e) => setSecretText(e.target.value)}
                   placeholder="Type or paste your confidential message here..."
-                  className="w-full min-h-[250px] sm:min-h-[300px] bg-transparent p-6 sm:p-10 text-lg sm:text-xl font-medium text-zinc-900 dark:text-foreground placeholder:text-gray-300 dark:placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
+                  className="w-full min-h-[160px] bg-transparent p-6 sm:p-8 text-sm font-medium text-[#1f152e] dark:text-foreground placeholder-[#a5a1ad] dark:placeholder-zinc-600 border-none focus:ring-0 focus:outline-none resize-none custom-scrollbar"
                 />
 
-                {/* Attachment Overlay if files exist */}
+                {/* Attachment Display */}
                 {files.length > 0 && (
-                  <div className="p-8 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                  <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-in">
                     {files.map((f, i) => {
                       const FileIcon = getFileIcon(f.type);
                       return (
-                        <div key={i} className="flex items-center gap-4 p-4 bg-muted/40 border border-border rounded-2xl group/file hover:border-accent/30 transition-all">
-                          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                            <FileIcon className="w-5 h-5 text-accent" />
+                        <div key={i} className="flex items-center gap-3 p-3 bg-[#faf9f5] dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl group/file hover:border-[#6511b8]/30 transition-all shadow-sm">
+                          <div className="w-10 h-10 rounded-lg bg-[#6511b8]/10 flex items-center justify-center shrink-0">
+                            <FileIcon className="w-4 h-4 text-[#6511b8]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-foreground truncate">{f.name}</p>
-                            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">{formatBytes(f.size)}</p>
+                            <p className="text-xs font-bold text-[#1f152e] dark:text-white truncate">{f.name}</p>
+                            <p className="text-[9px] text-[#a5a1ad] dark:text-zinc-500 font-mono uppercase tracking-tighter">{formatBytes(f.size)}</p>
                           </div>
                           <button
                             onClick={() => removeFile(i)}
-                            className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-all hover:bg-red-500/20"
+                            className="w-7 h-7 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-all hover:bg-red-500/20"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       );
@@ -528,89 +536,100 @@ export default function CreateSecretPage() {
 
                 {/* Drag and Drop Feedback */}
                 {isDragging && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/5 dark:bg-accent/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accent/30 rounded-3xl sm:rounded-[2.5rem]">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                      <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-accent" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#6511b8]/5 dark:bg-[#6511b8]/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-[#6511b8]/30 rounded-3xl">
+                    <div className="w-16 h-16 bg-[#6511b8]/10 rounded-full flex items-center justify-center mb-3">
+                      <Upload className="w-6 h-6 text-[#6511b8]" />
                     </div>
-                    <p className="text-lg sm:text-xl font-bold text-foreground">Drop to Attach Files</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Up to {formatBytes(maxTotalSize)}</p>
+                    <p className="text-base font-bold text-[#1f152e] dark:text-white">Drop to Attach Files</p>
+                    <p className="text-xs text-[#a5a1ad] dark:text-zinc-500">Up to {formatBytes(maxTotalSize)}</p>
                   </div>
                 )}
               </div>
 
-              {/* Settings & Footer Bar */}
-              <div className="p-6 bg-slate-50/80 dark:bg-black/20 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
+              {/* Bottom Settings & Footer Bar */}
+              <div className="p-5 bg-[#faf9f5]/80 dark:bg-zinc-900/50 border-t border-[#e5e3d9] dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-5">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+                  
                   {/* Expiry Selector */}
-                  <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-muted-foreground ml-1">Auto Destruct</label>
+                  <div className="flex flex-col gap-1 w-full sm:w-auto shrink-0">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-[#a5a1ad] dark:text-zinc-500 ml-1">DESTRUCT AFTER</label>
                     <select
                       value={expiryHours}
                       onChange={(e) => setExpiryHours(Number(e.target.value))}
-                      className="w-full sm:w-auto bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-2 text-xs font-bold text-zinc-900 dark:text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-slate-50"
+                      className="w-full sm:w-auto bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl px-3.5 py-2 text-xs font-bold text-[#1f152e] dark:text-foreground focus:border-[#6511b8] outline-none transition-all cursor-pointer shadow-sm hover:bg-[#faf9f5]"
                     >
                       {EXPIRY_OPTIONS.filter(opt => !(!burnOnRead && opt.value > 24)).map(opt => (
-                        <option key={opt.value} value={opt.value} className="bg-white dark:bg-background text-zinc-900 dark:text-foreground">{opt.label}</option>
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="w-px h-10 bg-border/50 hidden md:block" />
-                  {/* Quick Access Actions */}
-                  <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+
+                  <div className="w-px h-10 bg-[#e5e3d9] dark:bg-zinc-800 hidden md:block" />
+
+                  {/* Actions (Attach / Settings) */}
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-white dark:bg-background hover:bg-slate-50 dark:hover:bg-muted border border-border/50 rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-950 hover:bg-[#faf9f5] dark:hover:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl text-xs font-bold text-[#534d5e] dark:text-zinc-300 shadow-sm transition-all"
                     >
-                      <Upload className="w-3.5 h-3.5 text-accent" />
+                      <Paperclip className="w-3.5 h-3.5 text-[#6511b8]" />
                       <span className="whitespace-nowrap">Attach</span>
                     </button>
                     <button
                       onClick={() => setShowAdvanced(!showAdvanced)}
-                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
-                        }`}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                        showAdvanced 
+                          ? 'bg-[#6511b8]/10 text-[#6511b8] border border-[#6511b8]/20' 
+                          : 'bg-white dark:bg-zinc-950 text-[#534d5e] dark:text-zinc-300 border border-[#e5e3d9] dark:border-zinc-800 hover:bg-[#faf9f5]'
+                      }`}
                     >
-                      <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+                      <Settings className={`w-3.5 h-3.5 text-[#6511b8] transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
                       <span className="whitespace-nowrap">Settings</span>
                     </button>
                   </div>
+
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto justify-end">
+                  
+                  {/* Burn toggle */}
                   <button
                     onClick={() => {
                       setBurnOnRead(!burnOnRead);
                       if (burnOnRead) {
-                        // Switching to multi-view: ensure expiry is valid and show advanced for password
                         if (expiryHours > 24) setExpiryHours(24);
                         setShowAdvanced(true);
                       }
                     }}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${!burnOnRead
-                      ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-300 border-slate-200 dark:border-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-700/50'
-                      }`}
+                    className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 border rounded-xl text-xs font-bold transition-all shadow-sm ${
+                      burnOnRead
+                        ? 'bg-[#6511b8]/5 text-[#6511b8] border-[#6511b8]/20 hover:bg-[#6511b8]/10'
+                        : 'bg-white dark:bg-zinc-950 text-[#534d5e] dark:text-zinc-300 border-[#e5e3d9] dark:border-zinc-800 hover:bg-[#faf9f5]'
+                    }`}
                   >
-                    {burnOnRead ? <Zap className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                    {burnOnRead ? 'Burn on View' : 'Multi-View Active'}
+                    <Flame className="w-3.5 h-3.5 text-[#6511b8]" />
+                    <span>Burn on view</span>
                   </button>
 
+                  {/* Submit button */}
                   <button
                     onClick={handleSubmit}
                     disabled={isLoading || (!secretText && files.length === 0) || (!burnOnRead && !password)}
-                    className="w-full md:w-auto px-6 sm:px-10 py-3.5 sm:py-4 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:grayscale text-white rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-[#6511b8] hover:bg-[#510d96] disabled:opacity-30 disabled:hover:bg-[#6511b8] text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-md shadow-[#6511b8]/10 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                   >
-                    {isLoading ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Shield className="w-4 h-4 sm:w-5 sm:h-5" />}
-                    {isLoading ? 'Finalizing...' : 'Create Secret'}
+                    {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+                    <span>{isLoading ? 'Finalizing...' : 'Create Secret'}</span>
                   </button>
+
                 </div>
               </div>
 
               {/* Advanced Security Drawer */}
               {showAdvanced && (
-                <div className="p-8 bg-slate-50/50 dark:bg-black/20 border-t border-border/50 animate-fade-in-up">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                <div className="p-6 bg-[#faf9f5]/50 dark:bg-zinc-900/50 border-t border-[#e5e3d9] dark:border-zinc-800 animate-fade-in-up">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[#6511b8] flex items-center gap-1.5">
                         <Lock className="w-3 h-3" /> Password Access
                         {!burnOnRead && <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">Required</span>}
                       </label>
@@ -620,18 +639,18 @@ export default function CreateSecretPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Optional Key..."
-                          className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
+                          className="w-full bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-[#1f152e] dark:text-foreground placeholder-[#a5a1ad] dark:placeholder-zinc-600 focus:border-[#6511b8] transition-all outline-none shadow-sm"
                         />
                         <button
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-muted-foreground hover:text-zinc-900 dark:hover:text-foreground transition-colors"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a5a1ad] hover:text-[#1f152e] transition-colors"
                         >
                           {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[#6511b8] flex items-center gap-1.5">
                         <Shield className="w-3 h-3" /> IP Restriction
                       </label>
                       <input
@@ -639,21 +658,21 @@ export default function CreateSecretPage() {
                         value={allowedIp}
                         onChange={(e) => setAllowedIp(e.target.value)}
                         placeholder="e.g. 192.168.1.1"
-                        className="w-full bg-white dark:bg-background border border-border rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                        className="w-full bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-[#1f152e] dark:text-foreground placeholder-[#a5a1ad] dark:placeholder-zinc-600 focus:border-[#6511b8] transition-all outline-none shadow-sm"
                       />
                     </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[#6511b8] flex items-center gap-1.5">
                         <Sparkles className="w-3 h-3" /> Custom Alias
                       </label>
                       <div className="flex items-center">
-                        <div className="px-3 py-3 bg-muted border border-border border-r-0 rounded-l-xl text-[10px] font-bold text-muted-foreground">ilusion.io/s/</div>
+                        <div className="px-3 py-2.5 bg-[#f5f5ed] border border-[#e5e3d9] dark:border-zinc-800 border-r-0 rounded-l-xl text-[10px] font-bold text-[#534d5e] dark:text-zinc-400">ilusion.io/s/</div>
                         <input
                           type="text"
                           value={alias}
                           onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                           placeholder="my-secret"
-                          className="w-full bg-white dark:bg-background border border-border rounded-r-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                          className="w-full bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-r-xl px-4 py-2.5 text-xs text-[#1f152e] dark:text-foreground placeholder-[#a5a1ad] dark:placeholder-zinc-600 focus:border-[#6511b8] transition-all outline-none shadow-sm"
                         />
                       </div>
                     </div>
@@ -666,45 +685,95 @@ export default function CreateSecretPage() {
 
             {/* Error / Progress */}
             {error && (
-              <div className="flex items-center gap-3 px-5 py-3.5 rounded-xl text-sm font-bold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--destructive)' }}>
+              <div className="flex items-center gap-3 px-5 py-3.5 rounded-xl text-sm font-bold bg-red-500/10 border border-red-500/20 text-red-500">
                 <AlertCircle className="w-4 h-4 shrink-0" />{error}
               </div>
             )}
             {isLoading && uploadProgress > 0 && (
               <div className="space-y-2">
-                <div className="w-full rounded-full h-1 overflow-hidden" style={{ background: 'var(--border-default)' }}>
-                  <div className="h-full transition-all duration-500" style={{ width: `${uploadProgress}%`, background: 'var(--accent-primary)' }} />
+                <div className="w-full rounded-full h-1 overflow-hidden bg-[#e5e3d9] dark:bg-zinc-800">
+                  <div className="h-full transition-all duration-500 bg-[#6511b8]" style={{ width: `${uploadProgress}%` }} />
                 </div>
-                <p className="text-[10px] text-center font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-[10px] text-center font-bold uppercase tracking-widest text-[#a5a1ad]">
                   {uploadProgress < 100 ? 'Encrypting & uploading...' : 'Finalizing secure link...'}
                 </p>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="max-w-2xl mx-auto space-y-6 animate-fade-in-up">
-            <div className="text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                <Check className="w-7 h-7" style={{ color: 'var(--success)' }} />
+
+            {/* Reveal Section */}
+            <div className="space-y-3 pt-4">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-[#e5e3d9] dark:bg-zinc-800" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#a5a1ad] dark:text-zinc-500">REVEAL A SECRET</span>
+                <div className="h-px flex-1 bg-[#e5e3d9] dark:bg-zinc-800" />
               </div>
-              <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>Secret is <span style={{ color: 'var(--success)' }}>Live</span></h2>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>This link self-destructs after the first view.</p>
+
+              <div className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl p-4 flex flex-col sm:flex-row items-center gap-4 shadow-sm shadow-[#1f152e]/5">
+                <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
+                  <div className="w-10 h-10 rounded-xl bg-[#6511b8]/10 border border-[#6511b8]/20 flex items-center justify-center shadow-sm">
+                    <Eye className="w-5 h-5 text-[#6511b8]" />
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-black uppercase tracking-wide text-[#1f152e] dark:text-white">Open secret</h4>
+                    <p className="text-[9px] text-[#a5a1ad] dark:text-zinc-500">Paste ID or alias</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 w-full flex items-center gap-2">
+                  <input
+                    value={revealId}
+                    onChange={(e) => setRevealId(e.target.value)}
+                    placeholder="Secret ID or custom alias..."
+                    className="flex-1 bg-[#faf9f5] dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-[#1f152e] dark:text-white placeholder-[#a5a1ad] dark:placeholder-zinc-600 focus:outline-none focus:border-[#6511b8] shadow-inner font-mono"
+                    onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
+                  />
+                  <button
+                    onClick={handleReveal}
+                    disabled={!revealId.trim()}
+                    className="px-5 py-2.5 bg-[#6511b8] hover:bg-[#510d96] disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#6511b8]/10 flex items-center gap-1.5 shrink-0"
+                  >
+                    <span>Open</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="card gradient-border p-6 space-y-5">
+            {/* How It Works Nudge */}
+            <div className="flex flex-col items-center justify-center pt-2">
+              <div className="flex items-center gap-3">
+                <div className="h-px w-24 bg-[#e5e3d9] dark:bg-zinc-800" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#a5a1ad] dark:text-zinc-500">HOW IT WORKS</span>
+                <div className="h-px w-24 bg-[#e5e3d9] dark:bg-zinc-800" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 flex items-center justify-center mt-3 shadow-sm hover:scale-105 cursor-pointer">
+                <ArrowLeft className="w-3.5 h-3.5 text-[#6511b8] rotate-270" />
+              </div>
+            </div>
+
+          </div>
+        ) : (
+          <div className="max-w-xl mx-auto space-y-6 animate-fade-in-up">
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto bg-green-500/10 border border-green-500/20 shadow-sm">
+                <Check className="w-7 h-7 text-green-500" />
+              </div>
+              <h2 className="text-3xl font-extrabold tracking-tight text-[#1f152e] dark:text-white">Secret is <span className="text-green-500">Live</span></h2>
+              <p className="text-xs text-[#534d5e] dark:text-zinc-400">This secure encrypted link self-destructs after the first view.</p>
+            </div>
+
+            <div className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl p-6 space-y-5 shadow-sm shadow-[#1f152e]/5">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Secure Link</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#a5a1ad]">Secure Link</label>
                 <div className="relative">
                   <input
                     readOnly
                     value={generatedLink}
-                    className="w-full rounded-xl px-4 py-3 pr-24 text-xs font-mono outline-none"
-                    style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}
+                    className="w-full bg-[#faf9f5] dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl px-4 py-3 pr-24 text-xs font-mono outline-none text-[#1f152e] dark:text-white"
                   />
                   <button
                     onClick={copyToClipboard}
-                    className="absolute right-2 top-1.5 bottom-1.5 px-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-1.5 text-white"
-                    style={{ background: 'var(--accent-primary)' }}
+                    className="absolute right-2 top-1.5 bottom-1.5 px-4 rounded-lg font-bold text-xs uppercase tracking-widest transition-all bg-[#6511b8] hover:bg-[#510d96] text-white shadow-sm flex items-center gap-1.5"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -712,23 +781,23 @@ export default function CreateSecretPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
-                <div className="p-2 bg-white rounded-lg shrink-0">
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-[#faf9f5] dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800">
+                <div className="p-2 bg-white rounded-xl shrink-0 shadow-sm border border-slate-100">
                   <QRCodeSVG value={generatedLink} size={88} bgColor="#fff" fgColor="#000" />
                 </div>
                 <div className="space-y-1 text-center sm:text-left">
-                  <p className="text-sm font-bold flex items-center justify-center sm:justify-start gap-2" style={{ color: 'var(--text-primary)' }}>
-                    <Zap className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} /> Scan to View
+                  <p className="text-sm font-bold flex items-center justify-center sm:justify-start gap-1.5 text-[#1f152e] dark:text-white">
+                    <Zap className="w-4 h-4 text-[#6511b8]" /> Scan to View
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Share this QR for instant mobile access.</p>
+                  <p className="text-xs text-[#534d5e] dark:text-zinc-400">Share this QR code for instant secure mobile decryption.</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-1">
-                <button onClick={resetForm} className="btn-secondary w-full !py-2.5 flex items-center justify-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5" /> Create New
+                <button onClick={resetForm} className="px-4 py-2.5 bg-[#f5f5ed] dark:bg-zinc-900 hover:bg-[#faf9f5] border border-[#e5e3d9] dark:border-zinc-800 text-[#534d5e] dark:text-zinc-300 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#6511b8]" /> Create New
                 </button>
-                <Link href="/sign-up" className="btn-primary w-full !py-2.5 flex items-center justify-center gap-2">
+                <Link href="/sign-up" className="px-4 py-2.5 bg-[#6511b8] hover:bg-[#510d96] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5">
                   <Inbox className="w-3.5 h-3.5" /> Get Free Inbox
                 </Link>
               </div>
@@ -737,22 +806,15 @@ export default function CreateSecretPage() {
         )}
       </main>
 
-      {/* ── Reveal a Secret ── */}
-      {!generatedLink && (
-        <div className="w-full max-w-4xl px-6 pb-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <RevealPanel />
-        </div>
-      )}
-
       {/* Sign-Up Nudge */}
-      {!generatedLink && !isSignedIn && (
-        <div className="w-full max-w-5xl px-4 sm:px-6 pb-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl" style={{ border: '1px solid var(--accent-muted)', background: 'var(--accent-subtle)' }}>
+      {!generatedLink && (
+        <div className="w-full max-w-2xl px-4 sm:px-6 pb-6 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl bg-[#6511b8]/5 border border-[#6511b8]/20 shadow-sm">
             <div>
-              <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Track secrets & get your own secure inbox</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>Free forever during beta. No credit card.</p>
+              <p className="text-sm font-extrabold text-[#1f152e] dark:text-white">Track secrets & get your own secure inbox</p>
+              <p className="text-xs text-[#534d5e] dark:text-zinc-400 mt-0.5">Free forever during beta. No credit card.</p>
             </div>
-            <Link href="/sign-up" className="btn-primary !text-xs !py-2 shrink-0 whitespace-nowrap">
+            <Link href="/sign-up" className="px-4 py-2 bg-[#6511b8] hover:bg-[#510d96] text-white text-xs font-bold rounded-xl shadow-sm transition-all shrink-0">
               Claim Free Inbox →
             </Link>
           </div>
@@ -761,50 +823,52 @@ export default function CreateSecretPage() {
 
       {/* History */}
       {!generatedLink && localHistory.length > 0 && (
-        <div className="w-full max-w-5xl px-4 sm:px-6 pb-24 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+        <div className="w-full max-w-2xl px-4 sm:px-6 pb-24 relative z-10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              <Inbox className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+            <h2 className="text-xs font-black uppercase tracking-wider flex items-center gap-2 text-[#1f152e] dark:text-white">
+              <Inbox className="w-4 h-4 text-[#6511b8]" />
               Recent Activity
-              <span className="badge badge-accent !py-0 !text-[9px]">Local Only</span>
+              <span className="px-2 py-0.5 bg-[#6511b8]/10 text-[#6511b8] text-[8px] font-black rounded-full border border-[#6511b8]/20">Local Only</span>
             </h2>
             <button
               onClick={() => { if (confirm('Clear local history?')) { localStorage.removeItem('ilusion_recent_secrets'); setLocalHistory([]); } }}
-              className="text-[10px] font-bold uppercase tracking-widest transition-colors"
-              style={{ color: 'var(--text-tertiary)' }}
+              className="text-[10px] font-black uppercase tracking-widest text-[#a5a1ad] hover:text-[#1f152e] transition-colors"
             >
               Clear
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {localHistory.map((secret) => (
-              <div key={secret.id} className="card gradient-border p-4 hover:scale-[1.01] transition-transform">
+              <div key={secret.id} className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl p-4 shadow-sm hover:scale-[1.01] transition-transform">
                 <div className="flex items-start justify-between mb-3">
                   <div className="space-y-0.5">
-                    <p className="text-xs font-bold truncate max-w-[200px]" style={{ color: 'var(--text-primary)' }}>
+                    <p className="text-xs font-extrabold text-[#1f152e] dark:text-white truncate max-w-[180px]">
                       {secret.label || 'Secure Message'}
                     </p>
-                    <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                    <p className="text-[10px] text-[#a5a1ad]">
                       {new Date(secret.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${secret.status === 'burned' ? 'bg-red-500/10 text-red-500'
-                      : secret.status === 'expired' ? 'bg-zinc-500/10 text-zinc-400'
-                        : 'bg-emerald-500/10 text-emerald-500'
-                    }`}>{secret.status}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                    secret.status === 'burned' 
+                      ? 'bg-red-500/10 text-red-500'
+                      : secret.status === 'expired' 
+                        ? 'bg-zinc-500/10 text-zinc-400'
+                        : 'bg-[#6511b8]/10 text-[#6511b8]'
+                  }`}>{secret.status}</span>
                 </div>
 
-                <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                <div className="flex items-center justify-between pt-3 border-t border-[#e5e3d9] dark:border-zinc-800">
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col">
-                      <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Views</span>
-                      <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{secret.viewCount}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-[#a5a1ad]">Views</span>
+                      <span className="text-xs font-extrabold text-[#1f152e] dark:text-white">{secret.viewCount}</span>
                     </div>
-                    <div className="w-px h-5" style={{ background: 'var(--border-default)' }} />
+                    <div className="w-px h-5 bg-[#e5e3d9] dark:bg-zinc-800" />
                     <div className="flex flex-col">
-                      <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Expires</span>
-                      <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-[#a5a1ad]">Expires</span>
+                      <span className="text-xs font-extrabold text-[#1f152e] dark:text-white">
                         {(() => {
                           const msLeft = secret.expiresAt - Date.now();
                           if (msLeft <= 0) return 'Expired';
@@ -822,7 +886,7 @@ export default function CreateSecretPage() {
                         navigator.clipboard.writeText(secret.link);
                         alert('Link copied!');
                       }}
-                      className="p-2 bg-muted hover:bg-accent/10 hover:text-accent rounded-lg transition-colors"
+                      className="p-2 bg-[#f5f5ed] hover:bg-[#6511b8]/10 hover:text-[#6511b8] text-[#534d5e] dark:text-zinc-400 rounded-lg transition-colors"
                       title="Copy Link"
                     >
                       <Copy className="w-3.5 h-3.5" />
@@ -832,7 +896,7 @@ export default function CreateSecretPage() {
                         removeLocalSecret(secret.id);
                         setLocalHistory(getLocalSecrets());
                       }}
-                      className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors text-muted-foreground"
+                      className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors text-[#a5a1ad]"
                       title="Remove from history"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -843,24 +907,24 @@ export default function CreateSecretPage() {
             ))}
           </div>
 
-          <p className="text-[10px] text-center mt-6 font-medium" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="text-[10px] text-center mt-6 font-medium text-[#a5a1ad]">
             History purges automatically after 24 hours.
           </p>
         </div>
       )}
 
       {/* Footer */}
-      <footer className="w-full max-w-5xl px-4 sm:px-6 py-8 mt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+      <footer className="w-full max-w-2xl px-4 sm:px-6 py-8 mt-auto relative z-10 border-t border-[#e5e3d9] dark:border-zinc-800">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             {[['Shield', 'Zero-logs'], ['Lock', 'AES-256 GCM'], ['Timer', 'Auto-burn']].map(([, label]) => (
-              <span key={label} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
+              <span key={label} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#a5a1ad]" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
             ))}
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>Privacy</Link>
-            <Link href="/terms" className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>Terms</Link>
-            <Link href="/docs/api" className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>API Docs</Link>
+            <Link href="/privacy" className="text-[10px] text-[#a5a1ad] hover:text-[#1f152e] transition-colors">Privacy</Link>
+            <Link href="/terms" className="text-[10px] text-[#a5a1ad] hover:text-[#1f152e] transition-colors">Terms</Link>
+            <Link href="/docs/api" className="text-[10px] text-[#a5a1ad] hover:text-[#1f152e] transition-colors">API Docs</Link>
           </div>
         </div>
       </footer>
