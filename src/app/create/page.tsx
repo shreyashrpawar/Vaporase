@@ -61,6 +61,50 @@ function getFileIcon(type: string) {
   return FileText;
 }
 
+function RevealPanel() {
+  const [revealId, setRevealId] = useState('');
+  const router = useRouter();
+
+  const handleReveal = () => {
+    const id = revealId.trim();
+    if (!id) return;
+    router.push(`/secret/${id}`);
+  };
+
+  return (
+    <div className="relative group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/10 to-accent/10 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
+      <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-5 bg-white dark:bg-slate-900/60 border border-border/50 dark:border-white/[0.07] rounded-2xl">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+            <Eye className="w-4 h-4 text-purple-400" />
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Reveal a Secret</p>
+            <p className="text-[10px] text-muted-foreground">Enter ID or alias to decrypt</p>
+          </div>
+        </div>
+        <div className="flex flex-1 gap-2">
+          <input
+            value={revealId}
+            onChange={e => setRevealId(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleReveal()}
+            placeholder="Secret ID or custom alias..."
+            className="flex-1 bg-slate-50 dark:bg-black/20 border border-border/50 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 dark:text-foreground placeholder:text-muted-foreground/50 focus:border-accent/50 outline-none transition-all"
+          />
+          <button
+            onClick={handleReveal}
+            disabled={!revealId.trim()}
+            className="px-5 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-400 rounded-xl text-xs font-bold transition-all disabled:opacity-30 whitespace-nowrap"
+          >
+            Open →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateSecretPage() {
   const { isSignedIn } = useAuth();
   const [secretText, setSecretText] = useState('');
@@ -99,12 +143,10 @@ export default function CreateSecretPage() {
     if (localHistory.length === 0) return;
 
     const syncStatus = async () => {
-      const updatedHistory = [...localHistory];
+      const current = getLocalSecrets();
       let hasChanges = false;
 
-      for (let i = 0; i < updatedHistory.length; i++) {
-        const secret = updatedHistory[i];
-        // Only check if it's still 'active' and not checked recently (e.g., in the last 1 min)
+      for (const secret of current) {
         if (secret.status === 'active' && (!secret.lastCheckedAt || Date.now() - secret.lastCheckedAt > 30000)) {
           try {
             const res = await fetch(`/api/secrets/status?id=${secret.id}`);
@@ -129,7 +171,7 @@ export default function CreateSecretPage() {
       }
     };
 
-    const timer = setTimeout(syncStatus, 1000);
+    const timer = setTimeout(syncStatus, 500);
     return () => clearTimeout(timer);
   }, [localHistory]);
 
@@ -393,7 +435,7 @@ export default function CreateSecretPage() {
                 <span className="hidden sm:inline">Workspace</span> <ArrowRight className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
               </Link>
             ) : (
-              <Link href="/sign-in" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
+              <Link href="/sign-up" className="text-xs font-bold px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent/90 transition-all shadow-lg shadow-accent/20">Get Free Inbox →</Link>
             )}
           </div>
         </div>
@@ -710,6 +752,28 @@ export default function CreateSecretPage() {
         )}
       </main>
 
+      {/* ── Reveal a Secret ── */}
+      {!generatedLink && (
+        <div className="w-full max-w-4xl px-6 pb-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <RevealPanel />
+        </div>
+      )}
+
+      {/* ── Sign-Up Nudge ── */}
+      {!generatedLink && !isSignedIn && (
+        <div className="w-full max-w-4xl px-6 pb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl border border-accent/20 bg-accent/5">
+            <div>
+              <p className="text-sm font-bold text-slate-900 dark:text-white">Want to track your secrets & get a custom inbox?</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Free forever during beta. No credit card needed.</p>
+            </div>
+            <Link href="/sign-up" className="shrink-0 px-5 py-2.5 bg-accent text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-accent/20 hover:bg-accent/90 transition-all whitespace-nowrap">
+              Claim Free Inbox →
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Local History Section (Anonymous Workspace) */}
       {!generatedLink && localHistory.length > 0 && (
         <div className="w-full max-w-4xl px-6 pb-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -763,7 +827,13 @@ export default function CreateSecretPage() {
                     <div className="flex flex-col">
                       <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Expires</span>
                       <span className="text-xs font-bold text-foreground">
-                        {Math.max(0, Math.ceil((secret.expiresAt - Date.now()) / (1000 * 60)))}m
+                        {(() => {
+                          const msLeft = secret.expiresAt - Date.now();
+                          if (msLeft <= 0) return 'Expired';
+                          const minsLeft = Math.ceil(msLeft / 60000);
+                          if (minsLeft < 60) return `${minsLeft}m`;
+                          return `${Math.ceil(minsLeft / 60)}h`;
+                        })()}
                       </span>
                     </div>
                   </div>
