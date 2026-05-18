@@ -74,8 +74,13 @@ export default function SecretsDashboardPage() {
     </div>
   );
 
-  const activeSecrets = secrets.filter(s => s.status === 'active');
-  const pastSecrets = secrets.filter(s => s.status !== 'active');
+  const isLast1Day = (dateStr: string) => {
+    const createdTime = new Date(dateStr).getTime();
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    return (Date.now() - createdTime) <= oneDayInMs;
+  };
+
+  const activeSecrets = secrets.filter(s => s.status === 'active' || isLast1Day(s.createdAt));
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
@@ -102,9 +107,9 @@ export default function SecretsDashboardPage() {
       {/* Header */}
       <div className="h-14 flex items-center justify-between border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 shrink-0 mb-2">
         <div className="flex items-center gap-2">
-          <Shield className="w-3.5 h-3.5" /> Active Secrets
+          <Shield className="w-3.5 h-3.5" /> Active & Recent Secrets
         </div>
-        <span className="bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] dark:bg-[var(--accent-primary)]/20 dark:text-[#D494FF] text-[9px] px-2 py-0.5 rounded-full font-bold">
+        <span className="bg-accent/10 text-accent dark:bg-accent/20 text-[9px] px-2.5 py-0.5 rounded-full font-black">
           {activeSecrets.length}
         </span>
       </div>
@@ -116,7 +121,7 @@ export default function SecretsDashboardPage() {
             <div className="w-12 h-12 bg-[var(--bg-inset)] dark:bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[var(--border-default)] dark:border-white/[0.05]">
               <Shield className="w-6 h-6 text-[var(--text-tertiary)] dark:text-zinc-600" />
             </div>
-            <p className="text-xs text-[var(--text-secondary)] dark:text-zinc-400 font-medium">No active secrets found</p>
+            <p className="text-xs text-[var(--text-secondary)] dark:text-zinc-400 font-medium">No secrets found</p>
           </div>
         ) : (
           activeSecrets.map((secret) => (
@@ -124,8 +129,14 @@ export default function SecretsDashboardPage() {
               key={secret.id}
               className="group relative flex flex-col gap-3 p-4 bg-[var(--bg-tertiary)] dark:bg-zinc-900 rounded-xl border border-[var(--border-default)] dark:border-zinc-800 shadow-sm transition-all hover:shadow-md"
             >
-              {/* Purple Left Border line */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent-primary)] rounded-l-xl" />
+              {/* Status Left Border line */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+                secret.status === 'active' 
+                  ? 'bg-accent' 
+                  : secret.status === 'read'
+                    ? 'bg-zinc-300 dark:bg-zinc-700'
+                    : 'bg-red-500/50'
+              }`} />
 
               <div className="flex items-start justify-between pl-1">
                 <div className="flex flex-col gap-1.5 min-w-0">
@@ -153,7 +164,7 @@ export default function SecretsDashboardPage() {
                     <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold tracking-wide ${
                       secret.burnOnRead 
                         ? 'bg-red-500/10 text-red-600 dark:text-red-400' 
-                        : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] dark:text-[#D494FF]'
+                        : 'bg-accent/10 text-accent'
                     }`}>
                       {secret.burnOnRead ? '1-View burn' : 'Multi-view'}
                     </span>
@@ -165,15 +176,32 @@ export default function SecretsDashboardPage() {
                   </div>
                 </div>
                 
-                {/* Active Dot */}
-                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                {/* Status Dot / Indicator */}
+                <div className="flex items-center gap-1.5 shrink-0 mt-1">
+                  {secret.status === 'active' ? (
+                    <>
+                      <span className="text-[9px] text-emerald-500 font-black uppercase tracking-wider">Active</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    </>
+                  ) : secret.status === 'read' ? (
+                    <>
+                      <span className="text-[9px] text-zinc-400 dark:text-zinc-550 font-black uppercase tracking-wider">Burned</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 dark:bg-zinc-650 shrink-0" />
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[9px] text-red-500 font-black uppercase tracking-wider">Revoked</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Actions */}
               <div className="flex items-center gap-2 mt-1 pl-1">
                 <button
                   onClick={() => handleCopyLink(secret)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-[var(--text-secondary)] dark:text-zinc-300 border border-[var(--border-default)] dark:border-zinc-700 hover:bg-[var(--bg-secondary)] dark:hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-[var(--text-secondary)] dark:text-zinc-300 border border-[var(--border-default)] dark:border-zinc-700 hover:bg-[var(--bg-secondary)] dark:hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   {copiedId === secret.id ? (
                     <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -183,13 +211,15 @@ export default function SecretsDashboardPage() {
                   <span>Copy link</span>
                 </button>
 
-                <button
-                  onClick={() => handleRevoke(secret.id)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete</span>
-                </button>
+                {secret.status === 'active' && (
+                  <button
+                    onClick={() => handleRevoke(secret.id)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete</span>
+                  </button>
+                )}
               </div>
             </div>
           ))

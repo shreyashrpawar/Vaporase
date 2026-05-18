@@ -20,11 +20,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing secret ID' }, { status: 400 });
     }
 
-    // Verify ownership and fetch current state (Support UUID or Alias)
+    // Verify ownership and fetch current state (Support UUID or Alias) - creator or recipient can revoke
     const secretRecord = await db.query.secrets.findFirst({
       where: and(
         or(eq(secrets.id, id), eq(secrets.alias, id)),
-        eq(secrets.userId, userId)
+        or(
+          eq(secrets.userId, userId),
+          eq(secrets.recipientId, userId)
+        )
       )
     });
 

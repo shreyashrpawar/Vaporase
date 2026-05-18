@@ -101,7 +101,7 @@ export default function InboxPage() {
                 </Link>
                 <button
                   onClick={() => handleRevoke(secret.id)}
-                  className="p-2 rounded-lg text-[var(--text-tertiary)] dark:text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                  className="p-2 rounded-lg text-[var(--text-tertiary)] dark:text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
                   title="Delete"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
