@@ -73,7 +73,7 @@ function PricingContent() {
     },
     {
       name: 'Pro',
-      price: '$9',
+      price: '$2',
       period: 'per month',
       badge: 'Most Popular',
       description: 'Advanced capabilities for professionals and teams.',
@@ -106,7 +106,7 @@ function PricingContent() {
           </p>
         </div>
  
-        <div className="grid lg:grid-cols-3 gap-8 relative z-10">
+        <div className="grid md:grid-cols-2 max-w-4xl mx-auto gap-8 relative z-10 justify-center">
           {plans.map((plan) => (
             <div
               key={plan.name}
