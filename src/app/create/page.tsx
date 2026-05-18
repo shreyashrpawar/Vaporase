@@ -82,6 +82,7 @@ export default function CreateSecretPage() {
   const [burnOnRead, setBurnOnRead] = useState(true);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [showBanner, setShowBanner] = useState(true);
   const [contentType, setContentType] = useState<'text' | 'file'>('text');
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -423,13 +424,15 @@ export default function CreateSecretPage() {
       </div>
 
       {/* Top Banner Alert */}
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-full shadow-sm text-[10px] font-black text-[#534d5e] dark:text-zinc-400">
-        <span>Free plan</span>
-        <span className="w-1 h-1 rounded-full bg-[#e5e3d9] dark:bg-zinc-800" />
-        <Link href="/pricing" className="text-zinc-900 dark:text-zinc-100 hover:underline font-extrabold">Upgrade</Link>
-        <span className="w-1 h-1 rounded-full bg-[#e5e3d9] dark:bg-zinc-800" />
-        <button onClick={() => {}} className="hover:text-[#1c1917]"><X className="w-2.5 h-2.5" /></button>
-      </div>
+      {userPlan !== 'pro' && showBanner && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-full shadow-sm text-[10px] font-black text-[#534d5e] dark:text-zinc-400">
+          <span>Free plan</span>
+          <span className="w-1 h-1 rounded-full bg-[#e5e3d9] dark:bg-zinc-800" />
+          <Link href="/pricing" className="text-zinc-900 dark:text-zinc-100 hover:underline font-extrabold">Upgrade</Link>
+          <span className="w-1 h-1 rounded-full bg-[#e5e3d9] dark:bg-zinc-800" />
+          <button onClick={() => setShowBanner(false)} className="hover:text-[#1c1917]"><X className="w-2.5 h-2.5" /></button>
+        </div>
+      )}
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-[#faf9f5]/80 dark:bg-zinc-950/80 border-b border-[#e5e3d9] dark:border-zinc-800 backdrop-blur-md transition-colors">

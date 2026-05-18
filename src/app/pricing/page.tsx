@@ -42,6 +42,41 @@ function PricingContent() {
   const [profile, setProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
+  const [verifying, setVerifying] = useState(false);
+
+  const handlePaymentSuccess = () => {
+    setVerifying(true);
+    let attempts = 0;
+    
+    const pollProfile = () => {
+      fetch('/api/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.plan === 'pro') {
+            setProfile(data);
+            setVerifying(false);
+          } else {
+            attempts++;
+            if (attempts < 10) {
+              setTimeout(pollProfile, 1500);
+            } else {
+              setVerifying(false);
+            }
+          }
+        })
+        .catch(() => {
+          attempts++;
+          if (attempts < 10) {
+            setTimeout(pollProfile, 1500);
+          } else {
+            setVerifying(false);
+          }
+        });
+    };
+    
+    setTimeout(pollProfile, 1000);
+  };
+
   useEffect(() => {
     if (isSignedIn) {
       setLoadingProfile(true);
@@ -166,7 +201,11 @@ function PricingContent() {
               <div className="mt-auto">
                 {plan.productId && !isUserPro ? (
                   isSignedIn ? (
-                    <DodoEmbeddedCheckout productId={plan.productId} source={source} />
+                    <DodoEmbeddedCheckout 
+                      productId={plan.productId} 
+                      source={source} 
+                      onSuccess={handlePaymentSuccess}
+                    />
                   ) : (
                     <SignInButton mode="modal">
                       <button className="w-full block text-center py-4.5 rounded-2xl bg-accent text-white font-bold uppercase tracking-widest shadow-xl shadow-accent/20 hover:scale-[1.02] transition-all text-sm">
@@ -215,6 +254,22 @@ function PricingContent() {
           </Link>
         </div>
       </div>
+
+      {verifying && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-fade-in">
+          <div className="card p-8 max-w-sm w-full text-center space-y-6 gradient-border">
+            <div className="w-16 h-16 bg-accent/10 border border-accent/30 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+              <Loader2 className="w-8 h-8 text-accent animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold">Verifying Subscription</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                We're confirming your secure premium activation. This will only take a moment...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,10 +31,26 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
       DodoPayments.Initialize({
         mode: 'test',
         displayType: 'overlay',
+        onEvent: (event) => {
+          if (event.event_type === 'payment.succeeded') {
+            const ev = new CustomEvent('dodo-payment-success');
+            window.dispatchEvent(ev);
+          }
+        }
       });
       isDodoInitialized = true;
     }
   }, []);
+
+  useEffect(() => {
+    const handleSuccess = () => {
+      if (onSuccess) onSuccess();
+    };
+    window.addEventListener('dodo-payment-success', handleSuccess);
+    return () => {
+      window.removeEventListener('dodo-payment-success', handleSuccess);
+    };
+  }, [onSuccess]);
 
   const handleStartCheckout = async () => {
     try {
