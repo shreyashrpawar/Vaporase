@@ -78,7 +78,6 @@ export default function SecretsDashboardPage() {
   const pastSecrets = secrets.filter(s => s.status !== 'active');
 
   return (
-  return (
     <div className="flex flex-col h-full animate-fade-in">
       {/* Messages */}
       {showSuccess && (

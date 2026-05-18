@@ -91,4 +91,5 @@ export default function RevealPage() {
         </button>
       </div>
     </div>
+  );
 }
