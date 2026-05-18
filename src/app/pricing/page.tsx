@@ -85,7 +85,9 @@ function PricingContent() {
         'API Access Key',
       ],
       buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
-      productId: billingCycle === 'yearly' ? 'pdt_pro_yearly' : 'pdt_pro', // Replace with actual Dodo Product ID
+      productId: billingCycle === 'yearly' 
+        ? process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY || '' 
+        : process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || '',
       highlight: true,
     },
   ];
