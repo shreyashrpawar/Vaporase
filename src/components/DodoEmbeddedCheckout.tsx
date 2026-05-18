@@ -31,8 +31,8 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
       DodoPayments.Initialize({
         mode: 'test',
         displayType: 'overlay',
-        onEvent: (event) => {
-          if (event.event_type === 'payment.succeeded') {
+        onEvent: (event: any) => {
+          if (event?.event_type === 'payment.succeeded') {
             const ev = new CustomEvent('dodo-payment-success');
             window.dispatchEvent(ev);
           }
