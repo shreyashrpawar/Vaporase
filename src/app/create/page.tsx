@@ -27,7 +27,8 @@ import {
   ArrowRight,
   Inbox,
   Paperclip,
-  Flame
+  Flame,
+  Rocket
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -89,6 +90,8 @@ export default function CreateSecretPage() {
   const router = useRouter();
 
   const [revealId, setRevealId] = useState('');
+  const [showUpgradeFor, setShowUpgradeFor] = useState<string | null>(null);
+
 
   const handleReveal = () => {
     const input = revealId.trim();
@@ -677,7 +680,7 @@ export default function CreateSecretPage() {
                     <button
                       onClick={() => {
                         if (userPlan === 'free') {
-                          alert('Disabling Burn on View is a Pro feature. Please upgrade to Pro.');
+                          setShowUpgradeFor('Multi-View (Disable Burn on Read)');
                           return;
                         }
                         setBurnOnRead(!burnOnRead);
@@ -740,7 +743,7 @@ export default function CreateSecretPage() {
                           </button>
                         </div>
                         {userPlan === 'free' && (
-                          <div className="absolute inset-0 z-10" onClick={() => alert('Password Access is a Pro feature. Please upgrade to Pro.')} />
+                          <div className="absolute inset-0 z-10" onClick={() => setShowUpgradeFor('Password Protection')} />
                         )}
                       </div>
                       <div className="space-y-2">
@@ -997,6 +1000,75 @@ export default function CreateSecretPage() {
           </div>
         </div>
       </footer>
+
+      {/* ── Pro Upgrade Modal ───────────────────────────────────────────── */}
+      {showUpgradeFor && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          onClick={() => setShowUpgradeFor(null)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+          {/* Modal card */}
+          <div
+            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-[#e5e3d9] dark:border-zinc-800 overflow-hidden animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Gradient header strip */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-accent to-indigo-500" />
+
+            <div className="p-6 space-y-5">
+              {/* Icon + title */}
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                  <Rocket className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-0.5">Pro Feature</p>
+                  <h3 className="text-base font-black text-zinc-900 dark:text-white leading-snug">{showUpgradeFor}</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Unlock this and all other Pro features for just <span className="font-bold text-zinc-900 dark:text-white">$2/month</span>.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature bullet list */}
+              <ul className="space-y-2">
+                {[
+                  ['🔐', 'Password-protected secrets'],
+                  ['🌐', 'IP-based access restriction'],
+                  ['👁️', 'Multi-view (disable burn on read)'],
+                  ['📦', '100 MB file uploads'],
+                  ['⚡', 'API access'],
+                ].map(([icon, label]) => (
+                  <li key={label} className="flex items-center gap-2.5 text-xs text-zinc-700 dark:text-zinc-300">
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA buttons */}
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                <Link
+                  href="/pricing"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-accent hover:bg-accent-light text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-accent/20 hover:scale-[1.02]"
+                >
+                  <Rocket className="w-4 h-4" />
+                  Upgrade to Pro
+                </Link>
+                <button
+                  onClick={() => setShowUpgradeFor(null)}
+                  className="flex-1 py-3 px-5 rounded-2xl text-sm font-bold text-zinc-500 dark:text-zinc-400 border border-[#e5e3d9] dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+                >
+                  Maybe later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
