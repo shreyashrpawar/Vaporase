@@ -14,23 +14,26 @@ import { createHmac } from 'crypto';
 // This is the webhook handler for Dodo Payments
 export async function POST(req: Request) {
   try {
-    const body = await req.text(); // Get raw body for signature verification
-    const signature = req.headers.get('x-dodo-signature');
+    const body = await req.text();
     const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
+    
+    let payload: any;
 
-    // Verify signature if secret is provided
-    if (webhookSecret && signature) {
-      const computedSignature = createHmac('sha256', webhookSecret)
-        .update(body)
-        .digest('hex');
+    if (webhookSecret) {
+      const headers: Record<string, string> = {};
+      req.headers.forEach((value, key) => {
+        headers[key.toLowerCase()] = value;
+      });
 
-      if (computedSignature !== signature) {
-        console.error('Webhook signature verification failed');
+      try {
+        payload = dodo.webhooks.unwrap(body, { headers, key: webhookSecret });
+      } catch (err) {
+        console.error('Webhook signature verification failed via SDK:', err);
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
       }
+    } else {
+      payload = JSON.parse(body);
     }
-
-    const payload = JSON.parse(body);
     const eventType = payload.type;
     const data = payload.data;
 

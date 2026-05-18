@@ -44,9 +44,21 @@ function PricingContent() {
 
   const [verifying, setVerifying] = useState(false);
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async (paymentId?: string) => {
     setVerifying(true);
     let attempts = 0;
+
+    if (paymentId) {
+      try {
+        await fetch('/api/checkout/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ payment_id: paymentId })
+        });
+      } catch (err) {
+        console.error('Explicit verify failed:', err);
+      }
+    }
     
     const pollProfile = () => {
       fetch('/api/profile')

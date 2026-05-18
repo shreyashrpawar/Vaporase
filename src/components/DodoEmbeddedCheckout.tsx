@@ -8,7 +8,7 @@ import './DodoEmbeddedCheckout.css';
 interface DodoEmbeddedCheckoutProps {
   productId: string;
   source?: string;
-  onSuccess?: () => void;
+  onSuccess?: (paymentId?: string) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
 }
@@ -33,7 +33,8 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
         displayType: 'overlay',
         onEvent: (event: any) => {
           if (event?.event_type === 'payment.succeeded') {
-            const ev = new CustomEvent('dodo-payment-success');
+            const paymentId = event?.data?.payment_id || event?.data?.id || '';
+            const ev = new CustomEvent('dodo-payment-success', { detail: { paymentId } });
             window.dispatchEvent(ev);
           }
         }
@@ -43,8 +44,9 @@ export const DodoEmbeddedCheckout: React.FC<DodoEmbeddedCheckoutProps> = ({
   }, []);
 
   useEffect(() => {
-    const handleSuccess = () => {
-      if (onSuccess) onSuccess();
+    const handleSuccess = (e: any) => {
+      const paymentId = e.detail?.paymentId;
+      if (onSuccess) onSuccess(paymentId);
     };
     window.addEventListener('dodo-payment-success', handleSuccess);
     return () => {
