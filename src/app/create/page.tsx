@@ -575,8 +575,8 @@ export default function CreateSecretPage() {
                 </div>
 
                 {/* Bottom Settings & Footer Bar */}
-                <div className="p-5 bg-[#faf9f5]/80 dark:bg-zinc-900/50 border-t border-[#e5e3d9] dark:border-zinc-800 flex flex-col xl:flex-row items-center justify-between gap-5">
-                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                <div className="p-5 bg-[#faf9f5]/80 dark:bg-zinc-900/50 border-t border-[#e5e3d9] dark:border-zinc-800 flex flex-col md:flex-row md:flex-wrap xl:flex-nowrap items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-4 w-full xl:w-auto">
                     
                     {/* Expiry Selector */}
                     <div className="flex flex-col gap-1 w-full sm:w-auto shrink-0">
@@ -592,10 +592,10 @@ export default function CreateSecretPage() {
                       </select>
                     </div>
 
-                    <div className="w-px h-10 bg-[#e5e3d9] dark:bg-zinc-800 hidden sm:block" />
+                    <div className="w-px h-10 bg-[#e5e3d9] dark:bg-zinc-800 hidden sm:block shrink-0" />
 
                     {/* Actions (Attach / Settings) */}
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-950 hover:bg-[#faf9f5] dark:hover:bg-zinc-900 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl text-xs font-bold text-[#534d5e] dark:text-zinc-300 shadow-sm transition-all"
@@ -618,7 +618,7 @@ export default function CreateSecretPage() {
 
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto justify-end">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
                     
                     {/* Burn toggle */}
                     <button
