@@ -268,7 +268,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       const fileType = uploadedFiles[0]?.fileType || null;
 
       // 1. Determine the ID/Salt
-      const customId = (alias && userPlan === 'pro') ? alias : nanoid(8);
+      const customId = alias ? alias : nanoid(8);
       const salt = customId;
 
       // 2. Encryption Strategy
@@ -312,7 +312,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           isE2EE,
           recipientId: recipient?.userId || null,
           dropKey: includeKeyInHash ? encryptionKey : null,
-          alias: (alias && userPlan === 'pro') ? alias : null,
+          alias: alias || null,
           burnOnRead,
           files: uploadedFiles,
         }),
@@ -325,7 +325,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      let link = `${window.location.origin}/secret/${(alias && userPlan === 'pro') ? alias : id}`;
+      let link = `${window.location.origin}/secret/${alias ? alias : id}`;
       if (includeKeyInHash) {
         link += `#${encryptionKey}`;
       }
@@ -678,21 +678,16 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
 
           {showAdvanced && (
             <div className="grid sm:grid-cols-2 gap-4 animate-fade-in">
-              <div className="space-y-2 relative">
-                <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
-                  <span>Custom Alias</span>
-                  {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--text-tertiary)' }}>
+                  Custom Alias
                 </label>
                 <input
                   value={alias}
                   onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  disabled={userPlan === 'free'}
-                  placeholder={userPlan === 'free' ? "Pro feature..." : "my-secret-link"}
-                  className={`input !py-2.5 !text-xs !bg-white/[0.02] ${userPlan === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  placeholder="my-secret-link"
+                  className="input !py-2.5 !text-xs !bg-white/[0.02]"
                 />
-                {userPlan === 'free' && (
-                  <div className="absolute inset-0 z-10" onClick={() => setShowUpgradeFor('Custom Alias')} />
-                )}
               </div>
               <div className="space-y-2 relative">
                 <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>

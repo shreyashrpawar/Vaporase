@@ -96,7 +96,8 @@ export async function POST(req: Request) {
         success: true,
         isE2EE: secretRecord.isE2EE,
         requirePassword: !!secretRecord.passwordHash,
-        status: secretRecord.status
+        status: secretRecord.status,
+        hasDropKey: !!secretRecord.dropKey
       });
     }
 

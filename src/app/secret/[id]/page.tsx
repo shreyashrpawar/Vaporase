@@ -68,13 +68,13 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
         if (data.requirePassword) {
           setRequirePassword(true);
         } else if (data.isE2EE) {
-          // If E2EE and doesn't require a password, verify we have a hash fragment key
+          // If E2EE and doesn't require a password, verify we have a hash fragment key OR server has a dropKey
           let hasHash = false;
           if (typeof window !== 'undefined' && window.location.hash) {
             hasHash = true;
           }
           
-          if (!hasHash) {
+          if (!hasHash && !data.hasDropKey) {
             throw new Error('Missing secure decryption key. This link is incomplete (missing the "#" portion). Opening it will destroy the secret forever. Please ensure you copied the complete link.');
           }
         }
