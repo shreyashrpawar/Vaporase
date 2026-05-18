@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
   Upload,
@@ -123,7 +124,10 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const [burnOnRead, setBurnOnRead] = useState(true);
   const [showUpgradeFor, setShowUpgradeFor] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setIsMounted(true), []);
 
   // Fetch the sender's plan
   useEffect(() => {
@@ -741,9 +745,9 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       </div>
 
       {/* ── Pro Upgrade Modal ───────────────────────────────────────────── */}
-      {showUpgradeFor && (
+      {isMounted && showUpgradeFor && createPortal(
         <div
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4"
+          className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-4"
           onClick={() => setShowUpgradeFor(null)}
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
@@ -800,7 +804,8 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
