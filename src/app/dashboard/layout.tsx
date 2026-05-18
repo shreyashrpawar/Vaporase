@@ -113,7 +113,7 @@ export default function DashboardLayout({
       </header>
 
       {/* ═══ Main Content ═══ */}
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
         <div className="animate-fade-in-up">
           {children}
         </div>
