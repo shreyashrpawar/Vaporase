@@ -491,75 +491,68 @@ export default function LandingPage() {
       {/* ═══ Pricing ═══ */}
       <section id="pricing" className="relative z-10 px-6 py-24 max-w-5xl mx-auto w-full">
         <div className="text-center mb-16">
+          <div className="badge badge-accent mb-4">Limited Time Offer</div>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--text-primary)' }}>
-            Transparent <span className="text-gradient">Pricing</span>
+            Free Beta. <span className="text-gradient">Unlocked Security.</span>
           </h2>
-          <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            Simple plans for individuals and power users.
+          <p className="text-sm max-w-lg mx-auto" style={{ color: 'var(--text-secondary)' }}>
+            We are in public beta. Enjoy our premium, high-security features completely free—no credit card required.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {/* Free Plan */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Guest Plan */}
           <div className="card gradient-border p-6 sm:p-8 flex flex-col group transition-transform hover:scale-[1.02]">
             <div className="mb-6">
-              <h3 className="text-lg sm:text-xl font-bold mb-2">Free</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Guest Box</h3>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-2xl sm:text-3xl font-bold">$0</span>
+                <span className="text-xs text-muted-foreground">/ forever</span>
               </div>
-              <p className="text-[11px] sm:text-xs text-muted-foreground">Perfect for one-off secure sharing.</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Perfect for one-off secure anonymous sharing.</p>
             </div>
             <ul className="space-y-3 sm:space-y-4 mb-8 flex-1">
-              {['Up to 50MB uploads', 'E2E Encryption', 'Burn on Read', 'Standard Support'].map(f => (
+              {[
+                'Up to 100MB file uploads',
+                'AES-256 client-side E2EE',
+                'Burn on Read / self-destructing',
+                'No sign-up required'
+              ].map(f => (
                 <li key={f} className="flex items-center gap-3 text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" /> {f}
                 </li>
               ))}
             </ul>
-            <Link href="/create" className="btn-secondary !text-sm w-full text-center">Get Started</Link>
+            <Link href="/create" className="btn-secondary !text-sm w-full text-center">Share Guest Secret</Link>
           </div>
 
-          {/* Pro Monthly */}
-          <div className="card gradient-border p-6 sm:p-8 flex flex-col relative group transition-transform hover:scale-[1.02]" style={{ background: 'var(--surface-overlay)' }}>
-            <div className="mb-6">
-              <h3 className="text-lg sm:text-xl font-bold mb-2">Pro Monthly</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-2xl sm:text-3xl font-bold">$Free</span>
-                <span className="text-xs text-muted-foreground">/mo</span>
-              </div>
-              <p className="text-[11px] sm:text-xs text-muted-foreground">Advanced security for power users.</p>
-            </div>
-            <ul className="space-y-3 sm:space-y-4 mb-8 flex-1">
-              {['100MB uploads', 'Password Protection', 'IP Restrictions', '30-day Expiry'].map(f => (
-                <li key={f} className="flex items-center gap-3 text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" /> {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/pricing" className="btn-secondary !text-sm w-full text-center">Select Monthly</Link>
-          </div>
-
-          {/* Pro Yearly */}
-          <div className="card gradient-border p-6 sm:p-8 flex flex-col relative group transition-transform hover:scale-[1.05]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
+          {/* Community Pro Plan */}
+          <div className="card gradient-border p-6 sm:p-8 flex flex-col relative group transition-transform hover:scale-[1.03]" style={{ background: 'var(--surface-overlay)', borderColor: 'var(--accent-muted)' }}>
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap z-10">
-              Best Value — Save 25%
+              Unlocked Beta — $0
             </div>
             <div className="mb-6">
-              <h3 className="text-lg sm:text-xl font-bold mb-2">Pro Yearly</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Community Pro</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-2xl sm:text-3xl font-bold">$Free</span>
-                <span className="text-xs text-muted-foreground">/year</span>
+                <span className="text-2xl sm:text-3xl font-bold">$0</span>
+                <span className="text-xs text-muted-foreground">/ free beta</span>
               </div>
-              <p className="text-[11px] sm:text-xs text-muted-foreground">Professional security at $1.50/mo.</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Get a custom secure inbox & full developer access.</p>
             </div>
             <ul className="space-y-3 sm:space-y-4 mb-8 flex-1">
-              {['All Pro Features', 'Priority Support', 'API Access Key', 'Unlimited Secrets'].map(f => (
+              {[
+                'Everything in Guest Box',
+                'Custom subdomain (name.ilusion.io)',
+                'Developer API keys & integrations',
+                'Speakable link password protection',
+                'Detailed delivery status logs'
+              ].map(f => (
                 <li key={f} className="flex items-center gap-3 text-[11px] sm:text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" /> {f}
                 </li>
               ))}
             </ul>
-            <Link href="/pricing" className="btn-primary !text-sm w-full text-center">Select Yearly</Link>
+            <Link href="/sign-up" className="btn-primary !text-sm w-full text-center">Claim Your Inbox</Link>
           </div>
         </div>
       </section>
