@@ -108,7 +108,9 @@ export default function ApiKeysPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-widest opacity-70">Programmatic Access</h2>
-          <p className="text-xs text-muted-foreground mt-1">Manage authentication keys for your integrations.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Manage authentication keys for your integrations. <Link href="/docs/api" className="text-accent hover:underline font-medium ml-1">View API Docs →</Link>
+          </p>
         </div>
         <form onSubmit={handleCreateKey} className="flex gap-2">
           <input
