@@ -15,6 +15,7 @@ export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [localHistory, setLocalHistory] = useState<LocalSecret[]>([]);
   const [quickAlias, setQuickAlias] = useState('');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
@@ -498,6 +499,19 @@ export default function LandingPage() {
           <p className="text-sm max-w-lg mx-auto" style={{ color: 'var(--text-secondary)' }}>
             Choose the level of security and scale your workflow needs. Ephemeral privacy for everyone.
           </p>
+
+          <div className="flex items-center justify-center gap-3 pt-8">
+            <span className={`text-sm font-semibold transition-colors ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+            <button 
+              onClick={() => setBillingCycle(b => b === 'monthly' ? 'yearly' : 'monthly')}
+              className="relative w-14 h-7 bg-white/10 rounded-full p-1 transition-colors hover:bg-white/20"
+            >
+              <div className={`w-5 h-5 bg-accent rounded-full transition-transform ${billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'}`} />
+            </button>
+            <span className={`text-sm font-semibold flex items-center gap-2 transition-colors ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Yearly <span className="bg-accent/20 text-accent px-2 py-0.5 rounded-full text-[10px]">Save 33%</span>
+            </span>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -534,8 +548,8 @@ export default function LandingPage() {
             <div className="mb-6">
               <h3 className="text-lg sm:text-xl font-bold mb-2">Pro</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-2xl sm:text-3xl font-bold">$2</span>
-                <span className="text-xs text-muted-foreground">/ month</span>
+                <span className="text-2xl sm:text-3xl font-bold">{billingCycle === 'yearly' ? '$16' : '$2'}</span>
+                <span className="text-xs text-muted-foreground">/ {billingCycle === 'yearly' ? 'year' : 'month'}</span>
               </div>
               <p className="text-[11px] sm:text-xs text-muted-foreground">Get a custom secure inbox & full developer access.</p>
             </div>

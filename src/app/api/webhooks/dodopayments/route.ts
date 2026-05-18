@@ -42,8 +42,8 @@ export async function POST(req: Request) {
       const userId = data?.metadata?.user_id || payload?.metadata?.user_id;
 
       if (userId) {
-        const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || process.env.DODO_PRODUCT_ID_PRO;
-        const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY || process.env.DODO_PRODUCT_ID_YEARLY;
+        const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_PRO || process.env.DODO_PRODUCT_ID_PRO || 'pdt_pro';
+        const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID_YEARLY || process.env.DODO_PRODUCT_ID_YEARLY || 'pdt_pro_yearly';
         
         // Robust product ID detection - checking top level and product_cart array
         const productId = String(

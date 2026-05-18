@@ -73,8 +73,8 @@ function PricingContent() {
     },
     {
       name: 'Pro',
-      price: '$2',
-      period: 'per month',
+      price: billingCycle === 'yearly' ? '$16' : '$2',
+      period: billingCycle === 'yearly' ? 'per year' : 'per month',
       badge: 'Most Popular',
       description: 'Advanced capabilities for professionals and teams.',
       features: [
@@ -85,7 +85,7 @@ function PricingContent() {
         'API Access Key',
       ],
       buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
-      productId: 'pdt_pro', // Replace with actual Dodo Product ID
+      productId: billingCycle === 'yearly' ? 'pdt_pro_yearly' : 'pdt_pro', // Replace with actual Dodo Product ID
       highlight: true,
     },
   ];
@@ -104,8 +104,20 @@ function PricingContent() {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
             Choose the level of security and scale your workflow needs. No hidden fees, just pure ephemeral privacy.
           </p>
+
+          <div className="flex items-center justify-center gap-3 pt-8">
+            <span className={`text-sm font-semibold transition-colors ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+            <button 
+              onClick={() => setBillingCycle(b => b === 'monthly' ? 'yearly' : 'monthly')}
+              className="relative w-14 h-7 bg-white/10 rounded-full p-1 transition-colors hover:bg-white/20"
+            >
+              <div className={`w-5 h-5 bg-accent rounded-full transition-transform ${billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'}`} />
+            </button>
+            <span className={`text-sm font-semibold flex items-center gap-2 transition-colors ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Yearly <span className="bg-accent/20 text-accent px-2 py-0.5 rounded-full text-[10px]">Save 33%</span>
+            </span>
+          </div>
         </div>
- 
         <div className="grid md:grid-cols-2 max-w-4xl mx-auto gap-8 relative z-10 justify-center">
           {plans.map((plan) => (
             <div
