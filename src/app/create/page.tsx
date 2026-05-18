@@ -297,7 +297,7 @@ export default function CreateSecretPage() {
       const fileSize = uploadedFiles[0]?.fileSize || null;
       const fileType = uploadedFiles[0]?.fileType || null;
 
-      const customId = (alias && userPlan === 'pro') ? alias : nanoid(8);
+      const customId = alias ? alias : nanoid(8);
       const salt = customId;
 
       let encryptionKey: string;
@@ -332,7 +332,7 @@ export default function CreateSecretPage() {
           expiresInHours: expiryHours,
           passwordHash: finalPasswordHash,
           allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
-          alias: (alias && userPlan === 'pro') ? alias : null,
+          alias: alias || null,
           burnOnRead,
           isE2EE,
           files: uploadedFiles,
