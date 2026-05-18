@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark, .dark *));
+
 /* ═══════════════════════════════════════════════
    ILUSION DESIGN SYSTEM
    Inspired by Linear, Vercel, Resend
