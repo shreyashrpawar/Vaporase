@@ -57,7 +57,7 @@ export default function ApiDocsPage() {
             Developer <span className="text-gradient">API</span>
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Integrate secure, ephemeral sharing directly into your applications. Our simple REST API 
+            Integrate secure, ephemeral sharing directly into your applications. Our simple REST API
             allows you to programmatically generate self-destructing secrets with custom aliases.
           </p>
         </div>
@@ -105,8 +105,8 @@ export default function ApiDocsPage() {
               Authentication
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
-              All API requests require an API Key passed in the <code className="bg-accent/10 text-accent px-1.5 py-0.5 rounded">Authorization</code> header as a Bearer token. 
-              You can generate your keys in the <Link href="/dashboard/api-keys" className="text-accent hover:underline">Developer Dashboard</Link>.
+              All API requests require an API Key passed in the <code className="bg-accent/10 text-accent px-1.5 py-0.5 rounded">Authorization</code> header as a Bearer token.
+              You can generate your keys in the <Link href="/dashboard/settings" className="text-accent hover:underline">Developer Dashboard</Link>.
             </p>
             <div className="card !bg-zinc-950 border-zinc-800 p-4 font-mono text-sm text-zinc-300 shadow-lg">
               Authorization: Bearer {'{YOUR_API_KEY}'}
@@ -122,11 +122,11 @@ export default function ApiDocsPage() {
               </h2>
               <span className="badge badge-success !text-[10px]">POST</span>
             </div>
-            
+
             <div className="card !bg-zinc-950 border-zinc-800 p-0 overflow-hidden mb-8 shadow-xl">
               <div className="px-4 py-3 bg-zinc-900 border-b border-white/5 flex items-center justify-between">
                 <span className="text-[10px] font-mono text-zinc-400">/secrets/create</span>
-                <button 
+                <button
                   onClick={() => copyToClipboard(curlExample, 'curl')}
                   className="text-zinc-400 hover:text-white transition-colors"
                 >
@@ -189,7 +189,7 @@ export default function ApiDocsPage() {
             <div className="card !bg-zinc-950 border-zinc-800 p-0 overflow-hidden shadow-xl">
               <div className="px-4 py-3 bg-zinc-900 border-b border-white/5 flex items-center justify-between">
                 <span className="text-[10px] font-mono text-zinc-400">200 OK</span>
-                <button 
+                <button
                   onClick={() => copyToClipboard(responseExample, 'resp')}
                   className="text-zinc-400 hover:text-white transition-colors"
                 >
@@ -210,7 +210,7 @@ export default function ApiDocsPage() {
           <p className="text-sm text-muted-foreground mb-8">Ready to get your API keys? Create an account or sign in to your dashboard.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/sign-up" className="btn-primary !px-8 !py-3">Create Free Account</Link>
-            <Link href="/dashboard/api-keys" className="btn-secondary !px-8 !py-3">Go to Dashboard</Link>
+            <Link href="/dashboard/settings" className="btn-secondary !px-8 !py-3">Go to Dashboard</Link>
           </div>
         </div>
       </main>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/db';
-import { secrets } from '@/db/schema';
+import { secrets, userProfiles } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export async function GET(req: Request) {
@@ -12,8 +12,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch all secrets created by this user using explicit selection to avoid 
-    // crashing if filesJson column hasn't been migrated yet.
+    // Fetch all secrets created by this user with recipient info
     const userSecrets = await db.select({
       id: secrets.id,
       status: secrets.status,
@@ -30,8 +29,13 @@ export async function GET(req: Request) {
       allowedIp: secrets.allowedIp,
       alias: secrets.alias,
       filesJson: secrets.filesJson,
+      burnOnRead: secrets.burnOnRead,
+      viewCount: secrets.viewCount,
+      recipientDisplayName: userProfiles.displayName,
+      recipientSubdomain: userProfiles.subdomain,
     })
     .from(secrets)
+    .leftJoin(userProfiles, eq(secrets.recipientId, userProfiles.userId))
     .where(eq(secrets.userId, userId))
     .orderBy(desc(secrets.createdAt));
 
@@ -40,6 +44,10 @@ export async function GET(req: Request) {
       ...s,
       hasPassword: !!s.passwordHash,
       hasIpWhitelist: !!s.allowedIp,
+      recipient: s.recipientDisplayName ? {
+        displayName: s.recipientDisplayName,
+        subdomain: s.recipientSubdomain,
+      } : null,
     }));
 
     return NextResponse.json(safeSecrets);

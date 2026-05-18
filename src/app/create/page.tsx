@@ -131,7 +131,7 @@ export default function CreateSecretPage() {
 
   useEffect(() => {
     if (isSignedIn) {
-      router.replace('/dashboard/send');
+      router.replace('/dashboard');
     }
   }, [isSignedIn, router]);
 
@@ -358,7 +358,7 @@ export default function CreateSecretPage() {
 
       const { id } = await createRes.json();
       setUploadProgress(100);
-      
+
       // Generate the link
       const linkBase = `${window.location.origin}/s/${id}`;
       const finalLink = includeKeyInHash ? `${linkBase}#${encryptionKey}` : linkBase;
@@ -463,7 +463,7 @@ export default function CreateSecretPage() {
               </p>
               {/* Trust strip */}
               <div className="flex items-center justify-center gap-6 pt-1">
-                {[['Shield','Zero-logs'],['Lock','AES-256'],['Timer','Auto-burn'],['Eye','E2EE']].map(([,label]) => (
+                {[['Shield', 'Zero-logs'], ['Lock', 'AES-256'], ['Timer', 'Auto-burn'], ['Eye', 'E2EE']].map(([, label]) => (
                   <span key={label} className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
                 ))}
               </div>
@@ -471,197 +471,197 @@ export default function CreateSecretPage() {
 
             {/* Composer Card */}
             <div className="card gradient-border overflow-hidden" style={{ padding: 0 }}>
-                {/* Toolbar */}
-                <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Secure Composer</span>
+              {/* Toolbar */}
+              <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)' }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: 'var(--accent-primary)' }}>
-                    <Shield className="w-3 h-3" /> AES-256 GCM
-                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Secure Composer</span>
                 </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: 'var(--accent-primary)' }}>
+                  <Shield className="w-3 h-3" /> AES-256 GCM
+                </div>
+              </div>
 
-                {/* Main Input Area */}
-                <div
-                  className={`relative transition-all duration-500 ${isDragging ? 'bg-accent/5' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <textarea
-                    value={secretText}
-                    onChange={(e) => setSecretText(e.target.value)}
-                    placeholder="Type or paste your confidential message here..."
-                    className="w-full min-h-[250px] sm:min-h-[300px] bg-transparent p-6 sm:p-10 text-lg sm:text-xl font-medium text-zinc-900 dark:text-foreground placeholder:text-gray-300 dark:placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
-                  />
+              {/* Main Input Area */}
+              <div
+                className={`relative transition-all duration-500 ${isDragging ? 'bg-accent/5' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <textarea
+                  value={secretText}
+                  onChange={(e) => setSecretText(e.target.value)}
+                  placeholder="Type or paste your confidential message here..."
+                  className="w-full min-h-[250px] sm:min-h-[300px] bg-transparent p-6 sm:p-10 text-lg sm:text-xl font-medium text-zinc-900 dark:text-foreground placeholder:text-gray-300 dark:placeholder:text-muted-foreground/50 border-none focus:ring-0 resize-none custom-scrollbar"
+                />
 
-                  {/* Attachment Overlay if files exist */}
-                  {files.length > 0 && (
-                    <div className="p-8 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                      {files.map((f, i) => {
-                        const FileIcon = getFileIcon(f.type);
-                        return (
-                          <div key={i} className="flex items-center gap-4 p-4 bg-muted/40 border border-border rounded-2xl group/file hover:border-accent/30 transition-all">
-                            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                              <FileIcon className="w-5 h-5 text-accent" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-foreground truncate">{f.name}</p>
-                              <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">{formatBytes(f.size)}</p>
-                            </div>
-                            <button
-                              onClick={() => removeFile(i)}
-                              className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-all hover:bg-red-500/20"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                {/* Attachment Overlay if files exist */}
+                {files.length > 0 && (
+                  <div className="p-8 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                    {files.map((f, i) => {
+                      const FileIcon = getFileIcon(f.type);
+                      return (
+                        <div key={i} className="flex items-center gap-4 p-4 bg-muted/40 border border-border rounded-2xl group/file hover:border-accent/30 transition-all">
+                          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                            <FileIcon className="w-5 h-5 text-accent" />
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Drag and Drop Feedback */}
-                  {isDragging && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/5 dark:bg-accent/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accent/30 rounded-3xl sm:rounded-[2.5rem]">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                        <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-accent" />
-                      </div>
-                      <p className="text-lg sm:text-xl font-bold text-foreground">Drop to Attach Files</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">Up to {formatBytes(maxTotalSize)}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Settings & Footer Bar */}
-                <div className="p-6 bg-slate-50/80 dark:bg-black/20 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
-                    {/* Expiry Selector */}
-                    <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-muted-foreground ml-1">Auto Destruct</label>
-                      <select
-                        value={expiryHours}
-                        onChange={(e) => setExpiryHours(Number(e.target.value))}
-                        className="w-full sm:w-auto bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-2 text-xs font-bold text-zinc-900 dark:text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-slate-50"
-                      >
-                        {EXPIRY_OPTIONS.filter(opt => !(!burnOnRead && opt.value > 24)).map(opt => (
-                          <option key={opt.value} value={opt.value} className="bg-white dark:bg-background text-zinc-900 dark:text-foreground">{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="w-px h-10 bg-border/50 hidden md:block" />
-                    {/* Quick Access Actions */}
-                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-white dark:bg-background hover:bg-slate-50 dark:hover:bg-muted border border-border/50 rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
-                      >
-                        <Upload className="w-3.5 h-3.5 text-accent" />
-                        <span className="whitespace-nowrap">Attach</span>
-                      </button>
-                      <button
-                        onClick={() => setShowAdvanced(!showAdvanced)}
-                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
-                          }`}
-                      >
-                        <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
-                        <span className="whitespace-nowrap">Settings</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    <button
-                      onClick={() => {
-                        setBurnOnRead(!burnOnRead);
-                        if (burnOnRead) {
-                          // Switching to multi-view: ensure expiry is valid and show advanced for password
-                          if (expiryHours > 24) setExpiryHours(24);
-                          setShowAdvanced(true);
-                        }
-                      }}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${!burnOnRead
-                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                        : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-zinc-500/20'
-                        }`}
-                    >
-                      {burnOnRead ? <Zap className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                      {burnOnRead ? 'Burn on View' : 'Multi-View Active'}
-                    </button>
-
-                    <button
-                      onClick={handleSubmit}
-                      disabled={isLoading || (!secretText && files.length === 0) || (!burnOnRead && !password)}
-                      className="w-full md:w-auto px-6 sm:px-10 py-3.5 sm:py-4 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:grayscale text-white rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
-                    >
-                      {isLoading ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Shield className="w-4 h-4 sm:w-5 sm:h-5" />}
-                      {isLoading ? 'Finalizing...' : 'Create Secret'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Advanced Security Drawer */}
-                {showAdvanced && (
-                  <div className="p-8 bg-slate-50/50 dark:bg-black/20 border-t border-border/50 animate-fade-in-up">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                          <Lock className="w-3 h-3" /> Password Access
-                          {!burnOnRead && <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">Required</span>}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? 'text' : 'password'}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Optional Key..."
-                            className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
-                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-foreground truncate">{f.name}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">{formatBytes(f.size)}</p>
+                          </div>
                           <button
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-muted-foreground hover:text-zinc-900 dark:hover:text-foreground transition-colors"
+                            onClick={() => removeFile(i)}
+                            className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-all hover:bg-red-500/20"
                           >
-                            {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Drag and Drop Feedback */}
+                {isDragging && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent/5 dark:bg-accent/10 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accent/30 rounded-3xl sm:rounded-[2.5rem]">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center mb-4">
+                      <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-accent" />
+                    </div>
+                    <p className="text-lg sm:text-xl font-bold text-foreground">Drop to Attach Files</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Up to {formatBytes(maxTotalSize)}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Settings & Footer Bar */}
+              <div className="p-6 bg-slate-50/80 dark:bg-black/20 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
+                  {/* Expiry Selector */}
+                  <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-muted-foreground ml-1">Auto Destruct</label>
+                    <select
+                      value={expiryHours}
+                      onChange={(e) => setExpiryHours(Number(e.target.value))}
+                      className="w-full sm:w-auto bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-2 text-xs font-bold text-zinc-900 dark:text-foreground focus:border-accent/50 outline-none transition-all cursor-pointer hover:bg-slate-50"
+                    >
+                      {EXPIRY_OPTIONS.filter(opt => !(!burnOnRead && opt.value > 24)).map(opt => (
+                        <option key={opt.value} value={opt.value} className="bg-white dark:bg-background text-zinc-900 dark:text-foreground">{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-px h-10 bg-border/50 hidden md:block" />
+                  {/* Quick Access Actions */}
+                  <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-white dark:bg-background hover:bg-slate-50 dark:hover:bg-muted border border-border/50 rounded-xl text-xs font-bold transition-all text-muted-foreground hover:text-foreground"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-accent" />
+                      <span className="whitespace-nowrap">Attach</span>
+                    </button>
+                    <button
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${showAdvanced ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white dark:bg-background text-muted-foreground hover:text-foreground border border-border/50'
+                        }`}
+                    >
+                      <Settings className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+                      <span className="whitespace-nowrap">Settings</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <button
+                    onClick={() => {
+                      setBurnOnRead(!burnOnRead);
+                      if (burnOnRead) {
+                        // Switching to multi-view: ensure expiry is valid and show advanced for password
+                        if (expiryHours > 24) setExpiryHours(24);
+                        setShowAdvanced(true);
+                      }
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${!burnOnRead
+                      ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                      : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-zinc-500/20'
+                      }`}
+                  >
+                    {burnOnRead ? <Zap className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                    {burnOnRead ? 'Burn on View' : 'Multi-View Active'}
+                  </button>
+
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isLoading || (!secretText && files.length === 0) || (!burnOnRead && !password)}
+                    className="w-full md:w-auto px-6 sm:px-10 py-3.5 sm:py-4 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:grayscale text-white rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-2xl shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Shield className="w-4 h-4 sm:w-5 sm:h-5" />}
+                    {isLoading ? 'Finalizing...' : 'Create Secret'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Advanced Security Drawer */}
+              {showAdvanced && (
+                <div className="p-8 bg-slate-50/50 dark:bg-black/20 border-t border-border/50 animate-fade-in-up">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                        <Lock className="w-3 h-3" /> Password Access
+                        {!burnOnRead && <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">Required</span>}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Optional Key..."
+                          className="w-full bg-white dark:bg-background border border-border/50 rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/50 focus:border-accent/50 transition-all outline-none"
+                        />
+                        <button
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-muted-foreground hover:text-zinc-900 dark:hover:text-foreground transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
                       </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                          <Shield className="w-3 h-3" /> IP Restriction
-                        </label>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                        <Shield className="w-3 h-3" /> IP Restriction
+                      </label>
+                      <input
+                        type="text"
+                        value={allowedIp}
+                        onChange={(e) => setAllowedIp(e.target.value)}
+                        placeholder="e.g. 192.168.1.1"
+                        className="w-full bg-white dark:bg-background border border-border rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                        <Sparkles className="w-3 h-3" /> Custom Alias
+                      </label>
+                      <div className="flex items-center">
+                        <div className="px-3 py-3 bg-muted border border-border border-r-0 rounded-l-xl text-[10px] font-bold text-muted-foreground">ilusion.io/s/</div>
                         <input
                           type="text"
-                          value={allowedIp}
-                          onChange={(e) => setAllowedIp(e.target.value)}
-                          placeholder="e.g. 192.168.1.1"
-                          className="w-full bg-white dark:bg-background border border-border rounded-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
+                          value={alias}
+                          onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="my-secret"
+                          className="w-full bg-white dark:bg-background border border-border rounded-r-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
                         />
-                      </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                          <Sparkles className="w-3 h-3" /> Custom Alias
-                        </label>
-                        <div className="flex items-center">
-                          <div className="px-3 py-3 bg-muted border border-border border-r-0 rounded-l-xl text-[10px] font-bold text-muted-foreground">ilusion.io/s/</div>
-                          <input
-                            type="text"
-                            value={alias}
-                            onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                            placeholder="my-secret"
-                            className="w-full bg-white dark:bg-background border border-border rounded-r-xl px-4 py-3 text-xs text-zinc-900 dark:text-foreground placeholder:text-zinc-400 dark:placeholder:text-muted-foreground/30 focus:border-accent/50 transition-all outline-none"
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
-                )}
-                {/* Hidden Inputs */}
-                <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
+                </div>
+              )}
+              {/* Hidden Inputs */}
+              <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
             </div>
 
             {/* Error / Progress */}
@@ -789,11 +789,10 @@ export default function CreateSecretPage() {
                       {new Date(secret.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                    secret.status === 'burned' ? 'bg-red-500/10 text-red-500'
-                    : secret.status === 'expired' ? 'bg-zinc-500/10 text-zinc-400'
-                    : 'bg-emerald-500/10 text-emerald-500'
-                  }`}>{secret.status}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${secret.status === 'burned' ? 'bg-red-500/10 text-red-500'
+                      : secret.status === 'expired' ? 'bg-zinc-500/10 text-zinc-400'
+                        : 'bg-emerald-500/10 text-emerald-500'
+                    }`}>{secret.status}</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
@@ -854,7 +853,7 @@ export default function CreateSecretPage() {
       <footer className="w-full max-w-5xl px-4 sm:px-6 py-8 mt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            {[['Shield','Zero-logs'],['Lock','AES-256 GCM'],['Timer','Auto-burn']].map(([,label]) => (
+            {[['Shield', 'Zero-logs'], ['Lock', 'AES-256 GCM'], ['Timer', 'Auto-burn']].map(([, label]) => (
               <span key={label} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
             ))}
           </div>

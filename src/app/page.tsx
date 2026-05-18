@@ -18,7 +18,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.push('/dashboard/secrets');
+      router.push('/dashboard');
     } else {
       setLocalHistory(getLocalSecrets());
     }
