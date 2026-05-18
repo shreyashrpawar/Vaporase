@@ -100,11 +100,11 @@ export default function SecretsDashboardPage() {
       )}
 
       {/* Header */}
-      <div className="h-14 flex items-center justify-between border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-500 shrink-0 mb-2">
+      <div className="h-14 flex items-center justify-between border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 shrink-0 mb-2">
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5" /> Active Secrets
         </div>
-        <span className="bg-[#6F21C1]/10 text-[#6F21C1] dark:bg-[#6F21C1]/20 dark:text-[#D494FF] text-[9px] px-2 py-0.5 rounded-full font-bold">
+        <span className="bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] dark:bg-[var(--accent-primary)]/20 dark:text-[#D494FF] text-[9px] px-2 py-0.5 rounded-full font-bold">
           {activeSecrets.length}
         </span>
       </div>
@@ -113,29 +113,29 @@ export default function SecretsDashboardPage() {
       <div className="flex-1 flex flex-col gap-4 overflow-y-auto pb-4 custom-scrollbar">
         {activeSecrets.length === 0 ? (
           <div className="p-10 flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-slate-100 dark:bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-200 dark:border-white/[0.05]">
-              <Shield className="w-6 h-6 text-slate-400 dark:text-zinc-600" />
+            <div className="w-12 h-12 bg-[var(--bg-inset)] dark:bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[var(--border-default)] dark:border-white/[0.05]">
+              <Shield className="w-6 h-6 text-[var(--text-tertiary)] dark:text-zinc-600" />
             </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">No active secrets found</p>
+            <p className="text-xs text-[var(--text-secondary)] dark:text-zinc-400 font-medium">No active secrets found</p>
           </div>
         ) : (
           activeSecrets.map((secret) => (
             <div
               key={secret.id}
-              className="group relative flex flex-col gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md"
+              className="group relative flex flex-col gap-3 p-4 bg-[var(--bg-tertiary)] dark:bg-zinc-900 rounded-xl border border-[var(--border-default)] dark:border-zinc-800 shadow-sm transition-all hover:shadow-md"
             >
               {/* Purple Left Border line */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#6F21C1] rounded-l-xl" />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent-primary)] rounded-l-xl" />
 
               <div className="flex items-start justify-between pl-1">
                 <div className="flex flex-col gap-1.5 min-w-0">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] dark:text-white truncate flex items-center gap-2">
                     {secret.recipient ? `To: ${secret.recipient.displayName}` : 'Unnamed secret'}
                   </h3>
                   
                   <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                     {secret.recipient ? (
-                      <span className="text-[10px] bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-md font-semibold tracking-wide">
+                      <span className="text-[10px] bg-[var(--bg-secondary)] dark:bg-white/5 text-[var(--text-secondary)] dark:text-zinc-400 border border-[var(--border-default)] dark:border-white/5 px-2 py-0.5 rounded-md font-semibold tracking-wide">
                         Direct
                       </span>
                     ) : (
@@ -153,13 +153,13 @@ export default function SecretsDashboardPage() {
                     <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold tracking-wide ${
                       secret.burnOnRead 
                         ? 'bg-red-500/10 text-red-600 dark:text-red-400' 
-                        : 'bg-[#6F21C1]/10 text-[#6F21C1] dark:text-[#D494FF]'
+                        : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] dark:text-[#D494FF]'
                     }`}>
                       {secret.burnOnRead ? '1-View burn' : 'Multi-view'}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-zinc-400 pt-1 font-medium">
+                  <div className="flex items-center gap-1 text-[10px] text-[var(--text-secondary)] dark:text-zinc-400 pt-1 font-medium">
                     <Clock className="w-3 h-3 opacity-60" />
                     <span>Expires {new Date(secret.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                   </div>
@@ -173,7 +173,7 @@ export default function SecretsDashboardPage() {
               <div className="flex items-center gap-2 mt-1 pl-1">
                 <button
                   onClick={() => handleCopyLink(secret)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-[var(--text-secondary)] dark:text-zinc-300 border border-[var(--border-default)] dark:border-zinc-700 hover:bg-[var(--bg-secondary)] dark:hover:bg-white/5 transition-colors"
                 >
                   {copiedId === secret.id ? (
                     <Check className="w-3.5 h-3.5 text-emerald-500" />

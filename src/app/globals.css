@@ -9,48 +9,48 @@
 
 /* ── Light Theme (default) ── */
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fb;
-  --bg-tertiary: #f1f3f5;
+  --bg-primary: #faf9f5;
+  --bg-secondary: #f5f5ed;
+  --bg-tertiary: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-inset: #f4f5f7;
+  --bg-inset: #f3f2eb;
 
-  --text-primary: #0a0a0b;
-  --text-secondary: #52525b;
-  --text-tertiary: #a1a1aa;
+  --text-primary: #1f152e;
+  --text-secondary: #534d5e;
+  --text-tertiary: #a5a1ad;
   --text-inverted: #ffffff;
 
-  --border-default: #e4e4e7;
-  --border-subtle: #f0f0f2;
-  --border-strong: #d4d4d8;
+  --border-default: #e5e3d9;
+  --border-subtle: #f1f0e9;
+  --border-strong: #cfcdc0;
 
-  --accent-primary: #6366f1;
-  --accent-hover: #5457e5;
-  --accent-subtle: rgba(99, 102, 241, 0.08);
-  --accent-muted: rgba(99, 102, 241, 0.15);
-  --accent-glow: rgba(99, 102, 241, 0.25);
+  --accent-primary: #6511b8;
+  --accent-hover: #510d96;
+  --accent-subtle: rgba(101, 17, 184, 0.06);
+  --accent-muted: rgba(101, 17, 184, 0.12);
+  --accent-glow: rgba(101, 17, 184, 0.2);
 
   --success: #22c55e;
   --warning: #f59e0b;
   --destructive: #ef4444;
 
-  --surface-glass: rgba(255, 255, 255, 0.7);
-  --surface-overlay: rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
-  --shadow-glow: 0 0 40px -8px rgba(99, 102, 241, 0.2);
+  --surface-glass: rgba(250, 249, 245, 0.7);
+  --surface-overlay: rgba(31, 21, 46, 0.04);
+  --shadow-sm: 0 1px 2px rgba(31, 21, 46, 0.02);
+  --shadow-md: 0 4px 12px rgba(31, 21, 46, 0.04);
+  --shadow-lg: 0 8px 32px rgba(31, 21, 46, 0.06);
+  --shadow-glow: 0 0 40px -8px rgba(101, 17, 184, 0.15);
 
-  --rail-bg: #fafbfc;
-  --rail-border: #e8e8ec;
-  --rail-hover: #f0f0f5;
-  --rail-active-bg: rgba(99, 102, 241, 0.08);
-  --rail-active-border: rgba(99, 102, 241, 0.2);
+  --rail-bg: #f5f5ed;
+  --rail-border: #e5e3d9;
+  --rail-hover: #ebeae1;
+  --rail-active-bg: rgba(101, 17, 184, 0.06);
+  --rail-active-border: rgba(101, 17, 184, 0.15);
 
-  --dot-color: rgba(0, 0, 0, 0.07);
-  --mesh-1: rgba(99, 102, 241, 0.06);
-  --mesh-2: rgba(168, 85, 247, 0.04);
-  --mesh-3: rgba(59, 130, 246, 0.03);
+  --dot-color: rgba(31, 21, 46, 0.05);
+  --mesh-1: rgba(101, 17, 184, 0.04);
+  --mesh-2: rgba(168, 85, 247, 0.03);
+  --mesh-3: rgba(59, 130, 246, 0.02);
 }
 
 /* ── Dark Theme ── */
