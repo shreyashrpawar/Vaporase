@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton, useAuth } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Lock, Shield, Settings, Menu, X } from 'lucide-react';
+import { Shield, Settings, Menu, X, Rocket, LayoutGrid } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -18,106 +18,110 @@ export default function DashboardLayout({
 
   if (!isLoaded) return null;
 
-  const navItems = [
-    { name: 'Workspace', href: '/dashboard', icon: Shield },
-    { name: 'Settings & API', href: '/dashboard/settings', icon: Settings },
-  ];
+  const isSettings = pathname === '/dashboard/settings';
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-      {/* ═══ Top Navigation ═══ */}
-      <header 
-        className="sticky top-0 z-50 border-b"
-        style={{ 
-          background: 'var(--bg-elevated)', 
-          backdropFilter: 'blur(20px)',
-          borderColor: 'var(--border-subtle)'
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+    <div className="min-h-screen bg-slate-100 dark:bg-[#09090C] flex flex-col items-center justify-center p-0 sm:p-6 lg:p-10 font-sans transition-colors">
+      <div className="w-full max-w-[1300px] min-h-[90vh] bg-white dark:bg-[#1A1625] sm:rounded-3xl shadow-2xl flex flex-col border-0 sm:border border-slate-200 dark:border-white/5 overflow-hidden transition-colors">
+        
+        {/* ═══ Top Navigation ═══ */}
+        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-[#171321] text-white border-b border-[#2A2438]">
+          <div className="flex items-center gap-8 lg:gap-12">
             {/* Brand */}
-            <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-all group-hover:scale-105" style={{ background: 'var(--accent-subtle)', border: '1px solid var(--accent-muted)' }}>
-                  <Lock className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-                </div>
-                <span className="text-lg font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-                  ilusion<span style={{ color: 'var(--accent-primary)' }}>.io</span>
-                </span>
-              </Link>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#6F21C1] shadow-inner border border-white/10 transition-all group-hover:scale-105">
+                <Shield className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-white">
+                ilusion<span className="text-white/60">.io</span>
+              </span>
+            </Link>
 
-              {/* Desktop Nav */}
-              <nav className="hidden md:flex items-center gap-1">
-                {navItems.map((item) => {
-                  const isActive = pathname === item.href || (item.href === '/dashboard' && pathname.startsWith('/dashboard') && pathname !== '/dashboard/settings');
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                        isActive 
-                          ? 'bg-accent/10 text-accent' 
-                          : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.03]'
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <UserButton />
-              
-              {/* Mobile Menu Toggle */}
-              <button 
-                className="md:hidden p-2 text-muted-foreground"
-                onClick={() => setIsMobileOpen(!isMobileOpen)}
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-2">
+              <Link
+                href="/dashboard"
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                  !isSettings 
+                    ? 'bg-white/10 text-white shadow-sm' 
+                    : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                }`}
               >
-                {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
+                <LayoutGrid className="w-4 h-4" />
+                Workspace
+              </Link>
+              <Link
+                href="/dashboard/settings"
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                  isSettings 
+                    ? 'bg-white/10 text-white shadow-sm' 
+                    : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                }`}
+              >
+                <Settings className="w-4 h-4" />
+                Settings & API
+              </Link>
+            </nav>
           </div>
-        </div>
 
-        {/* Mobile Nav */}
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
+            <button className="hidden sm:flex items-center gap-2 px-4 py-1.5 bg-[#6F21C1] hover:bg-[#5D1B9E] transition-colors rounded-full text-white text-sm font-bold shadow-md shadow-purple-900/20">
+              <Rocket className="w-3.5 h-3.5" /> Upgrade
+            </button>
+            <div className="border-l border-white/10 pl-4 h-6 flex items-center">
+              <UserButton appearance={{ elements: { avatarBox: "w-8 h-8 border border-white/10" } }} />
+            </div>
+            
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="md:hidden p-2 text-white/70 hover:text-white transition-colors"
+              onClick={() => setIsMobileOpen(!isMobileOpen)}
+            >
+              {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </header>
+
+        {/* Mobile Nav Dropdown */}
         {isMobileOpen && (
-          <div className="md:hidden border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href || (item.href === '/dashboard' && pathname !== '/dashboard/settings');
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
-                      isActive 
-                        ? 'bg-accent/10 text-accent' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
+          <div className="md:hidden bg-[#171321] border-b border-[#2A2438] text-white">
+            <div className="px-4 py-3 flex flex-col gap-2">
+              <Link
+                href="/dashboard"
+                onClick={() => setIsMobileOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  !isSettings ? 'bg-white/10' : 'text-white/50 hover:bg-white/5'
+                }`}
+              >
+                <LayoutGrid className="w-4 h-4" /> Workspace
+              </Link>
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setIsMobileOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  isSettings ? 'bg-white/10' : 'text-white/50 hover:bg-white/5'
+                }`}
+              >
+                <Settings className="w-4 h-4" /> Settings & API
+              </Link>
+              <div className="h-px bg-white/10 my-2" />
+              <div className="flex items-center justify-between px-4 py-2">
+                <span className="text-sm font-bold text-white/50">Theme</span>
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         )}
-      </header>
 
-      {/* ═══ Main Content ═══ */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="animate-fade-in-up">
+        {/* ═══ Main Content ═══ */}
+        <main className="flex-1 flex flex-col overflow-hidden">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

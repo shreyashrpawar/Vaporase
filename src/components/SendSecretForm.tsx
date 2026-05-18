@@ -369,7 +369,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   // ─── Success State ───
   if (generatedLink) {
     return (
-      <div className="card p-8 text-center space-y-6 animate-fade-in">
+      <div className="p-4 text-center space-y-6 animate-fade-in flex flex-col justify-center h-full">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
           <Check className="w-8 h-8" style={{ color: 'var(--success)' }} />
         </div>
@@ -425,8 +425,8 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
 
   // ─── Main Form ───
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="card p-6 sm:p-8 space-y-6">
+    <div className="space-y-6 animate-fade-in flex flex-col h-full">
+      <div className="space-y-6 flex-1">
         {/* 0. Recipient (Optional) */}
         <div className="space-y-3">
           <label className="text-[10px] font-bold uppercase tracking-widest px-1" style={{ color: 'var(--text-tertiary)' }}>

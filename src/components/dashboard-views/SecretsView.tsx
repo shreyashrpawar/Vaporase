@@ -78,9 +78,11 @@ export default function SecretsDashboardPage() {
   const pastSecrets = secrets.filter(s => s.status !== 'active');
 
   return (
-    <div className="space-y-4 animate-fade-in h-full flex flex-col">
+  return (
+    <div className="flex flex-col h-full animate-fade-in">
+      {/* Messages */}
       {showSuccess && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-accent/10 border border-accent/20 animate-fade-in shrink-0">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-accent/10 border border-accent/20 shrink-0 mb-4">
           <div className="flex items-center gap-2 text-xs text-accent font-medium">
             <Zap className="w-4 h-4" />
             <span>Welcome to Ilusion Pro!</span>
@@ -92,98 +94,106 @@ export default function SecretsDashboardPage() {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm bg-destructive/10 text-destructive border border-destructive/20 shrink-0">
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm bg-destructive/10 text-destructive border border-destructive/20 shrink-0 mb-4">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-xs font-bold uppercase tracking-widest opacity-70 flex items-center gap-2">
+      {/* Header */}
+      <div className="h-14 flex items-center justify-between border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-500 shrink-0 mb-2">
+        <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5" /> Active Secrets
-        </h2>
-        <span className="bg-accent/10 text-accent text-[9px] px-2 py-0.5 rounded-full font-bold">
+        </div>
+        <span className="bg-[#6F21C1]/10 text-[#6F21C1] dark:bg-[#6F21C1]/20 dark:text-[#D494FF] text-[9px] px-2 py-0.5 rounded-full font-bold">
           {activeSecrets.length}
         </span>
       </div>
 
-      <div className="bg-elevated border border-white/[0.05] rounded-3xl overflow-hidden shadow-2xl flex-1 flex flex-col">
+      {/* List */}
+      <div className="flex-1 flex flex-col gap-4 overflow-y-auto pb-4 custom-scrollbar">
         {activeSecrets.length === 0 ? (
-          <div className="p-10 flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-white/[0.05]">
-              <Shield className="w-6 h-6 text-muted-foreground opacity-20" />
+          <div className="p-10 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 bg-slate-100 dark:bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-200 dark:border-white/[0.05]">
+              <Shield className="w-6 h-6 text-slate-400 dark:text-zinc-600" />
             </div>
-            <p className="text-xs text-muted-foreground font-medium">No active secrets found</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">No active secrets found</p>
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.05] overflow-y-auto max-h-[500px]">
-            {activeSecrets.map((secret) => (
-              <div
-                key={secret.id}
-                className="group flex flex-col justify-between gap-3 p-4 transition-all hover:bg-white/[0.02]"
-              >
-                <div className="flex items-start justify-between gap-3 min-w-0">
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-success glow-dot shrink-0" />
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <code className="text-xs font-mono font-bold tracking-tight text-foreground truncate">{secret.id.slice(0, 12)}...</code>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                        {secret.recipient ? (
-                          <span className="text-[8px] bg-accent/10 text-accent border border-accent/20 px-1.5 py-0.5 rounded font-black tracking-wide uppercase">
-                            To: {secret.recipient.displayName}
-                          </span>
-                        ) : (
-                          <span className="text-[8px] bg-white/5 text-muted-foreground border border-white/5 px-1.5 py-0.5 rounded font-black tracking-wide uppercase">
-                            Public Link
-                          </span>
-                        )}
-                        {secret.hasPassword && (
-                          <span className="text-[8px] bg-warning/10 text-warning border border-warning/20 px-1.5 py-0.5 rounded font-black tracking-wide uppercase">
-                            Locked
-                          </span>
-                        )}
-                        <span className={`text-[8px] border px-1.5 py-0.5 rounded font-black tracking-wide uppercase ${
-                          secret.burnOnRead 
-                            ? 'bg-red-500/10 text-red-400 border-red-500/20' 
-                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                        }`}>
-                          {secret.burnOnRead ? '1-View Burn' : 'Multi-View'}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-[9px] text-muted-foreground pt-0.5">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 opacity-50" />
-                          <span className="truncate">Expires {new Date(secret.expiresAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
+          activeSecrets.map((secret) => (
+            <div
+              key={secret.id}
+              className="group relative flex flex-col gap-3 p-4 bg-white dark:bg-[#1A1625] rounded-xl border border-slate-200 dark:border-white/5 shadow-sm transition-all hover:shadow-md"
+            >
+              {/* Purple Left Border line */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#6F21C1] rounded-l-xl" />
+
+              <div className="flex items-start justify-between pl-1">
+                <div className="flex flex-col gap-1.5 min-w-0">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
+                    {secret.recipient ? `To: ${secret.recipient.displayName}` : 'Unnamed secret'}
+                  </h3>
+                  
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    {secret.recipient ? (
+                      <span className="text-[10px] bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-md font-semibold tracking-wide">
+                        Direct
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md font-semibold tracking-wide">
+                        Public link
+                      </span>
+                    )}
+                    
+                    {secret.hasPassword && (
+                      <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-md font-semibold tracking-wide">
+                        Locked
+                      </span>
+                    )}
+                    
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold tracking-wide ${
+                      secret.burnOnRead 
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400' 
+                        : 'bg-[#6F21C1]/10 text-[#6F21C1] dark:text-[#D494FF]'
+                    }`}>
+                      {secret.burnOnRead ? '1-View burn' : 'Multi-view'}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleCopyLink(secret)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
-                      title="Copy Link"
-                    >
-                      {copiedId === secret.id ? (
-                        <Check className="w-3.5 h-3.5 text-success" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => handleRevoke(secret.id)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      title="Revoke"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+
+                  <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-zinc-400 pt-1 font-medium">
+                    <Clock className="w-3 h-3 opacity-60" />
+                    <span>Expires {new Date(secret.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                   </div>
                 </div>
+                
+                {/* Active Dot */}
+                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
               </div>
-            ))}
-          </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-1 pl-1">
+                <button
+                  onClick={() => handleCopyLink(secret)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                >
+                  {copiedId === secret.id ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span>Copy link</span>
+                </button>
+
+                <button
+                  onClick={() => handleRevoke(secret.id)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

@@ -62,62 +62,55 @@ export default function InboxPage() {
   );
 
   return (
-    <div className="space-y-4 animate-fade-in h-full flex flex-col">
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-xs font-bold uppercase tracking-widest opacity-70 flex items-center gap-2">
-          <Inbox className="w-3.5 h-3.5" /> Secure Inbox
-        </h2>
-      </div>
-
-      <div className="bg-elevated border border-white/[0.05] rounded-3xl overflow-hidden shadow-2xl flex-1 flex flex-col">
-        {activeSecrets.length === 0 ? (
-          <div className="p-10 flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-white/[0.02] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-white/[0.05]">
-              <Inbox className="w-6 h-6 text-muted-foreground opacity-20" />
-            </div>
-            <p className="text-xs text-muted-foreground font-medium">Your inbox is clean</p>
+    <div className="animate-fade-in flex flex-col h-full">
+      {activeSecrets.length === 0 ? (
+        <div className="p-8 flex flex-col items-center justify-center text-center bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-2xl min-h-[200px]">
+          <div className="mb-4 text-slate-400 dark:text-zinc-600">
+            <MailOpen className="w-8 h-8 mx-auto" />
           </div>
-        ) : (
-          <div className="divide-y divide-white/[0.05] overflow-y-auto max-h-[400px]">
-            {activeSecrets.map((secret) => (
-              <div
-                key={secret.id}
-                className="group flex items-center justify-between gap-4 p-4 transition-all hover:bg-white/[0.02]"
-              >
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent glow-dot shrink-0" />
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <code className="text-xs font-mono font-bold tracking-tight text-foreground truncate">{secret.id.slice(0, 8)}...</code>
-                      <span className="badge badge-accent !text-[8px]">Unread</span>
-                    </div>
-                    {secret.sender && (
-                      <div className="text-[10px] text-muted-foreground truncate">
-                        From: <span className="font-bold text-foreground/80">{secret.sender.displayName}</span>
-                      </div>
-                    )}
+          <h3 className="text-[13px] font-bold text-slate-700 dark:text-zinc-300 mb-1">Your inbox is clean</h3>
+          <p className="text-[11px] text-slate-500 dark:text-zinc-500">Secrets sent to you appear here</p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-white/[0.05]">
+          {activeSecrets.map((secret) => (
+            <div
+              key={secret.id}
+              className="group flex items-center justify-between gap-4 p-4 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02]"
+            >
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#6F21C1] shrink-0" />
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <code className="text-xs font-mono font-bold tracking-tight text-slate-900 dark:text-white truncate">{secret.id.slice(0, 8)}...</code>
+                    <span className="text-[9px] bg-[#6F21C1]/10 text-[#6F21C1] dark:text-[#D494FF] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">Unread</span>
                   </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <Link
-                    href={`/secret/${secret.id}`}
-                    className="p-2 bg-accent/10 text-accent rounded-lg hover:bg-accent hover:text-white transition-all"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                  </Link>
-                  <button
-                    onClick={() => handleRevoke(secret.id)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {secret.sender && (
+                    <div className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                      From: <span className="font-bold text-slate-700 dark:text-zinc-300">{secret.sender.displayName}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Link
+                  href={`/secret/${secret.id}`}
+                  className="p-2 bg-[#6F21C1]/10 text-[#6F21C1] rounded-lg hover:bg-[#6F21C1] hover:text-white transition-all"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  onClick={() => handleRevoke(secret.id)}
+                  className="p-2 rounded-lg text-slate-400 dark:text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

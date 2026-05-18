@@ -29,80 +29,66 @@ export default function RevealPage() {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in h-full flex flex-col">
-      <div className="px-1">
-        <h2 className="text-xs font-bold uppercase tracking-widest opacity-70 flex items-center gap-2">
-          <Eye className="w-3.5 h-3.5" /> Reveal Secret
-        </h2>
+    <div className="animate-fade-in flex flex-col h-full space-y-4">
+      {/* Mode Switcher */}
+      <div className="flex p-1 rounded-xl bg-slate-100 dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438]">
+        <button
+          onClick={() => setMode('link')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 text-[11px] font-bold transition-all rounded-lg ${
+            mode === 'link' 
+              ? 'bg-[#6F21C1] text-white shadow-md' 
+              : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
+          }`}
+        >
+          <LinkIcon className="w-3.5 h-3.5" />
+          By link
+        </button>
+        <button
+          onClick={() => setMode('alias')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 text-[11px] font-bold transition-all rounded-lg ${
+            mode === 'alias' 
+              ? 'bg-[#6F21C1] text-white shadow-md' 
+              : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
+          }`}
+        >
+          <Shield className="w-3.5 h-3.5" />
+          By alias
+        </button>
       </div>
 
-      <div className="bg-elevated border border-white/[0.05] rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden group flex-1">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-accent/10" />
-
-        <div className="relative z-10 space-y-5">
-          {/* Mode Switcher */}
-          <div className="flex p-1 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-            <button
-              onClick={() => setMode('link')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${
-                mode === 'link' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
-              }`}
-            >
-              <LinkIcon className="w-3 h-3" />
-              Link
-            </button>
-            <button
-              onClick={() => setMode('alias')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${
-                mode === 'alias' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
-              }`}
-            >
-              <Shield className="w-3 h-3" />
-              Alias
-            </button>
+      <div className="space-y-4">
+        {mode === 'link' ? (
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://ilusion.io/secret/..."
+            className="w-full bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-xl px-4 py-3 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#6F21C1]"
+            onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
+          />
+        ) : (
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[13px] font-bold text-slate-400 dark:text-zinc-600">
+              ilusion.io/secret/
+            </div>
+            <input
+              type="text"
+              value={alias}
+              onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              placeholder="alias-name"
+              className="w-full bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-xl pl-[130px] pr-4 py-3 text-[13px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#6F21C1]"
+              onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
+            />
           </div>
+        )}
 
-          <div className="space-y-6 pt-2">
-            {mode === 'link' ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://ilusion.io/secret/..."
-                  className="input !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 !py-3 !text-xs font-mono"
-                  onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[10px] font-mono font-bold text-accent">
-                    ilusion.io/secret/
-                  </div>
-                  <input
-                    type="text"
-                    value={alias}
-                    onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                    placeholder="alias-name"
-                    className="input !pl-[140px] !bg-white/[0.02] border-white/[0.1] focus:border-accent/30 !py-3 !text-xs font-bold"
-                    onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
-                  />
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleReveal}
-              disabled={mode === 'link' ? !url : !alias}
-              className="btn-primary w-full !py-3.5 !rounded-xl group text-xs font-bold uppercase tracking-widest shadow-xl shadow-accent/20 transition-all hover:scale-[1.02]"
-            >
-              Decrypt
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
+        <button
+          onClick={handleReveal}
+          disabled={mode === 'link' ? !url : !alias}
+          className="w-full bg-white dark:bg-[#1C1827] hover:bg-slate-50 dark:hover:bg-[#221D32] text-slate-900 dark:text-white border border-slate-200 dark:border-[#2A2438] rounded-xl px-4 py-3 text-[13px] font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+        >
+          {mode === 'link' ? 'Paste a link to decrypt' : 'Decrypt via alias'}
+        </button>
       </div>
     </div>
-  );
 }
