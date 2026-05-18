@@ -587,7 +587,7 @@ export default function CreateSecretPage() {
                     }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${!burnOnRead
                       ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                      : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-zinc-400 border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-zinc-500/20'
+                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-300 border-slate-200 dark:border-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-700/50'
                       }`}
                   >
                     {burnOnRead ? <Zap className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
