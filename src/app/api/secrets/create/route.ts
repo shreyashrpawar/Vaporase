@@ -8,10 +8,12 @@ import { nanoid } from 'nanoid';
 export async function POST(req: Request) {
   try {
     let userId: string | null = null;
+    let isApiRequest = false;
     
     // Check for API Key first
     const authHeader = req.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
+      isApiRequest = true;
       const apiKey = authHeader.split(' ')[1];
       const keyRecord = await db.query.apiKeys.findFirst({
         where: eq(apiKeys.key, apiKey)
@@ -19,6 +21,8 @@ export async function POST(req: Request) {
       
       if (keyRecord) {
         userId = keyRecord.userId;
+      } else {
+        return NextResponse.json({ error: 'Invalid API Key' }, { status: 401 });
       }
     }
 
@@ -60,9 +64,33 @@ export async function POST(req: Request) {
       }
     }
 
-    // Server-side Pro enforcement — disabled for now (Community Pro mode)
-    let finalPasswordHash = passwordHash;
-    let finalAllowedIp = allowedIp;
+    // Server-side Pro enforcement
+    let userPlan = 'free';
+    if (userId) {
+      const profile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, userId)
+      });
+      if (profile && profile.plan === 'pro') {
+        userPlan = 'pro';
+      }
+    }
+
+    if (isApiRequest && userPlan === 'free') {
+      return NextResponse.json({ error: 'API access is a Pro feature. Please upgrade to use API keys.' }, { status: 403 });
+    }
+
+    if (userPlan === 'free') {
+      if (passwordHash) return NextResponse.json({ error: 'Password protection is a Pro feature.' }, { status: 403 });
+      if (burnOnRead === false) return NextResponse.json({ error: 'Multi-view (disabling Burn-on-Read) is a Pro feature.' }, { status: 403 });
+      if (allowedIp) return NextResponse.json({ error: 'IP Restriction is a Pro feature.' }, { status: 403 });
+      
+      const MAX_FREE_SIZE = 50 * 1024 * 1024;
+      const totalSize = files ? files.reduce((acc: number, f: any) => acc + f.fileSize, 0) : (fileSize || 0);
+      if (totalSize > MAX_FREE_SIZE) return NextResponse.json({ error: 'File size exceeds 50MB free tier limit.' }, { status: 413 });
+    }
+
+    let finalPasswordHash = userPlan === 'pro' ? passwordHash : null;
+    let finalAllowedIp = userPlan === 'pro' ? allowedIp : null;
     let finalAlias = alias;
 
     const id = suggestedId || nanoid(8); // Use suggested ID or generate a random one

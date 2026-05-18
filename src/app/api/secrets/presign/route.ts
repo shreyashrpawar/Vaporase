@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generatePresignedUrl } from '@/lib/s3';
 import { db } from '@/db';
-import { apiKeys } from '@/db/schema';
+import { apiKeys, userProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -31,16 +31,26 @@ export async function POST(req: Request) {
       userId = authResult.userId;
     }
 
+    let userPlan = 'free';
+    if (userId) {
+      const profile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, userId)
+      });
+      if (profile && profile.plan === 'pro') {
+        userPlan = 'pro';
+      }
+    }
+
     const { fileName, fileSize, fileType } = await req.json();
 
     if (!fileName || !fileSize || !fileType) {
       return NextResponse.json({ error: 'Missing file details' }, { status: 400 });
     }
 
-    const limit = userId ? PRO_LIMIT : GUEST_LIMIT;
+    const limit = userPlan === 'pro' ? PRO_LIMIT : GUEST_LIMIT;
     if (fileSize > limit) {
       return NextResponse.json(
-        { error: `File size exceeds the limit of ${limit / (1024 * 1024)}MB` },
+        { error: `File size exceeds the limit of ${limit / (1024 * 1024)}MB for ${userPlan === 'free' ? 'free accounts' : 'pro accounts'}.` },
         { status: 413 }
       );
     }

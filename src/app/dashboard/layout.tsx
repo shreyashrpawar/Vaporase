@@ -67,9 +67,9 @@ export default function DashboardLayout({
           <div className="hidden sm:block">
             <ThemeToggle />
           </div>
-          <button className="hidden sm:flex items-center gap-2 px-4 py-1.5 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] transition-colors rounded-full text-white text-sm font-bold shadow-md shadow-purple-950/20">
+          <Link href="/pricing" className="hidden sm:flex items-center gap-2 px-4 py-1.5 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] transition-colors rounded-full text-white text-sm font-bold shadow-md shadow-purple-950/20">
             <Rocket className="w-3.5 h-3.5" /> Upgrade
-          </button>
+          </Link>
           <div className="border-l border-white/10 pl-4 h-6 flex items-center">
             <UserButton appearance={{ elements: { avatarBox: "w-8 h-8 border border-white/10" } }} />
           </div>

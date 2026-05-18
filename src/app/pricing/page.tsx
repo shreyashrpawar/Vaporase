@@ -57,22 +57,35 @@ function PricingContent() {
 
   const plans = [
     {
-      name: 'Community Plan',
+      name: 'Free',
       price: '$0',
-      period: '',
-      badge: 'Limited Time — Everything Unlocked',
-      description: 'The full Ilusion experience, unlocked for all users for a limited time.',
+      period: 'forever',
+      description: 'The standard plan for everyday secure sharing.',
+      features: [
+        '50MB file uploads',
+        'Single-view auto-destruct',
+        'Custom Alias Links',
+        'End-to-End Encryption',
+      ],
+      buttonText: 'Current Plan',
+      buttonLink: '/create',
+      highlight: false,
+    },
+    {
+      name: 'Pro',
+      price: '$9',
+      period: 'per month',
+      badge: 'Most Popular',
+      description: 'Advanced capabilities for professionals and teams.',
       features: [
         '100MB file uploads',
         'Password Protection',
-        'Custom Alias Links',
+        'Multi-view options',
         'IP Access Restrictions',
-        'End-to-End Encryption',
-        'Burn-on-Read Guarantee',
         'API Access Key',
       ],
-      buttonText: 'Start Creating Now',
-      buttonLink: '/create',
+      buttonText: isUserPro ? 'Active Plan' : 'Upgrade to Pro',
+      productId: 'pdt_pro', // Replace with actual Dodo Product ID
       highlight: true,
     },
   ];
@@ -137,12 +150,24 @@ function PricingContent() {
               </ul>
 
               <div className="mt-auto">
-                <Link
-                  href={plan.buttonLink || '#'}
-                  className="w-full block text-center py-4.5 rounded-2xl bg-accent text-white font-bold uppercase tracking-widest shadow-xl shadow-accent/20 hover:scale-[1.02] transition-all text-sm"
-                >
-                  {plan.buttonText}
-                </Link>
+                {plan.productId && !isUserPro ? (
+                  isSignedIn ? (
+                    <DodoEmbeddedCheckout productId={plan.productId} source={source} />
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button className="w-full block text-center py-4.5 rounded-2xl bg-accent text-white font-bold uppercase tracking-widest shadow-xl shadow-accent/20 hover:scale-[1.02] transition-all text-sm">
+                        Sign in to Upgrade
+                      </button>
+                    </SignInButton>
+                  )
+                ) : (
+                  <Link
+                    href={plan.buttonLink || '/dashboard'}
+                    className={`w-full block text-center py-4.5 rounded-2xl font-bold uppercase tracking-widest hover:scale-[1.02] transition-all text-sm ${plan.highlight ? 'bg-accent text-white shadow-xl shadow-accent/20' : 'bg-white/5 border border-white/10 hover:bg-white/10 text-white'}`}
+                  >
+                    {plan.buttonText}
+                  </Link>
+                )}
               </div>
             </div>
           ))}
