@@ -32,20 +32,20 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex overflow-x-auto hide-scrollbar pb-2 mb-2">
-        <div className="flex gap-2 p-1.5 bg-white/[0.02] border border-white/[0.05] rounded-2xl w-full sm:w-auto">
+        <div className="flex gap-2 p-1.5 bg-[#faf9f5]/80 dark:bg-zinc-900/50 border border-[#e5e3d9] dark:border-zinc-800 rounded-2xl w-full sm:w-auto">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-1 sm:flex-none ${
+                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-1 sm:flex-none cursor-pointer ${
                   isActive
-                    ? 'bg-accent text-white shadow-xl shadow-accent/20 scale-[1.02]'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                    ? 'bg-accent text-white shadow-md shadow-accent/25 scale-[1.01]'
+                    : 'text-[#534d5e] dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-900/5 dark:hover:bg-zinc-900/40'
                 }`}
               >
-                <tab.icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-muted-foreground'}`} />
+                <tab.icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#534d5e] dark:text-zinc-400'}`} />
                 {tab.label}
               </button>
             );
