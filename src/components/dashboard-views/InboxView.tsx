@@ -64,7 +64,7 @@ export default function InboxPage() {
   return (
     <div className="animate-fade-in flex flex-col h-full">
       {activeSecrets.length === 0 ? (
-        <div className="p-8 flex flex-col items-center justify-center text-center bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-2xl min-h-[200px]">
+        <div className="p-8 flex flex-col items-center justify-center text-center bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl min-h-[200px]">
           <div className="mb-4 text-slate-400 dark:text-zinc-600">
             <MailOpen className="w-8 h-8 mx-auto" />
           </div>
@@ -72,7 +72,7 @@ export default function InboxPage() {
           <p className="text-[11px] text-slate-500 dark:text-zinc-500">Secrets sent to you appear here</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-white/[0.05]">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-white/[0.05]">
           {activeSecrets.map((secret) => (
             <div
               key={secret.id}

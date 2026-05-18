@@ -31,7 +31,7 @@ export default function RevealPage() {
   return (
     <div className="animate-fade-in flex flex-col h-full space-y-4">
       {/* Mode Switcher */}
-      <div className="flex p-1 rounded-xl bg-slate-100 dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438]">
+      <div className="flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
         <button
           onClick={() => setMode('link')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 text-[11px] font-bold transition-all rounded-lg ${
@@ -63,7 +63,7 @@ export default function RevealPage() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://ilusion.io/secret/..."
-            className="w-full bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-xl px-4 py-3 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#6F21C1]"
+            className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#6F21C1]"
             onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
           />
         ) : (
@@ -76,7 +76,7 @@ export default function RevealPage() {
               value={alias}
               onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
               placeholder="alias-name"
-              className="w-full bg-white dark:bg-[#1C1827] border border-slate-200 dark:border-[#2A2438] rounded-xl pl-[130px] pr-4 py-3 text-[13px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#6F21C1]"
+              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-[130px] pr-4 py-3 text-[13px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-[#6F21C1]"
               onKeyDown={(e) => e.key === 'Enter' && handleReveal()}
             />
           </div>
@@ -85,7 +85,7 @@ export default function RevealPage() {
         <button
           onClick={handleReveal}
           disabled={mode === 'link' ? !url : !alias}
-          className="w-full bg-white dark:bg-[#1C1827] hover:bg-slate-50 dark:hover:bg-[#221D32] text-slate-900 dark:text-white border border-slate-200 dark:border-[#2A2438] rounded-xl px-4 py-3 text-[13px] font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+          className="w-full bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800/80 text-slate-900 dark:text-white border border-slate-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-[13px] font-bold transition-all shadow-sm flex items-center justify-center gap-2"
         >
           {mode === 'link' ? 'Paste a link to decrypt' : 'Decrypt via alias'}
         </button>

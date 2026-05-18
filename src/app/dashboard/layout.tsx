@@ -21,9 +21,9 @@ export default function DashboardLayout({
   const isSettings = pathname === '/dashboard/settings';
 
   return (
-    <div className="h-screen w-full bg-white dark:bg-[#1A1625] flex flex-col font-sans transition-colors overflow-hidden">
+    <div className="h-screen w-full bg-white dark:bg-zinc-950 flex flex-col font-sans transition-colors overflow-hidden">
       {/* ═══ Top Navigation ═══ */}
-      <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white dark:bg-[#171321] border-b border-slate-200 dark:border-[#2A2438] transition-colors">
+      <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 transition-colors">
         <div className="flex items-center gap-8 lg:gap-12">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 group">
@@ -86,7 +86,7 @@ export default function DashboardLayout({
 
       {/* Mobile Nav Dropdown */}
       {isMobileOpen && (
-        <div className="md:hidden bg-white dark:bg-[#171321] border-b border-slate-200 dark:border-[#2A2438]">
+        <div className="md:hidden bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800">
           <div className="px-4 py-3 flex flex-col gap-2">
             <Link
               href="/dashboard"

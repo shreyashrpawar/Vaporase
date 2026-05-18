@@ -122,7 +122,7 @@ export default function SecretsDashboardPage() {
           activeSecrets.map((secret) => (
             <div
               key={secret.id}
-              className="group relative flex flex-col gap-3 p-4 bg-white dark:bg-[#1A1625] rounded-xl border border-slate-200 dark:border-white/5 shadow-sm transition-all hover:shadow-md"
+              className="group relative flex flex-col gap-3 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md"
             >
               {/* Purple Left Border line */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#6F21C1] rounded-l-xl" />
