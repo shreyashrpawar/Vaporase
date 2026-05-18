@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
-import { Shield, Clock, Trash2, CheckCircle2, XCircle, Loader2, AlertCircle, Globe, FileText, Zap, Check } from 'lucide-react';
+import { Shield, Clock, Trash2, CheckCircle2, XCircle, Loader2, AlertCircle, Globe, FileText, Zap, Check, Copy } from 'lucide-react';
 
 export default function SecretsDashboardPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -11,6 +11,18 @@ export default function SecretsDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyLink = async (secret: any) => {
+    const link = `${window.location.origin}/secret/${secret.alias || secret.id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(secret.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
 
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
 
@@ -148,13 +160,26 @@ export default function SecretsDashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleRevoke(secret.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-all p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                    title="Revoke"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleCopyLink(secret)}
+                      className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+                      title="Copy Link"
+                    >
+                      {copiedId === secret.id ? (
+                        <Check className="w-3.5 h-3.5 text-success" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleRevoke(secret.id)}
+                      className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      title="Revoke"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
