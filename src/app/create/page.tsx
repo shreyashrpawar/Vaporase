@@ -333,6 +333,7 @@ export default function CreateSecretPage() {
           passwordHash: finalPasswordHash,
           allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
           alias: alias || null,
+          dropKey: includeKeyInHash ? encryptionKey : null,
           burnOnRead,
           isE2EE,
           files: uploadedFiles,

@@ -74,7 +74,7 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
             hasHash = true;
           }
           
-          if (!hasHash && !data.hasDropKey) {
+          if (!hasHash && !data.hasDropKey && !data.alias) {
             throw new Error('Missing secure decryption key. This link is incomplete (missing the "#" portion). Opening it will destroy the secret forever. Please ensure you copied the complete link.');
           }
         }
