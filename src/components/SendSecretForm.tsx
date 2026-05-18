@@ -21,6 +21,7 @@ import {
   User,
   Search,
   Zap,
+  Rocket
 } from 'lucide-react';
 import { generateKey, encryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
 import { useAuth } from '@clerk/nextjs';
@@ -119,8 +120,9 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('pro'); // Default to pro for feature access
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const [burnOnRead, setBurnOnRead] = useState(true);
+  const [showUpgradeFor, setShowUpgradeFor] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch the sender's plan
@@ -129,12 +131,11 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          // Force pro for UI
-          setUserPlan('pro');
+          setUserPlan(data.plan || 'free');
         })
         .catch(err => console.error('Error fetching profile:', err));
     } else {
-      setUserPlan('pro');
+      setUserPlan('free');
     }
   }, [isSignedIn]);
 
@@ -604,18 +605,20 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
               </select>
             </div>
             {/* Password (Pro) */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center justify-between" style={{ color: 'var(--text-tertiary)' }}>
+            <div className="space-y-2 relative">
+              <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
                 <span>Password</span>
-                {!burnOnRead && <span className="text-[8px] text-accent">Required for persistent links</span>}
+                {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
+                {!burnOnRead && <span className="text-[8px] text-accent">Required</span>}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={!burnOnRead ? "Required password..." : "Lock with key..."}
-                  className={`input !py-2.5 !text-xs !bg-white/[0.02] !pr-10 ${!burnOnRead && !password ? 'border-accent/50' : ''}`}
+                  disabled={userPlan === 'free'}
+                  placeholder={userPlan === 'free' ? "Pro feature..." : (!burnOnRead ? "Required password..." : "Lock with key...")}
+                  className={`input !py-2.5 !text-xs !bg-white/[0.02] !pr-10 ${!burnOnRead && !password && userPlan === 'pro' ? 'border-accent/50' : ''} ${userPlan === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
                 {isPro && (
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -624,6 +627,9 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
                   </button>
                 )}
               </div>
+              {userPlan === 'free' && (
+                <div className="absolute inset-0 z-10" onClick={() => setShowUpgradeFor('Password Protection')} />
+              )}
             </div>
           </div>
 
@@ -632,6 +638,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Burn on View</p>
+                {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
                 {!burnOnRead && <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20 font-bold">Multiple Views Enabled</span>}
               </div>
               <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
@@ -642,13 +649,18 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             </div>
             <button
               onClick={() => {
+                if (userPlan === 'free') {
+                  setShowUpgradeFor('Multi-View (Disable Burn on Read)');
+                  return;
+                }
                 const newValue = !burnOnRead;
                 setBurnOnRead(newValue);
                 if (!newValue) {
                   if (expiryHours > 24) setExpiryHours(24);
+                  setShowAdvanced(true);
                 }
               }}
-              className={`w-10 h-5.5 rounded-full transition-all relative border ${burnOnRead ? 'bg-accent border-accent/20' : 'bg-slate-300 dark:bg-zinc-800 border-slate-400/30 dark:border-zinc-700'}`}
+              className={`w-10 h-5.5 rounded-full transition-all relative border ${userPlan === 'free' ? 'opacity-50 cursor-not-allowed' : ''} ${burnOnRead ? 'bg-accent border-accent/20' : 'bg-slate-300 dark:bg-zinc-800 border-slate-400/30 dark:border-zinc-700'}`}
             >
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${burnOnRead ? 'right-0.5' : 'left-0.5'}`} />
             </button>
@@ -666,23 +678,37 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
 
           {showAdvanced && (
             <div className="grid sm:grid-cols-2 gap-4 animate-fade-in">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--text-tertiary)' }}>Custom Alias</label>
+              <div className="space-y-2 relative">
+                <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                  <span>Custom Alias</span>
+                  {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
+                </label>
                 <input
                   value={alias}
                   onChange={(e) => setAlias(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="my-secret-link"
-                  className="input !py-2.5 !text-xs !bg-white/[0.02]"
+                  disabled={userPlan === 'free'}
+                  placeholder={userPlan === 'free' ? "Pro feature..." : "my-secret-link"}
+                  className={`input !py-2.5 !text-xs !bg-white/[0.02] ${userPlan === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
+                {userPlan === 'free' && (
+                  <div className="absolute inset-0 z-10" onClick={() => setShowUpgradeFor('Custom Alias')} />
+                )}
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--text-tertiary)' }}>IP Whitelist</label>
+              <div className="space-y-2 relative">
+                <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                  <span>IP Whitelist</span>
+                  {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
+                </label>
                 <input
                   value={allowedIp}
                   onChange={(e) => setAllowedIp(e.target.value)}
-                  placeholder="192.168.1.1"
-                  className="input !py-2.5 !text-xs !bg-white/[0.02]"
+                  disabled={userPlan === 'free'}
+                  placeholder={userPlan === 'free' ? "Pro feature..." : "192.168.1.1"}
+                  className={`input !py-2.5 !text-xs !bg-white/[0.02] ${userPlan === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
+                {userPlan === 'free' && (
+                  <div className="absolute inset-0 z-10" onClick={() => setShowUpgradeFor('IP Restriction')} />
+                )}
               </div>
             </div>
           )}
@@ -708,7 +734,6 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           </div>
         )}
 
-        {/* Submit */}
         <button
           onClick={handleSubmit}
           disabled={isLoading || (!secretText && files.length === 0)}
@@ -719,6 +744,69 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           {!isLoading && <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />}
         </button>
       </div>
+
+      {/* ── Pro Upgrade Modal ───────────────────────────────────────────── */}
+      {showUpgradeFor && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4"
+          onClick={() => setShowUpgradeFor(null)}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+          <div
+            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-[#e5e3d9] dark:border-zinc-800 overflow-hidden animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-accent to-indigo-500" />
+
+            <div className="p-6 space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                  <Rocket className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-0.5">Pro Feature</p>
+                  <h3 className="text-base font-black text-zinc-900 dark:text-white leading-snug">{showUpgradeFor}</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Unlock this and all other Pro features for just <span className="font-bold text-zinc-900 dark:text-white">$2/month</span>.
+                  </p>
+                </div>
+              </div>
+
+              <ul className="space-y-2">
+                {[
+                  ['🔐', 'Password-protected secrets'],
+                  ['🌐', 'IP-based access restriction'],
+                  ['👁️', 'Multi-view (disable burn on read)'],
+                  ['📦', '100 MB file uploads'],
+                  ['⚡', 'API access'],
+                ].map(([icon, label]) => (
+                  <li key={label} className="flex items-center gap-2.5 text-xs text-zinc-700 dark:text-zinc-300">
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                <Link
+                  href="/pricing"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-accent hover:bg-accent-light text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-accent/20 hover:scale-[1.02]"
+                >
+                  <Rocket className="w-4 h-4" />
+                  Upgrade to Pro
+                </Link>
+                <button
+                  onClick={() => setShowUpgradeFor(null)}
+                  className="flex-1 py-3 px-5 rounded-2xl text-sm font-bold text-zinc-500 dark:text-zinc-400 border border-[#e5e3d9] dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+                >
+                  Maybe later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
