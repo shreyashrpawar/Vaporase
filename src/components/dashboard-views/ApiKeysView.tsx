@@ -221,7 +221,7 @@ export default function ApiKeysPage() {
                     <h4 className="text-[9px] font-black text-zinc-900 dark:text-white uppercase tracking-widest">Create Secret Link</h4>
                     <span className="px-2 py-0.5 bg-accent/20 border border-accent/30 text-accent text-[8px] font-black rounded-full uppercase tracking-wider">REST API</span>
                   </div>
-                  <pre className="text-[10px] font-mono text-zinc-350 leading-relaxed overflow-x-auto p-4 bg-zinc-950 dark:bg-zinc-900 rounded-2xl border border-[#e5e3d9] dark:border-zinc-800 shadow-inner">
+                  <pre className="text-[10px] font-mono text-zinc-200 leading-relaxed overflow-x-auto p-4 bg-zinc-950 dark:bg-zinc-900 rounded-2xl border border-[#e5e3d9] dark:border-zinc-800 shadow-inner">
                     {`curl -X POST https://ilusion.io/api/v1/secrets \\
   -H "Authorization: Bearer YOUR_KEY" \\
   -H "Content-Type: application/json" \\
@@ -283,16 +283,7 @@ export default function ApiKeysPage() {
             </div>
           </div>
 
-          <div className="bg-accent/5 border border-accent/10 rounded-3xl p-5 space-y-3">
-            <div className="flex items-center gap-2 text-accent">
-              <Terminal className="w-4 h-4" />
-              <h4 className="text-xs font-black uppercase tracking-wider">Official SDKs</h4>
-            </div>
-            <p className="text-[10px] text-[#534d5e] dark:text-zinc-400 leading-relaxed font-medium">
-              Interact programmatically using official wrapper packages crafted for Node.js, Python, and Go.
-            </p>
-            <Link href="/docs/sdks" className="inline-block text-[10px] font-bold text-accent hover:underline">Explore Official SDKs →</Link>
-          </div>
+
         </div>
       </div>
     </div>

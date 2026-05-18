@@ -218,15 +218,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-accent/5 border border-accent/10 rounded-3xl p-5 space-y-3">
-            <h4 className="text-xs font-black text-accent uppercase tracking-wider">Stealth Mode</h4>
-            <p className="text-[10px] text-[#534d5e] dark:text-zinc-400 leading-relaxed font-medium">
-              Temporarily deactivate public drop routing. Senders will receive a locked rejection state.
-            </p>
-            <button className="w-full py-2 bg-accent/10 border border-accent/20 text-accent rounded-xl text-[10px] font-bold hover:bg-accent/15 transition-all cursor-pointer">
-              Pause Public Drops
-            </button>
-          </div>
+
         </div>
       </div>
     </div>
