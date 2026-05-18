@@ -28,7 +28,7 @@ export default function WorkspacePage() {
       {/* ── Middle Column: Reveal & Inbox ── */}
       <div className="flex-1 flex flex-col bg-[var(--bg-primary)] dark:bg-zinc-900/40 overflow-y-auto">
         <div className="max-w-2xl w-full mx-auto flex-1 flex flex-col">
-          <div className="flex flex-col border-b border-[var(--border-default)] dark:border-white/5 pb-6 pt-2 lg:pt-0">
+          <div className="flex flex-col border-b border-[var(--border-default)] dark:border-white/5 py-4 lg:py-6">
             <div className="h-14 flex items-center px-6 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 gap-2 shrink-0">
               <Eye className="w-3.5 h-3.5" /> Reveal Secret
             </div>
@@ -37,7 +37,7 @@ export default function WorkspacePage() {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col min-h-0 pt-2 lg:pt-0">
+          <div className="flex-1 flex flex-col min-h-0 py-4 lg:py-6">
             <div className="h-14 flex items-center px-6 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 gap-2 shrink-0">
               <Inbox className="w-3.5 h-3.5" /> Secure Inbox
             </div>
