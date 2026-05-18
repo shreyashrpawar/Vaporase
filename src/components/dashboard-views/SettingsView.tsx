@@ -112,17 +112,17 @@ export default function SettingsPage() {
                   {/* Drop Alias */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 ml-1">Secure Drop Alias</label>
-                    <div className="flex items-center">
+                    <div className="flex items-center bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-xl overflow-hidden focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/10 transition-all shadow-sm">
                       <input
                         type="text"
                         value={subdomain}
                         onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                         placeholder="username"
-                        className="flex-1 bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-l-xl px-4 py-2.5 text-xs text-zinc-900 dark:text-white placeholder-[#a5a1ad] dark:placeholder-zinc-600 focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all outline-none shadow-sm font-mono text-right"
+                        className="flex-1 bg-transparent px-4 py-2.5 text-xs text-zinc-900 dark:text-white placeholder-[#a5a1ad] dark:placeholder-zinc-600 outline-none font-mono text-right"
                         maxLength={30}
                         required
                       />
-                      <div className="flex items-center px-4 bg-[#f5f5ed] border border-[#e5e3d9] dark:border-zinc-800 border-l-0 rounded-r-xl text-[10px] font-bold text-[#534d5e] dark:text-zinc-400 self-stretch">
+                      <div className="px-4 py-2.5 bg-[#f5f5ed] dark:bg-zinc-900/60 border-l border-[#e5e3d9] dark:border-zinc-800 text-[10px] font-bold text-[#534d5e] dark:text-zinc-400 shrink-0 self-stretch flex items-center">
                         .ilusion.io
                       </div>
                     </div>
@@ -151,31 +151,37 @@ export default function SettingsPage() {
               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">Advanced Controls</h3>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-5 bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl space-y-3 opacity-55 relative group cursor-not-allowed shadow-sm shadow-zinc-900/5">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold">Custom Branding</h4>
-                  <Lock className="w-3.5 h-3.5 text-accent" />
+            <div className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl p-6 md:p-8 shadow-sm shadow-zinc-900/5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-[#e5e3d9] dark:divide-zinc-800">
+                
+                {/* Custom Branding */}
+                <div className="space-y-3 pb-6 md:pb-0 md:pr-8 opacity-55 relative group cursor-not-allowed">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white">Custom Branding</h4>
+                    <Lock className="w-3.5 h-3.5 text-accent" />
+                  </div>
+                  <p className="text-[10px] text-[#534d5e] dark:text-zinc-400 leading-relaxed">
+                    Upload corporate logos and inject signature layouts for your public drop pages.
+                  </p>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="px-2 py-0.5 bg-accent text-white text-[8px] font-black rounded-full uppercase tracking-wider">Coming soon</span>
+                  </div>
                 </div>
-                <p className="text-[10px] text-[#534d5e] dark:text-zinc-400 leading-relaxed">
-                  Upload corporate logos and inject signature layouts for your public drop pages.
-                </p>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="px-2 py-0.5 bg-accent text-white text-[8px] font-black rounded-full uppercase tracking-wider">Coming soon</span>
-                </div>
-              </div>
 
-              <div className="p-5 bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl space-y-3 relative group shadow-sm shadow-zinc-900/5">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold">IP Restriction Lists</h4>
-                  <Shield className="w-3.5 h-3.5 text-accent" />
+                {/* IP Restrictions */}
+                <div className="space-y-3 pt-6 md:pt-0 md:pl-8 relative group">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white">IP Restriction Lists</h4>
+                    <Shield className="w-3.5 h-3.5 text-accent" />
+                  </div>
+                  <p className="text-[10px] text-[#534d5e] dark:text-zinc-400 leading-relaxed">
+                    Lock down and reject incoming drop attempts unless originating from whitelisted IP pools.
+                  </p>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="px-2 py-0.5 bg-accent/10 border border-accent/20 text-accent text-[8px] font-black rounded-full uppercase tracking-wider">Included</span>
+                  </div>
                 </div>
-                <p className="text-[10px] text-[#534d5e] dark:text-zinc-400 leading-relaxed">
-                  Lock down and reject incoming drop attempts unless originating from whitelisted IP pools.
-                </p>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="px-2 py-0.5 bg-accent/10 border border-accent/20 text-accent text-[8px] font-black rounded-full uppercase tracking-wider">Included</span>
-                </div>
+
               </div>
             </div>
           </section>
@@ -183,7 +189,7 @@ export default function SettingsPage() {
 
         {/* Sidebar Panel */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl p-6 shadow-sm shadow-zinc-900/5 space-y-5 relative overflow-hidden group">
+          <div className="bg-white dark:bg-zinc-950 border border-[#e5e3d9] dark:border-zinc-800 rounded-3xl p-6 md:p-8 shadow-sm shadow-zinc-900/5 space-y-5 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-accent/10" />
             <div className="relative z-10 space-y-4">
               <div className="flex items-center gap-2">
