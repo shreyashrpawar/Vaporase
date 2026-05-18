@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Inbox, Trash2, Eye, Shield, Loader2, AlertCircle, Search, MailOpen, Lock, User, Copy } from 'lucide-react';
+import { Inbox, Trash2, Eye, Shield, Loader2, AlertCircle, Search, MailOpen, Lock, User, Copy, RotateCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InboxPage() {
@@ -10,6 +10,7 @@ export default function InboxPage() {
   const [profile, setProfile] = useState<any>(null);
   const [secrets, setSecrets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -30,13 +31,18 @@ export default function InboxPage() {
     } catch (err) { console.error('Failed to fetch profile', err); }
   };
 
-  const fetchInbox = async () => {
+  const fetchInbox = async (silent = false) => {
+    if (!silent) setIsLoading(true);
+    setIsRefreshing(true);
     try {
       const res = await fetch('/api/secrets/inbox');
       if (!res.ok) throw new Error('Failed to fetch inbox');
       setSecrets(await res.json());
     } catch (err: any) { setError(err.message); }
-    finally { setIsLoading(false); }
+    finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   };
 
   const handleRevoke = async (id: string) => {
@@ -63,6 +69,26 @@ export default function InboxPage() {
 
   return (
     <div className="animate-fade-in flex flex-col h-full">
+      {/* Header */}
+      <div className="h-14 flex items-center justify-between border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 shrink-0 mb-2">
+        <div className="flex items-center gap-2">
+          <Inbox className="w-3.5 h-3.5" /> Secure Inbox
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fetchInbox(true)}
+            disabled={isRefreshing}
+            className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg transition-colors group cursor-pointer disabled:opacity-50"
+            title="Refresh Inbox"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-[var(--text-secondary)] dark:text-zinc-400 group-hover:text-accent transition-transform duration-500 ${isRefreshing ? 'animate-spin text-accent' : ''}`} />
+          </button>
+          <span className="bg-accent/10 text-accent dark:bg-accent/20 text-[9px] px-2.5 py-0.5 rounded-full font-black">
+            {activeSecrets.length}
+          </span>
+        </div>
+      </div>
+
       {activeSecrets.length === 0 ? (
         <div className="p-8 flex flex-col items-center justify-center text-center bg-[var(--bg-tertiary)] dark:bg-zinc-900 border border-[var(--border-default)] dark:border-zinc-800 rounded-2xl min-h-[200px]">
           <div className="mb-4 text-[var(--text-tertiary)] dark:text-zinc-600">

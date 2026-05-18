@@ -9,7 +9,7 @@ import { sendSecretBurnedEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   try {
-    const { id, passwordHash } = await req.json();
+    const { id, passwordHash, checkOnly } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Missing secret ID' }, { status: 400 });
@@ -88,6 +88,16 @@ export async function POST(req: Request) {
       if (!isAllowed) {
         return NextResponse.json({ error: 'Access denied from this IP address.' }, { status: 403 });
       }
+    }
+
+    // 3.5 Return Metadata for Pre-flight checks
+    if (checkOnly) {
+      return NextResponse.json({
+        success: true,
+        isE2EE: secretRecord.isE2EE,
+        requirePassword: !!secretRecord.passwordHash,
+        status: secretRecord.status
+      });
     }
 
     // 4. Check Password

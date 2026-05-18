@@ -90,9 +90,41 @@ export default function CreateSecretPage() {
   const [revealId, setRevealId] = useState('');
 
   const handleReveal = () => {
-    const id = revealId.trim();
-    if (!id) return;
-    router.push(`/secret/${id}`);
+    const input = revealId.trim();
+    if (!input) return;
+
+    // Check if the input contains a URL or a full path
+    if (input.includes('/') || input.includes('localhost') || input.includes('ilusion.io') || input.includes('.')) {
+      try {
+        let urlString = input;
+        // Prefix protocol if it's missing but looks like a domain
+        if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+          urlString = 'https://' + urlString;
+        }
+        
+        const parsedUrl = new URL(urlString);
+        // Extracts /secret/xyz or /s/xyz along with its hash (e.g. #key)
+        const path = parsedUrl.pathname + parsedUrl.hash;
+        
+        // Ensure path routes properly (either to /secret/[id] or /s/[alias])
+        if (path.startsWith('/secret/') || path.startsWith('/s/')) {
+          router.push(path);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to parse input as URL:', e);
+      }
+      
+      // Fallback: If it's a relative path containing /secret/ or /s/
+      if (input.includes('/secret/') || input.includes('/s/')) {
+        const relativePath = input.startsWith('/') ? input : `/${input}`;
+        router.push(relativePath);
+        return;
+      }
+    }
+
+    // Fallback: Default to just appending to /secret/ if it's a raw ID or alias
+    router.push(`/secret/${input}`);
   };
 
   useEffect(() => {
@@ -362,6 +394,24 @@ export default function CreateSecretPage() {
     setError('');
     setCopied(false);
     setUploadProgress(0);
+  };
+
+  const handleDeleteRecentSecret = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this secret forever? Senders/recipients will no longer be able to open it.')) return;
+    try {
+      // Send a delete/revoke request to the backend
+      await fetch('/api/secrets/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+    } catch (err) {
+      console.error('Failed to revoke secret on server:', err);
+    } finally {
+      // Always remove from local history even if server call failed or was already deleted
+      removeLocalSecret(id);
+      setLocalHistory(getLocalSecrets());
+    }
   };
 
   return (
@@ -898,12 +948,9 @@ export default function CreateSecretPage() {
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => {
-                        removeLocalSecret(secret.id);
-                        setLocalHistory(getLocalSecrets());
-                      }}
-                      className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors text-[#a5a1ad]"
-                      title="Remove from history"
+                      onClick={() => handleDeleteRecentSecret(secret.id)}
+                      className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors text-[#a5a1ad] cursor-pointer"
+                      title="Delete Secret Forever"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

@@ -13,17 +13,33 @@ export default function ViewSecretPage() {
 
   const handleReveal = () => {
     if (mode === 'link') {
-      if (!url) return;
-      try {
-        const parsedUrl = new URL(url);
-        const path = parsedUrl.pathname + parsedUrl.hash;
-        router.push(path);
-      } catch (e) {
-        // Fallback if not a full URL
-        if (url.includes('/secret/') || url.includes('/s/')) {
-          router.push(url.startsWith('/') ? url : `/${url}`);
+      const input = url.trim();
+      if (!input) return;
+      
+      if (input.includes('/') || input.includes('localhost') || input.includes('ilusion.io') || input.includes('.')) {
+        try {
+          let urlString = input;
+          if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+            urlString = 'https://' + urlString;
+          }
+          const parsedUrl = new URL(urlString);
+          const path = parsedUrl.pathname + parsedUrl.hash;
+          if (path.startsWith('/secret/') || path.startsWith('/s/')) {
+            router.push(path);
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to parse input URL:', e);
+        }
+
+        if (input.includes('/secret/') || input.includes('/s/')) {
+          const relativePath = input.startsWith('/') ? input : `/${input}`;
+          router.push(relativePath);
+          return;
         }
       }
+      
+      router.push(`/secret/${input}`);
     } else {
       if (!alias) return;
       router.push(`/secret/${alias}`);

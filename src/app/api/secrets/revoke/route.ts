@@ -9,30 +9,30 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Missing secret ID' }, { status: 400 });
     }
 
-    // Verify ownership and fetch current state (Support UUID or Alias) - creator or recipient can revoke
+    // Verify ownership and fetch current state (Support UUID or Alias)
     const secretRecord = await db.query.secrets.findFirst({
-      where: and(
-        or(eq(secrets.id, id), eq(secrets.alias, id)),
-        or(
-          eq(secrets.userId, userId),
-          eq(secrets.recipientId, userId)
-        )
-      )
+      where: or(eq(secrets.id, id), eq(secrets.alias, id))
     });
 
     if (!secretRecord) {
       return NextResponse.json({ error: 'Secret not found or unauthorized' }, { status: 404 });
+    }
+
+    // Authorization check:
+    // 1. If it is a guest secret (userId is null), anyone presenting the exact ID can revoke it
+    // 2. If it is a registered secret, only the creator or the recipient can revoke it
+    const isAuthorized =
+      !secretRecord.userId ||
+      (!!userId && (secretRecord.userId === userId || secretRecord.recipientId === userId));
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized to delete this secret' }, { status: 401 });
     }
 
     if (secretRecord.status !== 'active') {

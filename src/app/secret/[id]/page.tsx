@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Lock,
@@ -44,6 +44,49 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
   const [copied, setCopied] = useState(false);
   const [password, setPassword] = useState('');
   const [requirePassword, setRequirePassword] = useState(false);
+
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/secrets/read`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: resolvedParams.id,
+            checkOnly: true
+          })
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Secret not found or already destroyed');
+        }
+
+        const data = await res.json();
+        
+        if (data.requirePassword) {
+          setRequirePassword(true);
+        } else if (data.isE2EE) {
+          // If E2EE and doesn't require a password, verify we have a hash fragment key
+          let hasHash = false;
+          if (typeof window !== 'undefined' && window.location.hash) {
+            hasHash = true;
+          }
+          
+          if (!hasHash) {
+            throw new Error('Missing secure decryption key. This link is incomplete (missing the "#" portion). Opening it will destroy the secret forever. Please ensure you copied the complete link.');
+          }
+        }
+      } catch (err: any) {
+        setError(err.message || 'Secret not found or already destroyed');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMetadata();
+  }, [resolvedParams.id]);
 
   const revealSecret = async () => {
     setIsLoading(true);
@@ -196,8 +239,17 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
+          {/* Loading Skeleton */}
+          {isLoading && !secretData && !error && (
+            <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-12 text-center shadow-2xl overflow-hidden min-h-[300px] flex flex-col items-center justify-center gap-4">
+              <Loader2 className="w-12 h-12 text-accent animate-spin" />
+              <p className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider animate-pulse">Initializing Decryption Portal...</p>
+              <p className="text-xs text-slate-500 dark:text-slate-450 max-w-[280px]">Checking link validation, keys, and authorization...</p>
+            </div>
+          )}
+
           {/* Pre-reveal State */}
-          {!revealed && !error && (
+          {!revealed && !error && (!isLoading || secretData || requirePassword) && (
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-accent/5 rounded-[2.5rem] blur-2xl opacity-50 transition-opacity group-hover:opacity-100" />
               <div className="relative bg-white dark:bg-slate-900/80 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-[2.5rem] p-8 sm:p-12 text-center shadow-2xl overflow-hidden">
@@ -217,19 +269,19 @@ export default function SecretPage({ params }: { params: Promise<{ id: string }>
                 <p className="text-slate-600 dark:text-slate-400 mb-10 text-lg leading-relaxed">
                   {requirePassword
                     ? 'Enter the authorization key to access the encrypted payload.'
-                    : 'A confidential secret has been shared. Once opened, it will be permanently purged from our infrastructure.'
+                    : 'A confidential secure transmission has been received. Authenticate below to decrypt the payload.'
                   }
                 </p>
 
                 {!requirePassword && (
                   <div className="flex flex-col gap-4 mb-10 text-left">
-                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10 group/item">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-500/10 shrink-0 transition-transform group-hover/item:scale-110">
-                        <Zap className="w-5 h-5 text-orange-500" />
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-accent/5 border border-accent/10 group/item">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-accent/10 shrink-0 transition-transform group-hover/item:scale-110">
+                        <Lock className="w-5 h-5 text-accent" />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400">Self-Destruct Enabled</p>
-                        <p className="text-[11px] text-muted-foreground font-medium">Link will be destroyed immediately after viewing.</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-accent">Zero-Knowledge Vault</p>
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">This secret is protected by end-to-end cryptographic keys.</p>
                       </div>
                     </div>
                   </div>

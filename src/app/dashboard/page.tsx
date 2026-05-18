@@ -16,7 +16,7 @@ export default function WorkspacePage() {
     <div className="flex-1 flex flex-col lg:flex-row h-full divide-y lg:divide-y-0 lg:divide-x divide-[var(--border-default)] dark:divide-white/5 animate-fade-in">
       
       {/* ── Left Column: Compose Secret ── */}
-      <div className="w-full lg:w-[360px] xl:w-[380px] shrink-0 flex flex-col bg-[var(--bg-secondary)] dark:bg-transparent">
+      <div className="w-full lg:w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-secondary)] dark:bg-transparent">
         <div className="h-14 flex items-center px-6 border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 gap-2 shrink-0">
           <Pen className="w-3.5 h-3.5" /> Compose Secret
         </div>
@@ -38,9 +38,6 @@ export default function WorkspacePage() {
           </div>
 
           <div className="flex-1 flex flex-col min-h-0 py-4 lg:py-6">
-            <div className="h-14 flex items-center px-6 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 gap-2 shrink-0">
-              <Inbox className="w-3.5 h-3.5" /> Secure Inbox
-            </div>
             <div className="px-6 flex-1 overflow-y-auto pb-6">
               <InboxView />
             </div>
@@ -49,7 +46,7 @@ export default function WorkspacePage() {
       </div>
 
       {/* ── Right Column: Active Secrets ── */}
-      <div className="w-full lg:w-[360px] xl:w-[380px] shrink-0 flex flex-col bg-[var(--bg-primary)] dark:bg-transparent pt-2 lg:pt-0">
+      <div className="w-full lg:w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-primary)] dark:bg-transparent pt-2 lg:pt-0">
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <SecretsView />
         </div>

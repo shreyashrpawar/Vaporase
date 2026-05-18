@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
-import { Shield, Clock, Trash2, CheckCircle2, XCircle, Loader2, AlertCircle, Globe, FileText, Zap, Check, Copy } from 'lucide-react';
+import { Shield, Clock, Trash2, CheckCircle2, XCircle, Loader2, AlertCircle, Globe, FileText, Zap, Check, Copy, RotateCw } from 'lucide-react';
 
 export default function SecretsDashboardPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const [secrets, setSecrets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -50,13 +51,18 @@ export default function SecretsDashboardPage() {
     if (isLoaded && isSignedIn) fetchSecrets();
   }, [isLoaded, isSignedIn]);
 
-  const fetchSecrets = async () => {
+  const fetchSecrets = async (silent = false) => {
+    if (!silent) setIsLoading(true);
+    setIsRefreshing(true);
     try {
       const res = await fetch('/api/secrets/dashboard');
       if (!res.ok) throw new Error('Failed to fetch secrets');
       setSecrets(await res.json());
     } catch (err: any) { setError(err.message); }
-    finally { setIsLoading(false); }
+    finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   };
 
   const handleRevoke = async (id: string) => {
@@ -109,9 +115,19 @@ export default function SecretsDashboardPage() {
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5" /> Active & Recent Secrets
         </div>
-        <span className="bg-accent/10 text-accent dark:bg-accent/20 text-[9px] px-2.5 py-0.5 rounded-full font-black">
-          {activeSecrets.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fetchSecrets(true)}
+            disabled={isRefreshing}
+            className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg transition-colors group cursor-pointer disabled:opacity-50"
+            title="Refresh Secrets"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-[var(--text-secondary)] dark:text-zinc-400 group-hover:text-accent transition-transform duration-500 ${isRefreshing ? 'animate-spin text-accent' : ''}`} />
+          </button>
+          <span className="bg-accent/10 text-accent dark:bg-accent/20 text-[9px] px-2.5 py-0.5 rounded-full font-black">
+            {activeSecrets.length}
+          </span>
+        </div>
       </div>
 
       {/* List */}
@@ -167,6 +183,10 @@ export default function SecretsDashboardPage() {
                         : 'bg-accent/10 text-accent'
                     }`}>
                       {secret.burnOnRead ? '1-View burn' : 'Multi-view'}
+                    </span>
+
+                    <span className="text-[10px] bg-zinc-900/5 text-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-350 px-2 py-0.5 rounded-md font-semibold tracking-wide flex items-center gap-1">
+                      Views: <strong className="font-black text-zinc-900 dark:text-white">{secret.viewCount ?? 0}</strong>
                     </span>
                   </div>
 
