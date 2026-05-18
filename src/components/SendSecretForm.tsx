@@ -70,6 +70,36 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const [recipient, setRecipient] = useState<any>(profile || null);
   const [recipientQuery, setRecipientQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  useEffect(() => {
+    const query = recipientQuery.trim();
+    if (query.length <= 3) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setIsSearching(true);
+      setError('');
+      try {
+        const res = await fetch(`/api/profile/search?query=${encodeURIComponent(query)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(Array.isArray(data) ? data : []);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (err) {
+        console.error('Failed to search users:', err);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(delayDebounce);
+  }, [recipientQuery]);
 
   // Form state
   const [secretText, setSecretText] = useState('');
@@ -404,17 +434,56 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           </label>
           
           {!recipient ? (
-            <form onSubmit={handleRecipientSearch} className="relative group">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors" />
-              <input
-                type="text"
-                placeholder="Search user to drop into inbox..."
-                value={recipientQuery}
-                onChange={(e) => setRecipientQuery(e.target.value)}
-                className="input !pl-9 !bg-white/[0.02] border-white/[0.1] focus:border-accent/30"
-              />
-              {isSearching && <Loader2 className="w-3.5 h-3.5 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-accent" />}
-            </form>
+            <div className="relative">
+              <div className="relative group">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Type username (4 or more characters)..."
+                  value={recipientQuery}
+                  onChange={(e) => setRecipientQuery(e.target.value)}
+                  className="input !pl-9 !bg-white/[0.02] border-white/[0.1] focus:border-accent/30"
+                />
+                {isSearching && <Loader2 className="w-3.5 h-3.5 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-accent" />}
+              </div>
+
+              {/* Autocomplete Dropdown */}
+              {recipientQuery.trim().length > 3 && (searchResults.length > 0 || !isSearching) && (
+                <div 
+                  className="absolute z-50 w-full mt-2 rounded-xl shadow-2xl overflow-hidden animate-fade-in-up border"
+                  style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-default)' }}
+                >
+                  {searchResults.length > 0 ? (
+                    <div className="divide-y divide-zinc-100 dark:divide-zinc-800/40">
+                      {searchResults.map((user) => (
+                        <button
+                          key={user.id}
+                          type="button"
+                          onClick={() => {
+                            setRecipient(user);
+                            setSearchResults([]);
+                            setRecipientQuery('');
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.1)' }}>
+                            <User className="w-4 h-4 text-indigo-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold truncate" style={{ color: 'var(--text-primary)' }}>{user.displayName}</p>
+                            <p className="text-[10px] truncate" style={{ color: 'var(--text-tertiary)' }}>@{user.subdomain}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-4 text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                      No users matched "{recipientQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-accent/20 animate-fade-in">
               <div className="flex items-center gap-3">

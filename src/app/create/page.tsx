@@ -135,6 +135,11 @@ export default function CreateSecretPage() {
     }
   }, [isSignedIn, router]);
 
+  // Load initial local history on mount
+  useEffect(() => {
+    setLocalHistory(getLocalSecrets());
+  }, []);
+
   // Derived: total size of all attached files
   const totalFilesSize = files.reduce((acc, f) => acc + f.size, 0);
 
