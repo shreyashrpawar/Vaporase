@@ -31,23 +31,19 @@ export async function POST(req: Request) {
         email: userEmail || '',
         name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Valued Customer',
       },
-      billing_address: {
-        country: 'US',
-        zipcode: '10001',
-      },
       metadata: {
         user_id: userId,
       },
       // Redirect back to dashboard after payment
       // If source is 'app', use custom deep link scheme to return to the Flutter app
-      return_url: source === 'app' 
-        ? 'ilusion://payment-success' 
+      return_url: source === 'app'
+        ? 'ilusion://payment-success'
         : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       checkoutUrl: checkout.checkout_url,
-      sessionId: checkout.session_id 
+      sessionId: checkout.session_id
     });
   } catch (error: any) {
     console.error('Dodo Checkout Error:', error);
