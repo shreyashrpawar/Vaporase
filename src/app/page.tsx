@@ -504,7 +504,7 @@ export default function LandingPage() {
             <span className={`text-sm font-semibold transition-colors ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
             <button 
               onClick={() => setBillingCycle(b => b === 'monthly' ? 'yearly' : 'monthly')}
-              className="relative w-14 h-7 bg-white/10 rounded-full p-1 transition-colors hover:bg-white/20"
+              className="relative w-14 h-7 bg-zinc-200 dark:bg-white/10 rounded-full p-1 transition-colors hover:bg-zinc-300 dark:hover:bg-white/20"
             >
               <div className={`w-5 h-5 bg-accent rounded-full transition-transform ${billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'}`} />
             </button>
