@@ -23,9 +23,12 @@ export default function ViewSecretPage() {
             urlString = 'https://' + urlString;
           }
           const parsedUrl = new URL(urlString);
-          const path = parsedUrl.pathname + parsedUrl.hash;
-          if (path.startsWith('/secret/') || path.startsWith('/s/')) {
-            router.push(path);
+          let path = parsedUrl.pathname + parsedUrl.hash;
+          if (path.startsWith('/s/')) {
+            path = path.replace('/s/', '/secret/');
+          }
+          if (path.startsWith('/secret/')) {
+            window.location.href = path;
             return;
           }
         } catch (e) {
@@ -33,16 +36,19 @@ export default function ViewSecretPage() {
         }
 
         if (input.includes('/secret/') || input.includes('/s/')) {
-          const relativePath = input.startsWith('/') ? input : `/${input}`;
-          router.push(relativePath);
+          let relativePath = input.startsWith('/') ? input : `/${input}`;
+          if (relativePath.startsWith('/s/')) {
+            relativePath = relativePath.replace('/s/', '/secret/');
+          }
+          window.location.href = relativePath;
           return;
         }
       }
       
-      router.push(`/secret/${input}`);
+      window.location.href = `/secret/${input}`;
     } else {
       if (!alias) return;
-      router.push(`/secret/${alias}`);
+      window.location.href = `/secret/${alias}`;
     }
   };
 
