@@ -315,7 +315,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
           allowedIp: (allowedIp && userPlan === 'pro') ? allowedIp : null,
           isE2EE,
           recipientId: recipient?.userId || null,
-          dropKey: includeKeyInHash ? encryptionKey : null,
+          dropKey: (alias || recipient) && includeKeyInHash ? encryptionKey : null,
           alias: alias || null,
           burnOnRead,
           files: uploadedFiles,
