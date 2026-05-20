@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   keywords: [
     'secure secret sharing', 
     'self-destructing links', 
+    'one-time secret link',
+    'one time password link',
+    'Privnote alternative',
+    'secure link generator',
+    'share dotenv securely',
     'end-to-end encrypted file sharing', 
     'send passwords securely', 
     'zero-knowledge encryption', 
