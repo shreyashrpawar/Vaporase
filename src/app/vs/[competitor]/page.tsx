@@ -6,6 +6,21 @@ import { Lock, Check, X, Shield, Zap, Timer, ArrowRight, ArrowLeft, Star, Smartp
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 const COMPETITORS: Record<string, any> = {
+  'privnote': {
+    name: 'Privnote',
+    headline: 'The Ultimate E2EE Privnote Alternative',
+    description: 'Looking for a secure, ad-free alternative to Privnote? Ilusion offers true client-side end-to-end encryption (E2EE), secure file sharing, and direct dashboard inbox drops without exposing your data to third parties.',
+    pros: ['Zero-Knowledge Client E2EE (AES-256-GCM)', 'Encrypt and Share Files up to 100MB', 'Secure Inbox Drop Portal for Clients', 'Ad-Free, Modern, Premium UI Design'],
+    cons: ['Server-side decryption vulnerability history', 'No file sharing support', 'Intrusive banner advertisements', 'Outdated 2010 interface design'],
+    matrix: [
+      { feature: 'Client-Side E2EE', ilusion: true, comp: false },
+      { feature: 'File Sharing (100MB)', ilusion: true, comp: false },
+      { feature: 'Secure Inbox Drops', ilusion: true, comp: false },
+      { feature: 'Ad-Free Interface', ilusion: true, comp: false },
+      { feature: 'Developer API Access', ilusion: true, comp: false },
+      { feature: 'Self-Destruct (Burn-on-Read)', ilusion: true, comp: true },
+    ]
+  },
   '1password-send': {
     name: '1Password Send',
     headline: 'The Ultimate 1Password Send Alternative',

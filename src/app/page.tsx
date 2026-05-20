@@ -171,8 +171,8 @@ export default function LandingPage() {
           </h1>
 
           <p className="animate-fade-in-up opacity-0 delay-200 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-            Send passwords, files, and sensitive data through self-destructing links.
-            Once viewed, your secret is permanently destroyed.
+            Share passwords, sensitive credentials, and files securely with self-destructing links. 
+            Send a one-time secret link that vanishes forever after one view.
           </p>
 
           <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-3 justify-center mb-8">
@@ -582,20 +582,20 @@ export default function LandingPage() {
         <div className="space-y-4">
           {[
             {
-              q: "Is Ilusion.io really secure?",
-              a: "Yes. We use industry-standard AES-256 encryption. For text secrets, encryption happens in your browser (Client-Side), meaning we never see your unencrypted data."
+              q: "How can I send a password securely?",
+              a: "To send a password securely, paste your credential into our secure link generator, configure optional password protection or IP whitelists, and share the generated E2EE link. The password is encrypted directly in your browser using AES-256 and never touches our servers in plain text."
             },
             {
-              q: "What does 'Burn on Read' mean?",
-              a: "It means the secret is permanently deleted from our database the moment it is accessed. Once the link is opened, it can never be viewed again."
+              q: "Is there a secure Privnote alternative?",
+              a: "Yes, Ilusion.io is the premier secure alternative to Privnote. Unlike legacy tools that have security vulnerabilities and show invasive ads, Ilusion features zero-knowledge client-side encryption (AES-256-GCM), secure file sharing (up to 100MB), custom alias support, and zero third-party ads."
             },
             {
-              q: "Can I send large files safely?",
-              a: "Absolutely. Free users can send up to 50MB, and Pro users up to 100MB. All files are stored with temporary access keys and deleted automatically."
+              q: "How does end-to-end encrypted file sharing work?",
+              a: "When you upload a file to create a one-time secret link, the file is encrypted client-side in the browser before being securely uploaded. The decryption key remains in the URL hash fragment and is never sent to our servers, keeping your files completely private."
             },
             {
               q: "Do I need an account to receive a secret?",
-              a: "No. Anyone with the secure link can reveal a secret. Accounts are only needed if you want to use the Secure Inbox or Developer API."
+              a: "No. Anyone with the secure one-time link can reveal the secret. Accounts are only needed if you want to use the Secure Inbox, get custom aliases, or integrate with our developer API."
             }
           ].map((faq, i) => (
             <div key={i} className="card p-6 bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] transition-all">
