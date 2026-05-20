@@ -162,7 +162,7 @@ export default function DashboardLayout({
       )}
 
       {/* ═══ Main Content ═══ */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {children}
       </main>
     </div>
