@@ -997,6 +997,7 @@ export default function CreateSecretPage() {
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="text-[10px] text-[#a5a1ad] hover:text-zinc-900 dark:hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="text-[10px] text-[#a5a1ad] hover:text-zinc-900 dark:hover:text-white transition-colors">Terms</Link>
+            <Link href="/docs" className="text-[10px] text-[#a5a1ad] hover:text-zinc-900 dark:hover:text-white transition-colors">Docs</Link>
             <Link href="/docs/api" className="text-[10px] text-[#a5a1ad] hover:text-zinc-900 dark:hover:text-white transition-colors">API Docs</Link>
           </div>
         </div>

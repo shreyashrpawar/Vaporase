@@ -644,6 +644,7 @@ export default function LandingPage() {
               <li><Link href="/create" className="text-xs text-muted-foreground hover:text-accent transition-colors">Create Secret</Link></li>
               <li><Link href="/view" className="text-xs text-muted-foreground hover:text-accent transition-colors">Reveal Secret</Link></li>
               <li><Link href="/pricing" className="text-xs text-muted-foreground hover:text-accent transition-colors">Pricing</Link></li>
+              <li><Link href="/docs" className="text-xs text-muted-foreground hover:text-accent transition-colors">Guides & Tutorials</Link></li>
               <li><Link href="/docs/api" className="text-xs text-muted-foreground hover:text-accent transition-colors">API Docs</Link></li>
             </ul>
           </div>
