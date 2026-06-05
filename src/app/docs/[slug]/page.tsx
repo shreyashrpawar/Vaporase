@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { slug } = await params;
   const article = DOCS_ARTICLES.find((a) => a.slug === slug);
   if (!article) return {};
-  
+
   return {
     title: `${article.title} | Ilusion Guides`,
     description: article.description,
@@ -39,7 +39,7 @@ export default async function DocArticlePage({ params }: { params: Promise<Param
   }
 
   const article = DOCS_ARTICLES[articleIndex];
-  
+
   // Next article calculation for bottom navigation
   const nextArticle = articleIndex < DOCS_ARTICLES.length - 1 ? DOCS_ARTICLES[articleIndex + 1] : null;
 
@@ -63,7 +63,7 @@ export default async function DocArticlePage({ params }: { params: Promise<Param
           })
         }}
       />
-      
+
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
         <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
@@ -123,7 +123,7 @@ export default async function DocArticlePage({ params }: { params: Promise<Param
       <div className="flex items-center justify-between pt-8 border-t border-border/60 mt-12">
         <div>
           {articleIndex > 0 && (
-            <Link 
+            <Link
               href={`/docs/${DOCS_ARTICLES[articleIndex - 1].slug}`}
               className="group flex flex-col items-start gap-1"
             >
@@ -136,7 +136,7 @@ export default async function DocArticlePage({ params }: { params: Promise<Param
         </div>
         <div>
           {nextArticle ? (
-            <Link 
+            <Link
               href={`/docs/${nextArticle.slug}`}
               className="group flex flex-col items-end gap-1"
             >
@@ -147,7 +147,7 @@ export default async function DocArticlePage({ params }: { params: Promise<Param
               </span>
             </Link>
           ) : (
-            <Link 
+            <Link
               href="/docs/api"
               className="group flex flex-col items-end gap-1"
             >

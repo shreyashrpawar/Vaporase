@@ -47,8 +47,8 @@ export const DOCS_ARTICLES: DocArticle[] = [
       {
         title: 'How do I add extra protection to my secure links?',
         content: 'If you want to protect your credentials against unauthorized access, toggle "Advanced Controls" on the creation form:\n\n' +
-          '• **Custom Passphrase Protection:** This adds a second layer of security by requiring the recipient to input a passphrase. The passphrase is typed and verified server-side using a secure SHA-256 hash. Without it, the browser cannot retrieve the encrypted payload.\n' +
-          '• **IP Address Whitelisting:** You can specify particular IP addresses that are allowed to open the link. If an unauthorized IP attempts to fetch the link, the server rejects the request, keeping the secret safe and intact.'
+          '• Custom Passphrase Protection: This adds a second layer of security by requiring the recipient to input a passphrase. The passphrase is typed and verified server-side using a secure SHA-256 hash. Without it, the browser cannot retrieve the encrypted payload.\n' +
+          '• IP Address Whitelisting: You can specify particular IP addresses that are allowed to open the link. If an unauthorized IP attempts to fetch the link, the server rejects the request, keeping the secret safe and intact.'
       }
     ]
   },
@@ -73,25 +73,25 @@ export const DOCS_ARTICLES: DocArticle[] = [
       {
         title: 'How does client-side E2EE work step-by-step?',
         content: 'When you generate a sharing link on Ilusion, the entire cryptographic flow occurs inside your web browser:\n\n' +
-          '1. **Local Key Generation:** The browser uses the standard Web Cryptography API to generate a high-entropy 256-bit symmetric encryption key in temporary memory.\n' +
-          '2. **Local AES-256 Encryption:** The plaintext secret is encrypted locally on your machine using the AES-GCM (Galois/Counter Mode) authenticated encryption algorithm.\n' +
-          '3. **Securing the Key in the URL:** The symmetric key is appended to your generated link as a URL hash fragment (e.g., `/secret/[id]#[decryption_key]`).\n' +
-          '4. **Zero-Knowledge Upload:** Only the encrypted ciphertext is sent to Ilusion\'s database. By web specification (RFC 3986), anything after the hash symbol (#) remains in the browser and is never transmitted to the server. Hence, Ilusion has zero knowledge of your encryption key.'
+          '1. Local Key Generation: The browser uses the standard Web Cryptography API to generate a high-entropy 256-bit symmetric encryption key in temporary memory.\n' +
+          '2. Local AES-256 Encryption: The plaintext secret is encrypted locally on your machine using the AES-GCM (Galois/Counter Mode) authenticated encryption algorithm.\n' +
+          '3. Securing the Key in the URL: The symmetric key is appended to your generated link as a URL hash fragment (e.g., /secret/[id]#[decryption_key]).\n' +
+          '4. Zero-Knowledge Upload: Only the encrypted ciphertext is sent to Ilusion\'s database. By web specification (RFC 3986), anything after the hash symbol (#) remains in the browser and is never transmitted to the server. Hence, Ilusion has zero knowledge of your encryption key.'
       },
       {
         title: 'How does the recipient decrypt the secret and how is it purged?',
         content: 'When the recipient visits the link, their browser performs the decryption locally:\n\n' +
           '1. The recipient\'s browser fetches the encrypted ciphertext from Ilusion\'s database.\n' +
-          '2. The browser extracts the decryption key from the URL hash fragment (`#[decryption_key]`) locally in memory.\n' +
+          '2. The browser extracts the decryption key from the URL hash fragment (#[decryption_key]) locally in memory.\n' +
           '3. The browser decrypts the payload using the WebCrypto API. The plain text never touches Ilusion\'s servers.\n' +
           '4. Instantly upon successful decryption, the server triggers an auto-purge operation, deleting the encrypted payload and any associated files from S3. We do not use soft-deletes, backups, or logs.'
       },
       {
         title: 'WARNING: Does using a Custom Alias or Inbox Drop halt zero-knowledge E2EE?',
-        content: 'Yes. It is critical to understand that **using a Custom URL Alias or an Inbox Drop halts browser-only zero-knowledge end-to-end encryption**.\n\n' +
-          '**How this works:**\n' +
-          'To support clean, branded URLs (e.g. `/s/acme-setup` with no messy `#` hash fragment at the end), the browser cannot keep the key hidden locally. Because web servers must handle the redirect routing, the symmetric decryption key is sent to the server and stored securely in our database under the `dropKey` field. \n\n' +
-          'While your data is still fully encrypted in transit via TLS/HTTPS and stored securely at rest, our server *technically* holds the key for redirection. If your workflow requires absolute, non-negotiable zero-knowledge E2EE (where no server ever holds the decryption key under any circumstance), you **must use standard links** (which retain the `#` hash fragment) rather than custom aliases.'
+        content: 'Yes. It is critical to understand that using a Custom URL Alias or an Inbox Drop halts browser-only zero-knowledge end-to-end encryption.\n\n' +
+          'How this works:\n' +
+          'To support clean, branded URLs (e.g. /s/acme-setup with no messy hash fragment at the end), the browser cannot keep the key hidden locally. Because web servers must handle the redirect routing, the symmetric decryption key is sent to the server and stored securely in our database under the dropKey field.\n\n' +
+          'While your data is still fully encrypted in transit via TLS/HTTPS and stored securely at rest, our server technically holds the key for redirection. If your workflow requires absolute, non-negotiable zero-knowledge E2EE (where no server ever holds the decryption key under any circumstance), you must use standard links (which retain the hash fragment) rather than custom aliases.'
       }
     ]
   },
@@ -111,7 +111,7 @@ export const DOCS_ARTICLES: DocArticle[] = [
     sections: [
       {
         title: 'What is an Ilusion Custom Alias and why should I use it?',
-        content: 'By default, Ilusion generates long random identifiers for links (e.g., `/secret/d8f2k9x1`). A Custom Alias allows you to define a clean, professional slug (e.g., `/s/acme-credentials`). This helps agency owners, freelancers, and support desks improve client trust, readability, and brand alignment when sharing sensitive credentials.'
+        content: 'By default, Ilusion generates long random identifiers for links (e.g., /secret/d8f2k9x1). A Custom Alias allows you to define a clean, professional slug (e.g., /s/acme-credentials). This helps agency owners, freelancers, and support desks improve client trust, readability, and brand alignment when sharing sensitive credentials.'
       },
       {
         title: 'How do I create a custom secure alias link?',
@@ -119,12 +119,12 @@ export const DOCS_ARTICLES: DocArticle[] = [
           '1. Go to the Ilusion creation form (/create).\n' +
           '2. Toggle open the "Advanced Controls" section.\n' +
           '3. Enter your preferred slug in the "Custom Alias" input (only alphanumeric characters and hyphens are supported).\n' +
-          '4. Click "Securely Create." If the slug is not currently occupied by an active secret, it will register and output your clean `/s/[alias]` link immediately.'
+          '4. Click "Securely Create." If the slug is not currently occupied by an active secret, it will register and output your clean /s/[alias] link immediately.'
       },
       {
         title: 'Security Clarification: The E2EE trade-off with Custom Aliases',
-        content: 'Please note that **configuring a Custom Alias halts client-only zero-knowledge E2EE**.\n\n' +
-          'Because custom aliases do not include a browser-only hash fragment (e.g. they look like `/s/my-slug` instead of `/secret/[id]#[key]`), the decryption key cannot remain purely in browser memory. To resolve the clean link and redirect the recipient, the browser transmits the decryption key to the server, which is stored in the database under the `dropKey` field.\n\n' +
+        content: 'Please note that configuring a Custom Alias halts client-only zero-knowledge E2EE.\n\n' +
+          'Because custom aliases do not include a browser-only hash fragment (e.g. they look like /s/my-slug instead of /secret/[id]#[key]), the decryption key cannot remain purely in browser memory. To resolve the clean link and redirect the recipient, the browser transmits the decryption key to the server, which is stored in the database under the dropKey field.\n\n' +
           'Although files and text remain highly secure in transit (via TLS) and encrypted at rest, absolute client-side zero-knowledge is bypassed. If you require zero-knowledge encryption where the server never receives the key, choose the standard link option.'
       }
     ]
@@ -145,15 +145,15 @@ export const DOCS_ARTICLES: DocArticle[] = [
     sections: [
       {
         title: 'How does the Ilusion Subdomain Inbox receive client credentials?',
-        content: 'Instead of asking clients to send database passwords or API keys over insecure chats or emails, you can share your personal secure subdomain link (e.g., `https://yourname.ilusion.io`). Senders can open this page, drag files, write passwords, and drop them. Senders do not need an account, and all data is encrypted in their browser before reaching your dashboard.'
+        content: 'Instead of asking clients to send database passwords or API keys over insecure chats or emails, you can share your personal secure subdomain link (e.g., https://yourname.ilusion.io). Senders can open this page, drag files, write passwords, and drop them. Senders do not need an account, and all data is encrypted in their browser before reaching your dashboard.'
       },
       {
         title: 'How do I set up and share my personal secure inbox portal?',
         content: 'Setting up your personal upload portal takes just a few steps:\n\n' +
           '1. Log in to your Ilusion account and open the dashboard.\n' +
           '2. Navigate to "Developer Settings" or the "Profile" view.\n' +
-          '3. Register a unique subdomain prefix (e.g., `acme-support`).\n' +
-          '4. Copy the portal address `https://acme-support.ilusion.io` and share it with your clients, teammates, or contractors.'
+          '3. Register a unique subdomain prefix (e.g., acme-support).\n' +
+          '4. Copy the portal address https://acme-support.ilusion.io and share it with your clients, teammates, or contractors.'
       },
       {
         title: 'How do I access and decrypt dropped secrets in my dashboard?',
