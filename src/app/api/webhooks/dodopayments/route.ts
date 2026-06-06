@@ -150,7 +150,8 @@ export async function POST(req: Request) {
         const client = await clerkClient();
         await client.users.updateUserMetadata(userId, {
           publicMetadata: {
-            plan: 'pro'
+            plan: 'pro',
+            planExpiresAt: expiryDate.toISOString()
           }
         });
       } catch (clerkErr) {

@@ -6,13 +6,13 @@ import InboxView from '@/components/dashboard-views/InboxView';
 import SecretsView from '@/components/dashboard-views/SecretsView';
 import RevealView from '@/components/dashboard-views/RevealView';
 import { useAuth } from '@clerk/nextjs';
-import { Pen, Eye, Inbox, Shield } from 'lucide-react';
+import { Pen, Eye, Shield, Inbox, Send, KeyRound } from 'lucide-react';
 
 type MobileTab = 'compose' | 'reveal' | 'secrets';
 
 const mobileTabs: { id: MobileTab; label: string; icon: React.ElementType }[] = [
-  { id: 'compose', label: 'Compose', icon: Pen },
-  { id: 'reveal', label: 'Reveal', icon: Eye },
+  { id: 'compose', label: 'Compose', icon: Send },
+  { id: 'reveal', label: 'Reveal', icon: KeyRound },
   { id: 'secrets', label: 'Secrets', icon: Shield },
 ];
 
@@ -24,53 +24,33 @@ export default function WorkspacePage() {
     return (
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* ── Mobile Skeleton ── */}
-        <div className="lg:hidden flex-1 p-6 space-y-6 animate-pulse bg-[var(--bg-primary)] dark:bg-zinc-900/40">
-          <div className="h-4 w-32 bg-[var(--border-default)] dark:bg-white/5 rounded-md" />
-          <div className="h-64 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl" />
-          <div className="h-10 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-lg" />
+        <div className="lg:hidden flex-1 p-5 space-y-5 bg-[var(--bg-primary)]">
+          <div className="h-12 w-full bg-[var(--border-default)] rounded-2xl animate-pulse" />
+          <div className="h-48 w-full bg-[var(--border-default)] rounded-2xl animate-pulse" />
+          <div className="h-12 w-full bg-[var(--border-default)] rounded-2xl animate-pulse" />
+          <div className="h-12 w-3/4 bg-[var(--border-default)] rounded-2xl animate-pulse" />
         </div>
 
         {/* ── Desktop Skeleton ── */}
-        <div className="hidden lg:flex flex-1 flex-row h-full divide-x divide-[var(--border-default)] dark:divide-white/5 overflow-hidden">
-          
-          {/* Left Column Skeleton */}
-          <div className="w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-secondary)] dark:bg-transparent">
-            <div className="h-14 flex items-center px-6 border-b border-transparent shrink-0">
-              <div className="h-3 w-32 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse" />
-            </div>
-            <div className="flex-1 px-6 pb-6 pt-2 space-y-6">
-              <div className="h-12 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse" />
-              <div className="h-32 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse" />
-              <div className="h-12 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse" />
-            </div>
+        <div className="hidden lg:flex flex-1 h-full overflow-hidden">
+          <div className="w-[380px] xl:w-[400px] shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-secondary)] p-6 space-y-5">
+            <div className="h-4 w-28 bg-[var(--border-default)] rounded-full animate-pulse" />
+            <div className="h-12 w-full bg-[var(--border-default)] rounded-xl animate-pulse" />
+            <div className="h-36 w-full bg-[var(--border-default)] rounded-xl animate-pulse" />
+            <div className="h-12 w-full bg-[var(--border-default)] rounded-xl animate-pulse" />
           </div>
-          
-          {/* Middle Column Skeleton */}
-          <div className="flex-1 flex flex-col bg-[var(--bg-primary)] dark:bg-zinc-900/40">
-            <div className="max-w-2xl w-full mx-auto flex-1 flex flex-col py-6">
-              <div className="h-14 flex items-center px-6 shrink-0">
-                <div className="h-3 w-24 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse" />
-              </div>
-              <div className="px-6 space-y-6">
-                <div className="h-24 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-2xl animate-pulse" />
-                <div className="h-3 w-32 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse mt-12 mb-4" />
-                <div className="h-40 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-2xl animate-pulse" />
-              </div>
-            </div>
+          <div className="flex-1 p-6 space-y-6">
+            <div className="h-4 w-24 bg-[var(--border-default)] rounded-full animate-pulse" />
+            <div className="h-28 w-full bg-[var(--border-default)] rounded-2xl animate-pulse" />
+            <div className="h-4 w-20 bg-[var(--border-default)] rounded-full animate-pulse" />
+            <div className="h-44 w-full bg-[var(--border-default)] rounded-2xl animate-pulse" />
           </div>
-
-          {/* Right Column Skeleton */}
-          <div className="w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-primary)] dark:bg-transparent pt-2">
-            <div className="h-14 flex items-center px-6 shrink-0 mt-4">
-              <div className="h-3 w-28 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse" />
-            </div>
-            <div className="flex-1 px-6 space-y-4">
-              <div className="h-28 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse delay-75" />
-              <div className="h-28 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse delay-100" />
-              <div className="h-28 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse delay-150" />
-            </div>
+          <div className="w-[380px] xl:w-[400px] shrink-0 border-l border-[var(--border-default)] p-6 space-y-4">
+            <div className="h-4 w-28 bg-[var(--border-default)] rounded-full animate-pulse" />
+            <div className="h-24 w-full bg-[var(--border-default)] rounded-xl animate-pulse" />
+            <div className="h-24 w-full bg-[var(--border-default)] rounded-xl animate-pulse" />
+            <div className="h-24 w-full bg-[var(--border-default)] rounded-xl animate-pulse" />
           </div>
-
         </div>
       </div>
     );
@@ -79,87 +59,139 @@ export default function WorkspacePage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
 
-      {/* ── Mobile Tab Bar (hidden on lg+) ── */}
-      <div className="lg:hidden shrink-0 flex items-center border-b border-[var(--border-default)] dark:border-white/5 bg-[var(--bg-secondary)] dark:bg-zinc-900/60">
-        {mobileTabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-              activeTab === id
-                ? 'text-[var(--accent-primary)] border-b-2 border-[var(--accent-primary)]'
-                : 'text-[var(--text-secondary)] dark:text-zinc-500 border-b-2 border-transparent'
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Mobile Content Panels (hidden on lg+) ── */}
-      <div className="lg:hidden flex-1 overflow-y-auto animate-fade-in">
-        {activeTab === 'compose' && (
-          <div className="px-4 py-4 pb-8">
-            <SendSecretForm />
-          </div>
-        )}
-        {activeTab === 'reveal' && (
-          <div className="px-4 py-4 pb-8">
-            <div className="mb-4">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 mb-4">
-                <Eye className="w-3.5 h-3.5" /> Reveal Secret
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── Mobile Layout (hidden on lg+) ── */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div className="lg:hidden flex-1 flex flex-col overflow-hidden">
+        
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === 'compose' && (
+            <div className="px-4 py-5 pb-24">
+              <SendSecretForm />
+            </div>
+          )}
+          {activeTab === 'reveal' && (
+            <div className="px-4 py-5 pb-24 space-y-5">
+              {/* Reveal Card */}
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] overflow-hidden">
+                <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[var(--border-default)]">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <KeyRound className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Reveal Secret</span>
+                </div>
+                <div className="p-4">
+                  <RevealView />
+                </div>
               </div>
-              <RevealView />
+
+              {/* Inbox Card */}
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] overflow-hidden">
+                <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[var(--border-default)]">
+                  <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Inbox className="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Inbox Drops</span>
+                </div>
+                <div className="p-4">
+                  <InboxView />
+                </div>
+              </div>
             </div>
-            <div className="mt-6 border-t border-[var(--border-default)] dark:border-white/5 pt-6">
-              <InboxView />
+          )}
+          {activeTab === 'secrets' && (
+            <div className="px-4 py-5 pb-24">
+              <SecretsView />
             </div>
+          )}
+        </div>
+
+        {/* ── Fixed Bottom Tab Bar ── */}
+        <div
+          className="fixed bottom-0 left-0 right-0 z-30 backdrop-blur-xl border-t safe-area-bottom transition-colors"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--dashboard-nav-bg) 92%, transparent)',
+            borderColor: 'var(--dashboard-nav-border)',
+          }}
+        >
+          <div className="flex items-stretch">
+            {mobileTabs.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 relative transition-all ${
+                  activeTab === id
+                    ? 'text-[var(--accent-primary)]'
+                    : 'text-[var(--text-tertiary)]'
+                }`}
+              >
+                {activeTab === id && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[var(--accent-primary)]" />
+                )}
+                <Icon className={`w-5 h-5 transition-transform ${activeTab === id ? 'scale-110' : ''}`} />
+                <span className="text-[10px] font-bold tracking-wide">{label}</span>
+              </button>
+            ))}
           </div>
-        )}
-        {activeTab === 'secrets' && (
-          <div className="px-4 py-4 pb-8">
-            <SecretsView />
-          </div>
-        )}
+        </div>
       </div>
 
+      {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* ── Desktop 3-Column Layout (hidden below lg) ── */}
-      <div className="hidden lg:flex flex-1 flex-row h-full divide-x divide-[var(--border-default)] dark:divide-white/5 overflow-hidden animate-fade-in">
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div className="hidden lg:flex flex-1 h-full overflow-hidden">
 
-        {/* ── Left Column: Compose Secret ── */}
-        <div className="w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-secondary)] dark:bg-transparent">
-          <div className="h-14 flex items-center px-6 border-b border-transparent text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 gap-2 shrink-0">
-            <Pen className="w-3.5 h-3.5" /> Compose Secret
+        {/* ── Left Column: Compose ── */}
+        <div className="w-[380px] xl:w-[400px] shrink-0 flex flex-col border-r border-[var(--border-default)] bg-[var(--bg-secondary)]">
+          <div className="h-10 shrink-0 flex items-center gap-2.5 px-5 border-b border-[var(--border-default)]">
+            <div className="w-5 h-5 rounded-md bg-[var(--accent-primary)]/10 flex items-center justify-center">
+              <Pen className="w-2.5 h-2.5 text-[var(--accent-primary)]" />
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Compose</span>
           </div>
-          <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">
+          <div className="flex-1 overflow-y-auto px-5 pb-6 pt-3">
             <SendSecretForm />
           </div>
         </div>
 
-        {/* ── Middle Column: Reveal & Inbox ── */}
-        <div className="flex-1 flex flex-col bg-[var(--bg-primary)] dark:bg-zinc-900/40 overflow-y-auto">
-          <div className="max-w-2xl w-full mx-auto flex-1 flex flex-col">
-            <div className="flex flex-col border-b border-[var(--border-default)] dark:border-white/5 py-6">
-              <div className="h-14 flex items-center px-6 text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] dark:text-zinc-500 gap-2 shrink-0">
-                <Eye className="w-3.5 h-3.5" /> Reveal Secret
+        {/* ── Middle Column: Reveal + Inbox ── */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Reveal Section */}
+          <div className="shrink-0 border-b border-[var(--border-default)]">
+            <div className="h-10 flex items-center gap-2.5 px-5">
+              <div className="w-5 h-5 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                <Eye className="w-2.5 h-2.5 text-emerald-500 dark:text-emerald-400" />
               </div>
-              <div className="px-6">
-                <RevealView />
-              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Reveal Secret</span>
             </div>
+            <div className="px-5 pb-4">
+              <RevealView />
+            </div>
+          </div>
 
-            <div className="flex-1 flex flex-col min-h-0 py-6">
-              <div className="px-6 flex-1 overflow-y-auto pb-6">
-                <InboxView />
+          {/* Inbox Section */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="h-10 shrink-0 flex items-center gap-2.5 px-5">
+              <div className="w-5 h-5 rounded-md bg-blue-500/10 flex items-center justify-center">
+                <Inbox className="w-2.5 h-2.5 text-blue-500 dark:text-blue-400" />
               </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Inbox Drops</span>
+            </div>
+            <div className="px-5 flex-1 overflow-y-auto pb-6">
+              <InboxView />
             </div>
           </div>
         </div>
 
         {/* ── Right Column: Active Secrets ── */}
-        <div className="w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-primary)] dark:bg-transparent pt-2">
-          <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="w-[380px] xl:w-[400px] shrink-0 flex flex-col border-l border-[var(--border-default)]">
+          <div className="h-10 shrink-0 flex items-center gap-2.5 px-5 border-b border-[var(--border-default)]">
+            <div className="w-5 h-5 rounded-md bg-amber-500/10 flex items-center justify-center">
+              <Shield className="w-2.5 h-2.5 text-amber-500 dark:text-amber-400" />
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Active Secrets</span>
+          </div>
+          <div className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
             <SecretsView />
           </div>
         </div>
