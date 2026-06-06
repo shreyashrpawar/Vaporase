@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Ilusion - E2EE Secret Sharing",
+  "version": "1.0.0",
+  "description": "Create and reveal end-to-end encrypted, self-destructing secrets directly from your browser.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "clipboardWrite",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://ilusion.io/*"
+  ],
+  "background": {
+    "service_worker": "src/scripts/background.js"
+  }
+}
