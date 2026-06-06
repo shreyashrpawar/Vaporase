@@ -16,13 +16,13 @@ export default function DashboardLayout({
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   
-  // Initialize profile with Clerk publicMetadata if available (instant load)
   const [profile, setProfile] = useState<any>(() => {
     if (user?.publicMetadata?.plan) {
       return { plan: user.publicMetadata.plan, planExpiresAt: user.publicMetadata.planExpiresAt };
     }
     return null;
   });
+  const [isProfileLoading, setIsProfileLoading] = useState(() => !user?.publicMetadata?.plan);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -43,7 +43,8 @@ export default function DashboardLayout({
             setProfile(data);
           }
         })
-        .catch(err => console.error('Failed to fetch profile in layout:', err));
+        .catch(err => console.error('Failed to fetch profile in layout:', err))
+        .finally(() => setIsProfileLoading(false));
     }
   }, [isSignedIn, user]);
 
@@ -108,7 +109,9 @@ export default function DashboardLayout({
         {/* Actions */}
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
-          {profile?.plan === 'pro' ? (
+          {isProfileLoading ? (
+            <div className="hidden sm:flex w-[88px] h-[30px] bg-[var(--border-default)] rounded-lg animate-pulse" />
+          ) : profile?.plan === 'pro' ? (
             <div className="hidden sm:flex items-center gap-1.5 bg-[var(--accent-subtle)] border border-[var(--accent-primary)]/20 px-3 py-1 rounded-full">
               <Rocket className="w-3 h-3 text-[var(--accent-primary)]" />
               <span className="text-[11px] font-bold text-[var(--accent-primary)] tracking-wide uppercase">Pro</span>

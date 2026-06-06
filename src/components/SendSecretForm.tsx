@@ -123,6 +123,7 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [isProfileLoading, setIsProfileLoading] = useState(() => !user?.publicMetadata?.plan);
   const [burnOnRead, setBurnOnRead] = useState(true);
   const [showUpgradeFor, setShowUpgradeFor] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -146,9 +147,11 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             setUserPlan(data.plan);
           }
         })
-        .catch(err => console.error('Error fetching profile:', err));
+        .catch(err => console.error('Error fetching profile:', err))
+        .finally(() => setIsProfileLoading(false));
     } else {
       setUserPlan('free');
+      setIsProfileLoading(false);
     }
   }, [isSignedIn, user]);
 
@@ -621,7 +624,11 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             <div className="space-y-2 relative">
               <label className="text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
                 <span>Password</span>
-                {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
+                {isProfileLoading ? (
+                  <div className="w-8 h-4 bg-[var(--border-default)] rounded animate-pulse" />
+                ) : userPlan === 'free' && (
+                  <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>
+                )}
                 {!burnOnRead && <span className="text-[8px] text-accent">Required</span>}
               </label>
               <div className="relative">
@@ -651,7 +658,11 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Burn on View</p>
-                {userPlan === 'free' && <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>}
+                {isProfileLoading ? (
+                  <div className="w-8 h-4 bg-[var(--border-default)] rounded animate-pulse" />
+                ) : userPlan === 'free' && (
+                  <span className="text-[8px] bg-gradient-to-r from-amber-400 to-orange-500 text-white px-1.5 py-0.5 rounded tracking-wider">PRO</span>
+                )}
                 {!burnOnRead && <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full border border-accent/20 font-bold">Multiple Views Enabled</span>}
               </div>
               <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>

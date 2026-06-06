@@ -62,55 +62,55 @@
 
 /* ── Dark Theme ── */
 .dark {
-  --bg-primary: #09090b;
-  --bg-secondary: #111113;
-  --bg-tertiary: #18181b;
-  --bg-elevated: #141416;
-  --bg-inset: #0c0c0e;
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-elevated: #1e293b;
+  --bg-inset: #0f172a;
 
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #52525b;
-  --text-inverted: #09090b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-inverted: #0b0f19;
 
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-default: rgba(148, 163, 184, 0.15);
+  --border-subtle: rgba(148, 163, 184, 0.08);
+  --border-strong: rgba(148, 163, 184, 0.25);
 
-  --accent-primary: #60a5fa;
-  --accent-hover: #3b82f6;
-  --accent-subtle: rgba(96, 165, 250, 0.08);
-  --accent-muted: rgba(96, 165, 250, 0.15);
-  --accent-glow: rgba(96, 165, 250, 0.3);
+  --accent-primary: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-subtle: rgba(59, 130, 246, 0.1);
+  --accent-muted: rgba(59, 130, 246, 0.15);
+  --accent-glow: rgba(59, 130, 246, 0.3);
 
-  --success: #34d399;
-  --warning: #fbbf24;
-  --destructive: #f87171;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
 
-  --surface-glass: rgba(20, 20, 22, 0.8);
-  --surface-overlay: rgba(255, 255, 255, 0.02);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 60px -12px rgba(96, 165, 250, 0.25);
+  --surface-glass: rgba(17, 24, 39, 0.8);
+  --surface-overlay: rgba(255, 255, 255, 0.03);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 60px -12px rgba(59, 130, 246, 0.25);
 
-  --rail-bg: #0c0c0e;
-  --rail-border: rgba(255, 255, 255, 0.06);
-  --rail-hover: rgba(255, 255, 255, 0.04);
-  --rail-active-bg: rgba(96, 165, 250, 0.1);
-  --rail-active-border: rgba(96, 165, 250, 0.25);
+  --rail-bg: #0f172a;
+  --rail-border: rgba(148, 163, 184, 0.1);
+  --rail-hover: rgba(148, 163, 184, 0.15);
+  --rail-active-bg: rgba(59, 130, 246, 0.15);
+  --rail-active-border: rgba(59, 130, 246, 0.3);
 
-  --dashboard-nav-bg: #0f0f11;
-  --dashboard-nav-border: rgba(255, 255, 255, 0.06);
-  --dashboard-nav-text: #fafafa;
-  --dashboard-nav-text-muted: #71717a;
-  --dashboard-nav-pill-bg: rgba(255, 255, 255, 0.05);
-  --dashboard-nav-pill-active: rgba(255, 255, 255, 0.1);
+  --dashboard-nav-bg: #0b0f19;
+  --dashboard-nav-border: rgba(148, 163, 184, 0.15);
+  --dashboard-nav-text: #f8fafc;
+  --dashboard-nav-text-muted: #94a3b8;
+  --dashboard-nav-pill-bg: rgba(148, 163, 184, 0.1);
+  --dashboard-nav-pill-active: rgba(148, 163, 184, 0.2);
 
-  --dot-color: rgba(255, 255, 255, 0.04);
-  --mesh-1: rgba(96, 165, 250, 0.12);
-  --mesh-2: rgba(59, 130, 246, 0.06);
-  --mesh-3: rgba(56, 189, 248, 0.04);
+  --dot-color: rgba(255, 255, 255, 0.05);
+  --mesh-1: rgba(59, 130, 246, 0.1);
+  --mesh-2: rgba(99, 102, 241, 0.05);
+  --mesh-3: rgba(16, 185, 129, 0.03);
 }
 
 /* ── Tailwind Theme Tokens ── */
