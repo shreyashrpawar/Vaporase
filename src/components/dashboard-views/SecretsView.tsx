@@ -75,8 +75,12 @@ export default function SecretsDashboardPage() {
   };
 
   if (!isLoaded || isLoading) return (
-    <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-primary)' }} />
+    <div className="flex flex-col h-full animate-fade-in">
+      <div className="flex flex-col space-y-3 pt-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-[120px] w-full bg-[var(--border-default)] dark:bg-white/[0.04] rounded-2xl animate-pulse" />
+        ))}
+      </div>
     </div>
   );
 

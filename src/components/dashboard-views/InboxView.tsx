@@ -62,8 +62,15 @@ export default function InboxPage() {
   const pastSecrets = filteredSecrets.filter(s => s.status !== 'active');
 
   if (!isLoaded || isLoading) return (
-    <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-primary)' }} />
+    <div className="animate-fade-in flex flex-col h-full">
+      <div className="h-14 flex items-center justify-between border-b border-transparent shrink-0 mb-2">
+        <div className="h-3 w-24 bg-[var(--border-default)] dark:bg-white/[0.04] rounded-full animate-pulse" />
+      </div>
+      <div className="flex flex-col space-y-3">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-[88px] w-full bg-[var(--border-default)] dark:bg-white/[0.04] rounded-2xl animate-pulse" />
+        ))}
+      </div>
     </div>
   );
 
