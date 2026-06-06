@@ -20,7 +20,61 @@ export default function WorkspacePage() {
   const { isLoaded, isSignedIn } = useAuth();
   const [activeTab, setActiveTab] = useState<MobileTab>('compose');
 
-  if (!isLoaded || !isSignedIn) return null;
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* ── Mobile Skeleton ── */}
+        <div className="lg:hidden flex-1 p-6 space-y-6 animate-pulse bg-[var(--bg-primary)] dark:bg-zinc-900/40">
+          <div className="h-4 w-32 bg-[var(--border-default)] dark:bg-white/5 rounded-md" />
+          <div className="h-64 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl" />
+          <div className="h-10 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-lg" />
+        </div>
+
+        {/* ── Desktop Skeleton ── */}
+        <div className="hidden lg:flex flex-1 flex-row h-full divide-x divide-[var(--border-default)] dark:divide-white/5 overflow-hidden">
+          
+          {/* Left Column Skeleton */}
+          <div className="w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-secondary)] dark:bg-transparent">
+            <div className="h-14 flex items-center px-6 border-b border-transparent shrink-0">
+              <div className="h-3 w-32 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse" />
+            </div>
+            <div className="flex-1 px-6 pb-6 pt-2 space-y-6">
+              <div className="h-12 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse" />
+              <div className="h-32 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse" />
+              <div className="h-12 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse" />
+            </div>
+          </div>
+          
+          {/* Middle Column Skeleton */}
+          <div className="flex-1 flex flex-col bg-[var(--bg-primary)] dark:bg-zinc-900/40">
+            <div className="max-w-2xl w-full mx-auto flex-1 flex flex-col py-6">
+              <div className="h-14 flex items-center px-6 shrink-0">
+                <div className="h-3 w-24 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse" />
+              </div>
+              <div className="px-6 space-y-6">
+                <div className="h-24 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-2xl animate-pulse" />
+                <div className="h-3 w-32 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse mt-12 mb-4" />
+                <div className="h-40 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-2xl animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column Skeleton */}
+          <div className="w-[390px] xl:w-[420px] shrink-0 flex flex-col bg-[var(--bg-primary)] dark:bg-transparent pt-2">
+            <div className="h-14 flex items-center px-6 shrink-0 mt-4">
+              <div className="h-3 w-28 bg-[var(--border-default)] dark:bg-white/5 rounded-full animate-pulse" />
+            </div>
+            <div className="flex-1 px-6 space-y-4">
+              <div className="h-28 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse delay-75" />
+              <div className="h-28 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse delay-100" />
+              <div className="h-28 w-full bg-[var(--border-default)] dark:bg-white/5 rounded-xl animate-pulse delay-150" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
