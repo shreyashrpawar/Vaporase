@@ -25,7 +25,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { generateKey, encryptText, hashPassword, deriveKeyFromPassword } from '@/lib/crypto';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, useUser } from '@clerk/nextjs';
 import { nanoid } from 'nanoid';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -67,6 +67,7 @@ interface SendSecretFormProps {
 
 export default function SendSecretForm({ profile }: SendSecretFormProps) {
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
 
   // Recipient state
   const [recipient, setRecipient] = useState<any>(profile || null);
@@ -132,16 +133,24 @@ export default function SendSecretForm({ profile }: SendSecretFormProps) {
   // Fetch the sender's plan
   useEffect(() => {
     if (isSignedIn) {
+      // First try to set it instantly from Clerk publicMetadata
+      if (user?.publicMetadata?.plan) {
+        setUserPlan(user.publicMetadata.plan as 'free' | 'pro');
+      }
+
+      // Then fetch from database in background to ensure it is perfectly in sync
       fetch('/api/profile')
         .then(res => res.json())
         .then(data => {
-          setUserPlan(data.plan || 'free');
+          if (data.plan && data.plan !== user?.publicMetadata?.plan) {
+            setUserPlan(data.plan);
+          }
         })
         .catch(err => console.error('Error fetching profile:', err));
     } else {
       setUserPlan('free');
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, user]);
 
   const maxTotalSize = userPlan === 'pro' ? MAX_FILE_SIZE_PRO : MAX_FILE_SIZE_FREE;
   const totalFilesSize = files.reduce((acc, f) => acc + f.size, 0);

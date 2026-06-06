@@ -4,6 +4,7 @@ import { userProfiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { createHmac, timingSafeEqual } from 'crypto';
 import DodoPayments from 'dodopayments';
+import { clerkClient } from '@clerk/nextjs/server';
 
 const dodo = new DodoPayments({
   bearerToken: process.env.DODO_API_KEY!,
@@ -144,6 +145,17 @@ export async function POST(req: Request) {
         .update(userProfiles)
         .set({ plan: 'pro', planExpiresAt: expiryDate, updatedAt: new Date() })
         .where(eq(userProfiles.userId, userId));
+
+      try {
+        const client = await clerkClient();
+        await client.users.updateUserMetadata(userId, {
+          publicMetadata: {
+            plan: 'pro'
+          }
+        });
+      } catch (clerkErr) {
+        console.error('Failed to sync plan to Clerk publicMetadata:', clerkErr);
+      }
 
       console.log(`User ${userId} → PRO (${productId || 'unknown product'}). Expires: ${expiryDate.toISOString()}`);
     }
