@@ -1,11 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MailtrapClient } from "mailtrap";
-
-const TOKEN = process.env.MAILTRAP_TOKEN!;
-
-const client = new MailtrapClient({
-  token: TOKEN,
-});
+import { sendEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   try {
@@ -16,24 +10,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Name, email, and message are required' }, { status: 400 });
     }
 
-    const sender = {
-      email: "hello@ilusion.io",
-      name: "Ilusion Contact Form",
-    };
-    
-    const recipients = [
-      {
-        email: "shreyashrpawar28@gmail.com",
-      }
-    ];
-
-    await client.send({
-      from: sender,
-      to: recipients,
+    const result = await sendEmail({
+      from: {
+        address: process.env.SMTP_USER || "hello@ilusion.io",
+        name: "Ilusion Contact Form",
+      },
+      to: "shreyashrpawar28@gmail.com",
+      replyTo: email,
       subject: `[Contact Form] ${subject || 'New Message'}`,
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-      category: "Contact Form",
     });
+
+    if (!result.success) {
+      throw result.error;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -41,3 +31,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 }
+
